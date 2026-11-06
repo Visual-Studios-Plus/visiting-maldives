@@ -21,18 +21,39 @@ export default async function GuidePage({ params }: PageProps<"/guides/[slug]">)
   if (!guide) notFound();
   const more = guides.filter((g) => g.slug !== guide.slug).slice(0, 3);
 
+  const glance = [{ label: "Season", value: guide.season }, { label: "Where", value: guide.atoll }, ...guide.facts];
+
   return (
     <>
-      <PageHero image={guide.image} eyebrow={`${guide.category} · ${guide.atoll}`} title={guide.title} intro={guide.summary} />
-      <Reveal as="section" className="container-vm grid gap-12 py-12 lg:grid-cols-[1fr_340px] lg:py-24">
+      <PageHero image={guide.image} title={guide.title} intro={guide.summary} />
+
+      {/* Phone: key facts first, as a swipeable strip (desktop keeps the sidebar) */}
+      <section className="lg:hidden" aria-label="At a glance">
+        <div className="no-scrollbar flex gap-2 overflow-x-auto px-4 pt-6 sm:px-8">
+          {glance.map((f) => (
+            <div key={f.label} className="shrink-0 rounded-card bg-shell px-4 py-3">
+              <p className="eyebrow text-driftwood">{f.label}</p>
+              <p className="mt-1 font-mono text-[14px] whitespace-nowrap">{f.value}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <Reveal as="section" className="container-vm grid gap-12 pt-6 pb-12 lg:grid-cols-[1fr_340px] lg:py-24">
         <article>
-          <div data-reveal className="flex flex-wrap items-center gap-3 font-mono text-[12px] text-driftwood">
-            <span>{guide.read} min read</span>·<span>{CHECKED}</span>·<span>By our local writers</span>
-            <SaveButton slug={guide.slug} className="ml-auto border border-line" />
+          <div data-reveal className="flex items-center justify-between gap-4 border-b border-line pb-4">
+            <div className="font-mono text-[12px] leading-5 text-driftwood">
+              <p>
+                <span className="text-red">{guide.category}</span> · {guide.read} min read
+              </p>
+              <p>{CHECKED} · By our local writers</p>
+            </div>
+            <SaveButton slug={guide.slug} className="hidden border border-line lg:grid" />
           </div>
-          {guide.body.map((b) => (
+          {guide.body.map((b, i) => (
             <div key={b.heading} data-reveal className="mt-10 max-w-2xl">
-              <h2 className="text-[28px] leading-8 font-semibold tracking-tight">{b.heading}</h2>
+              <p className="font-mono text-[12px] text-red">{String(i + 1).padStart(2, "0")}</p>
+              <h2 className="mt-1 text-[26px] leading-8 font-semibold tracking-tight lg:text-[28px]">{b.heading}</h2>
               <p className="mt-3 text-[17px] leading-[28px]">{b.text}</p>
             </div>
           ))}
@@ -40,10 +61,10 @@ export default async function GuidePage({ params }: PageProps<"/guides/[slug]">)
             Facts in this guide are checked against official sources every six months. Spot something out of date? Tell us and we will fix it.
           </p>
         </article>
-        <aside data-reveal className="h-max rounded-card bg-ink p-6 text-white lg:sticky lg:top-24">
+        <aside data-reveal className="hidden h-max rounded-card bg-ink p-6 text-white lg:sticky lg:top-24 lg:block">
           <p className="eyebrow text-white/60">At a glance</p>
           <dl className="mt-4 divide-y divide-white/10">
-            {[{ label: "Season", value: guide.season }, { label: "Where", value: guide.atoll }, ...guide.facts].map((f) => (
+            {glance.map((f) => (
               <div key={f.label} className="flex justify-between gap-4 py-3">
                 <dt className="text-white/60">{f.label}</dt>
                 <dd className="text-right font-mono text-[14px]">{f.value}</dd>
@@ -55,12 +76,21 @@ export default async function GuidePage({ params }: PageProps<"/guides/[slug]">)
           </Link>
         </aside>
       </Reveal>
-      <Reveal as="section" className="bg-shell py-12 lg:py-24">
+
+      <Reveal as="section" className="border-t border-line py-12 lg:py-24">
         <div className="container-vm">
-          <h2 data-reveal className="text-[36px] leading-[1.05] font-semibold tracking-[-0.03em] lg:text-[48px]">
+          <h2 data-reveal className="text-[32px] leading-[1.05] font-semibold tracking-[-0.03em] lg:text-center lg:text-[48px]">
             Keep <span className="accent">reading</span>
           </h2>
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Phone: the desktop photo cards in a swipeable row */}
+          <div className="no-scrollbar -mx-4 mt-6 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pb-8 sm:hidden">
+            {more.map((g) => (
+              <div key={g.slug} className="w-[78vw] shrink-0 snap-start">
+                <GuideCard guide={g} sizes="80vw" />
+              </div>
+            ))}
+          </div>
+          <div className="mt-10 hidden gap-4 sm:grid sm:grid-cols-2 lg:grid-cols-3">
             {more.map((g) => (
               <div key={g.slug} data-reveal>
                 <GuideCard guide={g} />
@@ -69,6 +99,15 @@ export default async function GuidePage({ params }: PageProps<"/guides/[slug]">)
           </div>
         </div>
       </Reveal>
+
+      {/* Phone: actions always in reach */}
+      <div className="sticky bottom-0 z-40 flex gap-2 border-t border-line bg-white px-4 py-3 lg:hidden">
+        <SaveButton slug={guide.slug} className="shrink-0 border border-line" />
+        <Link href="/plan-your-trip" className="flex flex-1 items-center justify-center rounded-control bg-red font-semibold text-white">
+          Plan your trip
+        </Link>
+      </div>
     </>
   );
+
 }

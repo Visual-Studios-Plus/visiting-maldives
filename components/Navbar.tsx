@@ -32,7 +32,7 @@ export default function Navbar() {
   }
 
   useGSAP(() => {
-    gsap.from(bar.current, { y: -80, opacity: 0, duration: 1, delay: 0.2 });
+    gsap.from(bar.current, { y: -80, opacity: 0, duration: 1, delay: document.getElementById("vm-loader") ? 2.9 : 0.2 });
     tl.current = gsap
       .timeline({ paused: true })
       .set(menu.current, { display: "flex" })
@@ -148,7 +148,7 @@ export default function Navbar() {
               <li key={n.href} data-menu-item>
                 <Link href={n.href} className="flex items-center justify-between py-4 text-[26px] leading-8 font-semibold tracking-tight">
                   {n.label}
-                  <span aria-hidden>→</span>
+                  <span aria-hidden data-arrow className="inline-block">→</span>
                 </Link>
               </li>
             ))}
@@ -159,7 +159,7 @@ export default function Navbar() {
               {guides.slice(0, 3).map((g) => (
                 <li key={g.slug}>
                   <Link href={`/guides/${g.slug}`} className="flex items-center gap-3 font-medium">
-                    <span className="relative size-11 shrink-0 overflow-hidden rounded-[8px]">
+                    <span className="relative size-11 shrink-0 overflow-hidden rounded-control">
                       <Image src={photo(g.image, 120)} alt="" fill sizes="44px" className="object-cover" />
                     </span>
                     {g.title}

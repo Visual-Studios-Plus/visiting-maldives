@@ -49,7 +49,8 @@ export default function PageHero({
   useGSAP(
     () => {
       if (reduced()) return;
-      const tl = gsap.timeline({ delay: 0.15 });
+      // On a fresh page load, wait for the red logo loader to lift before the hero intro
+      const tl = gsap.timeline({ delay: document.getElementById("vm-loader") ? 2.9 : 0.15 });
       tl.from("[data-hero-img]", { scale: 1.18, duration: 2.2, ease: "expo.out" }, 0)
         .from("[data-word]", { yPercent: 110, duration: 1.1, stagger: 0.06, ease: "expo.out" }, 0.35)
         .from("[data-hero-fade]", { y: 24, opacity: 0, stagger: 0.1, duration: 0.9 }, 0.8);
@@ -75,7 +76,9 @@ export default function PageHero({
           <Image src={photo(image, 2400)} alt="" fill priority sizes="100vw" className="object-cover" />
         </div>
       </div>
-      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-ink/45 via-ink/20 to-ink/70" />
+      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-ink/50 via-ink/30 to-ink/70" />
+      {/* Extra shade behind the centred headline so white text reads on bright lagoons */}
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_60%_45%_at_50%_50%,rgba(20,18,26,0.45),transparent)]" />
       <div data-hero-content className="container-vm flex flex-col items-center pt-28 pb-16 text-center">
         <h1 className="h-display max-w-5xl text-[44px] sm:text-[64px] lg:text-[84px]">
           <Words text={lead} />

@@ -3,8 +3,9 @@
 
 export const CHECKED = "Checked 3 Nov 2026";
 
+// Local photos (real Maldivian places, Wikimedia Commons, see /credits) start with "/".
 export const photo = (id: string, w = 1600) =>
-  `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&q=75`;
+  id.startsWith("/") ? id : `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&q=75`;
 
 export const P = {
   aerial: "1514282401047-d79a71a590e8",
@@ -25,6 +26,15 @@ export const P = {
   beach: "1520942702018-0862200e6873",
   wave: "1559827260-dc66d52bef19",
   shallows: "1504681869696-d977211a5f4c",
+  maleAerial: "/photos/male-aerial.jpg",
+  maleSea: "/photos/male-street.jpg",
+  hukuru: "/photos/hukuru-miskiy.jpg",
+  sultanPark: "/photos/sultan-park.jpg",
+  felidhoo: "/photos/felidhoo.jpg",
+  baaAerial: "/photos/baa-islands.jpg",
+  addu: "/photos/addu.jpg",
+  dhoni: "/photos/dhoni.jpg",
+  dhoniHuvahenhoo: "/photos/dhoni-huvahenhoo.jpg",
 } as const;
 
 export type Category = "Marine life" | "Heritage" | "Islands" | "Food" | "Adventure";
@@ -74,7 +84,7 @@ export const guides: Guide[] = [
     atoll: "Malé",
     season: "All year",
     read: 5,
-    image: P.jetty,
+    image: P.hukuru,
     body: [
       { heading: "Start at the harbour", text: "Begin at the fish market on Boduthakurufaanu Magu in the late afternoon, when the tuna boats come in. Cross to the local market for dried fish, betel and chilli." },
       { heading: "Old Friday Mosque", text: "Hukuru Miskiy dates from 1658 and is built from carved coral stone. Dress modestly. Visitors may need permission to go inside, so ask at the gate." },
@@ -95,7 +105,7 @@ export const guides: Guide[] = [
     atoll: "Kaafu",
     season: "All year",
     read: 7,
-    image: P.lagoonPath,
+    image: P.felidhoo,
     body: [
       { heading: "Why go local", text: "Stay on a local island, travel by public ferry and meet the people who live there. Guesthouses on Maafushi, Thulusdhoo and Gulhi cost a fraction of a resort." },
       { heading: "The ferry network", text: "Public ferries leave from Malé's Villingili terminal. Fares are a few dollars, but most routes skip Fridays, so check the current timetable before you plan." },
@@ -229,12 +239,12 @@ export type Atoll = {
 };
 
 export const atolls: Atoll[] = [
-  { slug: "male", name: "Malé & Kaafu", dhivehi: "މާލެ", region: "Central", tagline: "The capital and its lagoons", intro: "Kaafu wraps around Malé and the airport. Local islands, surf breaks and sandbanks are all under an hour away.", bestFor: ["First visits", "Local islands", "Surf"], transfer: "Speedboat · 15–60 min", image: P.lagoonPath },
-  { slug: "baa", name: "Baa Atoll", dhivehi: "ބ", region: "North", tagline: "A UNESCO biosphere reserve", intro: "Home to Hanifaru Bay and its manta aggregations. The whole atoll is a UNESCO Biosphere Reserve.", bestFor: ["Mantas", "Snorkelling", "Couples"], transfer: "Seaplane · 35 min", image: P.diver },
+  { slug: "male", name: "Malé & Kaafu", dhivehi: "މާލެ", region: "Central", tagline: "The capital and its lagoons", intro: "Kaafu wraps around Malé and the airport. Local islands, surf breaks and sandbanks are all under an hour away.", bestFor: ["First visits", "Local islands", "Surf"], transfer: "Speedboat · 15–60 min", image: P.maleAerial },
+  { slug: "baa", name: "Baa Atoll", dhivehi: "ބ", region: "North", tagline: "A UNESCO biosphere reserve", intro: "Home to Hanifaru Bay and its manta aggregations. The whole atoll is a UNESCO Biosphere Reserve.", bestFor: ["Mantas", "Snorkelling", "Couples"], transfer: "Seaplane · 35 min", image: P.baaAerial },
   { slug: "ari", name: "Ari Atoll", dhivehi: "އަރި", region: "Central", tagline: "Whale sharks, all year", intro: "North and South Ari hold some of the best diving in the country, with whale sharks along the southern reef.", bestFor: ["Diving", "Whale sharks", "Resorts"], transfer: "Seaplane · 25 min", image: P.reef },
   { slug: "raa", name: "Raa Atoll", dhivehi: "ރ", region: "North", tagline: "Quiet reefs, few boats", intro: "Long, lightly visited reefs and new resorts, with the shipbuilding island of Alifushi.", bestFor: ["Quiet stays", "Reefs"], transfer: "Seaplane · 45 min", image: P.villas },
-  { slug: "vaavu", name: "Vaavu Atoll", dhivehi: "ވ", region: "Central", tagline: "Shark channels and night dives", intro: "A small atoll with famous channel dives and nurse sharks at Alimatha.", bestFor: ["Diving", "Local islands"], transfer: "Speedboat · 75 min", image: P.coral },
-  { slug: "addu", name: "Addu City", dhivehi: "އައްޑޫ", region: "South", tagline: "South of the equator", intro: "The southernmost atoll, linked by causeway, with cycling, wetlands and green turtles.", bestFor: ["Cycling", "Turtles", "History"], transfer: "Flight · 70 min", image: P.shallows },
+  { slug: "vaavu", name: "Vaavu Atoll", dhivehi: "ވ", region: "Central", tagline: "Shark channels and night dives", intro: "A small atoll with famous channel dives and nurse sharks at Alimatha.", bestFor: ["Diving", "Local islands"], transfer: "Speedboat · 75 min", image: P.dhoniHuvahenhoo },
+  { slug: "addu", name: "Addu City", dhivehi: "އައްޑޫ", region: "South", tagline: "South of the equator", intro: "The southernmost atoll, linked by causeway, with cycling, wetlands and green turtles.", bestFor: ["Cycling", "Turtles", "History"], transfer: "Flight · 70 min", image: P.addu },
 ];
 
 export type Stay = { name: string; type: "Resort" | "Guesthouse" | "Liveaboard"; atoll: string; price: string; note: string; image: string; partner?: boolean };
@@ -242,7 +252,7 @@ export type Stay = { name: string; type: "Resort" | "Guesthouse" | "Liveaboard";
 export const stays: Stay[] = [
   { name: "Overwater villas", type: "Resort", atoll: "Baa Atoll", price: "From USD 900", note: "One island, one resort. Seaplane transfer.", image: P.villas },
   { name: "Lagoon villas", type: "Resort", atoll: "South Ari", price: "From USD 650", note: "Close to the whale-shark reef.", image: P.villaDeck },
-  { name: "Beach guesthouse", type: "Guesthouse", atoll: "Kaafu", price: "From USD 70", note: "Local island, public ferry, bikini beach.", image: P.sunDeck },
+  { name: "Beach guesthouse", type: "Guesthouse", atoll: "Kaafu", price: "From USD 70", note: "Local island, public ferry, bikini beach.", image: P.felidhoo },
   { name: "Surf guesthouse", type: "Guesthouse", atoll: "North Malé", price: "From USD 90", note: "Five minutes by boat to Cokes.", image: P.wave },
   { name: "Dive liveaboard", type: "Liveaboard", atoll: "Central atolls", price: "From USD 1,400 / week", note: "Seven nights, three dives a day.", image: P.reef, partner: true },
   { name: "Pool villas", type: "Resort", atoll: "Raa Atoll", price: "From USD 750", note: "Quiet reef, few boats.", image: P.resortPool },
@@ -251,8 +261,8 @@ export const stays: Stay[] = [
 export type Eat = { name: string; kind: string; area: string; price: string; dish: string; image: string };
 
 export const eats: Eat[] = [
-  { name: "Harbour hotaa", kind: "Local café", area: "Malé", price: "MVR 60", dish: "Mas huni and roshi", image: P.restaurant },
-  { name: "Fish market grill", kind: "Seafood", area: "Malé", price: "MVR 180", dish: "Grilled reef fish", image: P.sunDeck },
+  { name: "Harbour hotaa", kind: "Local café", area: "Malé", price: "MVR 60", dish: "Mas huni and roshi", image: P.maleSea },
+  { name: "Fish market grill", kind: "Seafood", area: "Malé", price: "MVR 180", dish: "Grilled reef fish", image: P.dhoni },
   { name: "Sunset deck", kind: "Resort dining", area: "Baa Atoll", price: "USD 90", dish: "Tasting menu", image: P.sunsetVillas },
   { name: "Hulhumalé beachfront", kind: "Casual", area: "Hulhumalé", price: "MVR 250", dish: "Garudhiya fish soup", image: P.beach },
 ];
@@ -268,14 +278,14 @@ export const events: Event[] = [
   { month: "Nov", title: "Turtle nesting", text: "Green turtles nest on quiet southern beaches.", where: "Addu City" },
 ];
 
-export type Essential = { label: string; big: string; text: string };
+export type Essential = { label: string; big: string; text: string; href?: string };
 
 export const essentials: Essential[] = [
   { label: "Time zone", big: "UTC+5", text: "One zone all year. Some resorts set their own island time." },
   { label: "Money", big: "MVR", text: "Rufiyaa. 1 USD = 15.42 MVR, as of Nov 2026." },
   { label: "Power", big: "230 V", text: "50 Hz, Type G and D plugs." },
   { label: "Arrival", big: "MLE", text: "Velana International. Free 30-day tourist visa on arrival." },
-  { label: "Transfers", big: "3 ways", text: "Speedboat, seaplane (daylight only) or domestic flight." },
+  { label: "Transfers", big: "3 ways", text: "Speedboat, seaplane (daylight only) or domestic flight.", href: "/guides/seaplane-transfers" },
   { label: "SIM cards", big: "4G", text: "Dhiraagu and Ooredoo desks in arrivals. Bring your passport." },
 ];
 

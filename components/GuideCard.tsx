@@ -8,7 +8,7 @@ export default function GuideCard({ guide, tall = false, sizes = "(min-width:102
   return (
     <Link
       href={`/guides/${guide.slug}`}
-      className={`group relative block overflow-hidden rounded-card bg-ink text-white shadow-[0_24px_48px_-20px_rgba(20,18,26,0.45)] ${tall ? "aspect-[3/4]" : "aspect-[4/5]"}`}
+      className={`group relative block overflow-hidden rounded-card bg-ink text-white transition-[translate,box-shadow] duration-500 hover:-translate-y-1.5 hover:shadow-[0_32px_56px_-20px_rgba(20,18,26,0.55)] shadow-[0_24px_48px_-20px_rgba(20,18,26,0.45)] ${tall ? "aspect-[3/4]" : "aspect-[4/5]"}`}
     >
       <Image
         src={photo(guide.image, 900)}
@@ -29,7 +29,7 @@ export default function GuideCard({ guide, tall = false, sizes = "(min-width:102
           <span className="rounded-control bg-white/25 px-2.5 py-1 text-[12px] leading-4 font-medium">{guide.atoll}</span>
         </div>
         <span className="mt-4 block rounded-control bg-white py-3 text-center text-[15px] font-semibold text-ink transition-colors group-hover:bg-red group-hover:text-white">
-          Read guide
+          Read guide <span aria-hidden data-arrow className="inline-block">→</span>
         </span>
       </div>
     </Link>

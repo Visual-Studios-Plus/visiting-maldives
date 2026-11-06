@@ -10,16 +10,16 @@ export const metadata: Metadata = { title: "What's on" };
 export default function WhatsOn() {
   return (
     <>
-      <PageHero image={P.sunsetVillas} eyebrow="What's on" title="The year" accent="in the Maldives." intro="Monsoons, marine seasons and national holidays, dated so you can plan around them." />
+      <PageHero image={P.maleSea} eyebrow="What's on" title="The year" accent="in the Maldives." intro="Monsoons, marine seasons and national holidays, dated so you can plan around them." />
       <Reveal as="section" className="container-vm py-12 lg:py-24">
-        <div className="grid gap-10 lg:grid-cols-[1fr_1.2fr] lg:items-end">
+        <div className="grid gap-10">
           <SectionHead eyebrow="Two monsoons" title="When" accent="to go" />
-          <div data-reveal className="rounded-card border border-line p-6">
+          <div data-reveal className="mx-auto w-full max-w-3xl rounded-card bg-shell p-6">
             <Seasons />
             <div className="mt-5 flex flex-wrap gap-4 font-mono text-[12px] text-driftwood">
               <span><i className="mr-1.5 inline-block size-2.5 rounded-sm bg-red" />Dry, Dec–Apr</span>
               <span><i className="mr-1.5 inline-block size-2.5 rounded-sm bg-red/45" />Shoulder</span>
-              <span><i className="mr-1.5 inline-block size-2.5 rounded-sm bg-line" />Wet, mantas &amp; surf</span>
+              <span><i className="mr-1.5 inline-block size-2.5 rounded-sm bg-driftwood/20" />Wet, mantas &amp; surf</span>
             </div>
           </div>
         </div>

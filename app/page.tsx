@@ -36,7 +36,7 @@ export default function Home() {
             ["Malé in a day", "/guides/male-on-foot"],
             ["Local islands", "/guides/local-islands-by-ferry"],
           ].map(([label, href]) => (
-            <Link key={href} href={href} className="rounded-control bg-white/20 px-3.5 py-2.5 text-[14px] font-medium transition-colors hover:bg-white hover:text-ink">
+            <Link key={href} href={href} className="inline-flex min-h-11 items-center rounded-control bg-ink/55 px-3.5 text-[14px] font-medium transition-colors hover:bg-white hover:text-ink">
               {label}
             </Link>
           ))}

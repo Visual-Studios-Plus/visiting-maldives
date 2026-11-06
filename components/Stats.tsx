@@ -43,7 +43,7 @@ export default function Stats() {
           </div>
         ))}
       </div>
-      <p className="container-vm pb-6 font-mono text-[12px] text-driftwood">Island count: about 1,192, to be verified with the Maldives Bureau of Statistics. {"·"} Checked 3 Nov 2026</p>
+      <p className="container-vm pb-6 font-mono text-[12px] text-driftwood">Source: Maldives Bureau of Statistics {"·"} Checked 3 Nov 2026</p>
     </section>
   );
 }

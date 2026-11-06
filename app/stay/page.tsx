@@ -20,7 +20,7 @@ export default function Stay() {
       <Reveal as="section" className="container-vm py-12 lg:py-24">
         <div className="grid gap-4 lg:grid-cols-3">
           {types.map((x, i) => (
-            <div key={x.t} data-reveal className={`rounded-card p-8 ${i === 0 ? "bg-red text-white" : i === 1 ? "bg-ink text-white" : "bg-shell"}`}>
+            <div key={x.t} data-reveal className={`rounded-card p-8 ${i === 1 ? "bg-ink text-white" : "bg-shell"}`}>
               <p className="font-mono text-[12px] opacity-70">0{i + 1}</p>
               <h3 className="mt-6 text-[28px] leading-8 font-semibold tracking-tight">{x.t}s</h3>
               <p className="mt-3 opacity-85">{x.d}</p>

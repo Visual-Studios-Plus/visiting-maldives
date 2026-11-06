@@ -4,7 +4,7 @@ import { Logo } from "./Logo";
 const cols = [
   { title: "Explore", links: [["Things to do", "/things-to-do"], ["Islands & atolls", "/atolls"], ["Where to stay", "/stay"], ["Eat & drink", "/eat-drink"], ["What's on", "/whats-on"]] },
   { title: "Plan", links: [["Arrival & visas", "/plan-your-trip#arrival"], ["Transfers", "/plan-your-trip#transfers"], ["Money & SIM", "/plan-your-trip#money"], ["Weather", "/plan-your-trip#weather"]] },
-  { title: "Follow", links: [["Instagram", "#"], ["Facebook", "#"], ["YouTube", "#"]] },
+  { title: "About", links: [["Saved guides", "/saved"], ["Photo credits", "/credits"]] },
 ];
 
 export default function Footer() {
@@ -16,9 +16,9 @@ export default function Footer() {
           <p className="mt-6 max-w-xs text-[28px] leading-8 font-semibold tracking-tight">
             The Maldives, <span className="accent">island by island.</span>
           </p>
-          <a href="#" className="mt-8 inline-flex rounded-control bg-white px-5 py-3 text-[15px] font-semibold text-ink transition-colors hover:bg-red hover:text-white">
-            Download the pocket guide
-          </a>
+          <Link href="/plan-your-trip" className="mt-8 inline-flex rounded-control bg-white px-5 py-3 text-[15px] font-semibold text-ink transition-colors hover:bg-red hover:text-white">
+            Plan your trip
+          </Link>
         </div>
         {cols.map((c) => (
           <div key={c.title}>
@@ -38,7 +38,9 @@ export default function Footer() {
       <div className="border-t border-white/10">
         <div className="container-vm flex flex-col gap-2 py-6 font-mono text-[12px] text-white/50 sm:flex-row sm:justify-between">
           <p>© 2026 Visiting Maldives · Independent guide. Partner content is always labelled.</p>
-          <p>Facts checked 3 Nov 2026 · Photos: Unsplash</p>
+          <p>
+            Facts checked 3 Nov 2026 · <Link href="/credits" className="hover:text-white">Photo credits</Link>
+          </p>
         </div>
       </div>
     </footer>

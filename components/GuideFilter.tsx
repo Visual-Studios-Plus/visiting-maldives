@@ -4,7 +4,6 @@ import { useRef, useState } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { categories, guides, type Category } from "@/lib/data";
 import GuideCard from "./GuideCard";
-import GuideListCard from "./GuideListCard";
 
 export default function GuideFilter() {
   const params = useSearchParams();
@@ -49,15 +48,10 @@ export default function GuideFilter() {
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search guides, islands, atolls" className="h-11 flex-1 bg-transparent outline-none" />
         </label>
       </div>
-      <div ref={grid} className="mt-8 grid gap-8 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div ref={grid} className="mt-8 grid gap-5 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {list.map((g) => (
           <div key={g.slug} data-card>
-            <div className="sm:hidden">
-              <GuideListCard guide={g} />
-            </div>
-            <div className="hidden sm:block">
-              <GuideCard guide={g} />
-            </div>
+            <GuideCard guide={g} />
           </div>
         ))}
       </div>
