@@ -1,12 +1,13 @@
 "use client";
 import { useRef, type ReactNode } from "react";
-import { gsap, ScrollTrigger, useGSAP, reduced } from "@/lib/gsap";
+import { gsap, ScrollTrigger, useGSAP, reduced, splitReveal } from "@/lib/gsap";
 
 /** Fades and lifts every [data-reveal] descendant as it scrolls into view, in staggered batches. */
 export default function Reveal({ children, className, as: Tag = "div" }: { children: ReactNode; className?: string; as?: "div" | "section" | "main" }) {
   const ref = useRef<HTMLDivElement>(null);
   useGSAP(
     () => {
+      splitReveal(ref.current);
       const items = gsap.utils.toArray<HTMLElement>("[data-reveal]", ref.current);
       if (reduced()) {
         gsap.set(items, { opacity: 1 });

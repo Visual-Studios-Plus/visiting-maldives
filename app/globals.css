@@ -39,6 +39,10 @@
 html {
   scroll-behavior: smooth;
 }
+/* Lenis takes over smoothing; native smooth scroll would fight it */
+html.lenis {
+  scroll-behavior: auto;
+}
 
 /* Large screens: scale the whole layout evenly */
 body {

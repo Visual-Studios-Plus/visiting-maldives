@@ -3,6 +3,7 @@ import { IBM_Plex_Mono, Noto_Sans_Thaana, Schibsted_Grotesk } from "next/font/go
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Loader from "@/components/Loader";
+import SmoothScroll from "@/components/SmoothScroll";
 import "./globals.css";
 
 const schibsted = Schibsted_Grotesk({ variable: "--font-schibsted", subsets: ["latin"], weight: ["400", "500", "600", "700", "800"] });
@@ -20,6 +21,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en-GB" className={`${schibsted.variable} ${plexMono.variable} ${thaana.variable} antialiased`}>
       <body className="flex min-h-screen flex-col">
         <Loader />
+        <SmoothScroll />
         <Navbar />
         <main className="flex-1">{children}</main>
         <Footer />

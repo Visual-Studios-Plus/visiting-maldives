@@ -4,6 +4,8 @@ export const metadata: Metadata = { title: "Photo credits" };
 
 // Wikimedia Commons photos of real Maldivian places. Attribution required by each licence.
 const credits = [
+  ["Guraidhoo and the atoll from the air", "Luka Peternel", "CC BY-SA 4.0", "https://commons.wikimedia.org/wiki/File:Guriadhoo-2019-aerial-view-Luka-Peternel.jpg"],
+  ["Sandbank from a drone", "dronepicr", "CC BY 2.0", "https://commons.wikimedia.org/wiki/File:Malediven_Sandbank_(28800504836).jpg"],
   ["Malé from the air", "Ibrahim Asad", "CC BY 3.0", "https://commons.wikimedia.org/wiki/File:Male_City_Aerial,_The_Capital_city_of_Maldives_-_panoramio.jpg"],
   ["Malé from the sea", "DD from Malé, Maldives", "CC BY-SA 2.0", "https://commons.wikimedia.org/wiki/File:Male,_Maldives_(6031845750).jpg"],
   ["Hukuru Miskiy, Malé", "Zairon", "CC BY-SA 4.0", "https://commons.wikimedia.org/wiki/File:Male%27_Hukuru_Miskiy_4.jpg"],

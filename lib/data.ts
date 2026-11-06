@@ -35,6 +35,10 @@ export const P = {
   addu: "/photos/addu.jpg",
   dhoni: "/photos/dhoni.jpg",
   dhoniHuvahenhoo: "/photos/dhoni-huvahenhoo.jpg",
+  atollFromAbove: "/photos/atoll-from-above.jpg",
+  sandbankDrone: "/photos/sandbank-drone.jpg",
+  sandbankSunset: "/photos/sandbank-sunset.jpg", // Unsplash 1639994281271
+  birdsEye: "1564966866111-cde2c82da4ed", // Unsplash: a sandbank from straight above, one person on it
 } as const;
 
 export type Category = "Marine life" | "Heritage" | "Islands" | "Food" | "Adventure";
