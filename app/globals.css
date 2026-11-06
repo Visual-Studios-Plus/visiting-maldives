@@ -1,26 +1,104 @@
 @import "tailwindcss";
 
+/* Visiting Maldives design tokens (Brand guide v1.0, p.21 & p.37) */
+@theme {
+  --color-red: #d21034;
+  --color-red-deep: #a80c29;
+  --color-ink: #14121a;
+  --color-shell: #f6f3f3;
+  --color-line: #e8e2e3;
+  --color-driftwood: #615c66;
+  --color-lagoon: #0b8f8c;
+  --color-flag-green: #007e3a;
+
+  --font-sans: var(--font-schibsted), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+  --font-thaana: var(--font-thaana), sans-serif;
+
+  --radius-control: 6px;
+  --radius-card: 12px;
+
+  --breakpoint-sm: 600px;
+  --breakpoint-lg: 1024px;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --z: 1;
 }
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@media (width >= 1800px) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --z: 1.25;
+  }
+}
+@media (width >= 2300px) {
+  :root {
+    --z: 1.5;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+html {
+  scroll-behavior: smooth;
 }
+
+/* Large screens: scale the whole layout evenly */
+body {
+  zoom: var(--z);
+}
+
+body {
+  background: #ffffff;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 17px;
+  line-height: 26px;
+}
+
+::selection {
+  background: var(--color-red);
+  color: #fff;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-red);
+  outline-offset: 3px;
+}
+
+@utility container-vm {
+  width: 100%;
+  max-width: 1280px;
+  margin-inline: auto;
+  padding-inline: 16px;
+  @media (width >= 600px) {
+    padding-inline: 32px;
+  }
+  @media (width >= 1024px) {
+    padding-inline: 56px;
+  }
+}
+
+@utility eyebrow {
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+@utility h-display {
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+/* Titles are one weight throughout (SemiBold), so the accent keeps the heading weight */
+@utility accent {
+  font-weight: inherit;
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
