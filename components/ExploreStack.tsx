@@ -72,19 +72,20 @@ export default function ExploreStack() {
         },
       });
 
-      // 1. The card grows to fill the screen; the marquee steps back
+      // 1. The card grows to fill the screen; the marquee steps back.
+      // The frame is always full-screen and a clip-path mask opens from card size to the edges.
+      // Animating width/height instead re-ran layout and re-cropped four full-screen photos
+      // on every scroll frame, which made this scene lag. Pixel insets, recomputed on resize.
+      const section = ref.current!;
+      const cardClip = () => {
+        const w = Math.min(window.innerWidth * 0.46, 520);
+        const h = section.clientHeight * 0.62;
+        return `inset(${(section.clientHeight - h) / 2}px ${(section.clientWidth - w) / 2}px round 12px)`;
+      };
       tl.fromTo(
         q("[data-frame]"),
-        // a real pixel width: GSAP cannot tween from a CSS min(), and on re-measure it fell back to
-        // the end width, so the card showed full-size before the scene began. Matches the CSS class.
-        { width: () => Math.min(window.innerWidth * 0.46, 520), height: "62%", borderRadius: 12 },
-        {
-          width: "100%",
-          height: "100%",
-          borderRadius: 0,
-          ease: "none",
-          duration: 1,
-        },
+        { clipPath: cardClip },
+        { clipPath: "inset(0px 0px round 0px)", ease: "none", duration: 1 },
       )
         .to(q("[data-marquee]"), { autoAlpha: 0, duration: 0.3 }, "-=0.3")
         .to(texts[0], { autoAlpha: 1, pointerEvents: "auto", duration: 0.25 })
@@ -174,7 +175,7 @@ export default function ExploreStack() {
         <div className="absolute inset-0 flex items-center justify-center">
           <div
             data-frame
-            className="relative h-[62%] w-[min(46vw,520px)] overflow-hidden rounded-card bg-ink"
+            className="relative h-full w-full overflow-hidden bg-ink [clip-path:inset(19%_calc((100%-min(46vw,520px))/2)_round_12px)]"
           >
             {WAYS.map((w, i) => (
               <div

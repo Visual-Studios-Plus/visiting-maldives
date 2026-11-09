@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import { useRef, type ReactNode } from "react";
-import { gsap, useGSAP, reduced } from "@/lib/gsap";
+import { gsap, useGSAP, reduced, afterLoader } from "@/lib/gsap";
 import { photo } from "@/lib/data";
 
 /** Splits a headline into words so GSAP can rise them in one by one. */
@@ -50,7 +50,7 @@ export default function PageHero({
     () => {
       if (reduced()) return;
       // On a fresh page load, wait for the red logo loader to lift before the hero intro
-      const tl = gsap.timeline({ delay: document.getElementById("vm-loader") ? 2.9 : 0.15 });
+      const tl = gsap.timeline({ paused: true, delay: 0.15 });
       tl.from("[data-hero-img]", { scale: 1.18, duration: 2.2, ease: "expo.out" }, 0)
         .from("[data-word]", { yPercent: 110, duration: 1.1, stagger: 0.06, ease: "expo.out" }, 0.35)
         .from("[data-hero-fade]", { y: 24, opacity: 0, stagger: 0.1, duration: 0.9 }, 0.8);
@@ -65,6 +65,7 @@ export default function PageHero({
         ease: "none",
         scrollTrigger: { trigger: ref.current, start: "top top", end: "bottom 30%", scrub: true },
       });
+      return afterLoader(() => tl.restart(true));
     },
     { scope: ref },
   );

@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { gsap, useGSAP } from "@/lib/gsap";
+import { afterLoader, gsap, useGSAP } from "@/lib/gsap";
 import Image from "next/image";
 import { guides, navItems, photo } from "@/lib/data";
 import { useSaved } from "@/lib/saved";
@@ -32,12 +32,14 @@ export default function Navbar() {
   }
 
   useGSAP(() => {
-    gsap.from(bar.current, { y: -80, opacity: 0, duration: 1, delay: document.getElementById("vm-loader") ? 2.9 : 0.2 });
+    const enter = gsap.from(bar.current, { y: -80, opacity: 0, duration: 1, delay: 0.2, paused: true });
+    const stopWaiting = afterLoader(() => enter.restart(true));
     tl.current = gsap
       .timeline({ paused: true })
       .set(menu.current, { display: "flex" })
       .fromTo(menu.current, { clipPath: "inset(0 0 100% 0)" }, { clipPath: "inset(0 0 0% 0)", duration: 0.6, ease: "power4.inOut" })
       .from("[data-menu-item]", { y: 30, opacity: 0, stagger: 0.05, duration: 0.5 }, "-=0.2");
+    return stopWaiting;
   });
 
   useEffect(() => {

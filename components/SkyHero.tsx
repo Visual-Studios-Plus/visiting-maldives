@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
 import { CloudShader } from "@/components/ui/cloud-shader";
-import { gsap, useGSAP, reduced } from "@/lib/gsap";
+import { gsap, useGSAP, reduced, afterLoader } from "@/lib/gsap";
 
 /*
  * Homepage hero: a bird's-eye view of a Maldives island (beach, palms and lagoon from
@@ -18,20 +18,21 @@ export default function SkyHero() {
       const root = ref.current!;
       const q = gsap.utils.selector(root);
       if (reduced()) return;
-      const loading = !!document.getElementById("vm-loader");
-      const d = loading ? 2.8 : 0.1;
-
-      // Opening: the island settles, clouds slide in, the title rises
-      gsap.from(q("[data-island]"), { scale: 1.2, duration: 2.6, ease: "expo.out", delay: d });
-      gsap.from(q("[data-clouds]"), { autoAlpha: 0, duration: 2.2, ease: "power2.out", delay: d });
-      gsap.from(q("[data-word]"), { yPercent: 110, duration: 1.1, stagger: 0.06, ease: "expo.out", delay: d + 0.5 });
-      gsap.from(q("[data-fade]"), { y: 24, autoAlpha: 0, stagger: 0.1, duration: 0.9, delay: d + 0.9 });
+      // Opening: the island settles, clouds slide in, the title rises; starts as the loader lifts
+      const intro = gsap
+        .timeline({ paused: true, delay: 0.1 })
+        .from(q("[data-island]"), { scale: 1.2, duration: 2.6, ease: "expo.out" }, 0)
+        .from(q("[data-clouds]"), { autoAlpha: 0, duration: 2.2, ease: "power2.out" }, 0)
+        .from(q("[data-word]"), { yPercent: 110, duration: 1.1, stagger: 0.06, ease: "expo.out" }, 0.5)
+        .from(q("[data-fade]"), { y: 24, autoAlpha: 0, stagger: 0.1, duration: 0.9 }, 0.9);
+      const stopWaiting = afterLoader(() => intro.restart(true));
 
       // Scroll: clouds part and rush past (nearer = faster), the island sinks back, the title lifts away
       const st = { trigger: root, start: "top top", end: "bottom top", scrub: 0.8 };
       gsap.to(q("[data-clouds]"), { scale: 1.4, yPercent: -10, ease: "none", scrollTrigger: st });
       gsap.to(q("[data-island]"), { scale: 1.15, yPercent: 8, ease: "none", scrollTrigger: st });
       gsap.to(q("[data-content]"), { yPercent: -10, autoAlpha: 0, ease: "none", scrollTrigger: { ...st, end: "32% top" } });
+      return stopWaiting;
 
     },
     { scope: ref },

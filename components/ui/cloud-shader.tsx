@@ -299,7 +299,9 @@ export const CloudShader = ({
     ).matches;
 
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      // Clouds are soft, so render at half the CSS size and let the browser scale up: a
+      // fraction of the pixels (up to 16x fewer on a retina screen) for the same look.
+      const dpr = 0.5;
       const width = canvas.clientWidth;
       const height = canvas.clientHeight;
       const w = Math.max(1, Math.floor(width * dpr));
@@ -317,8 +319,21 @@ export const CloudShader = ({
     resize();
 
     const start = performance.now();
+    // Only draw while the canvas is on screen and the tab is visible; otherwise the shader
+    // keeps the GPU busy for the whole page and makes scrolling further down lag.
+    let onScreen = true;
+    const io = new IntersectionObserver(([e]) => {
+      onScreen = e.isIntersecting;
+      if (onScreen && running && !frame) frame = requestAnimationFrame(draw);
+    });
+    io.observe(canvas);
+    const onVisibility = () => {
+      if (!document.hidden && onScreen && running && !frame) frame = requestAnimationFrame(draw);
+    };
+    document.addEventListener("visibilitychange", onVisibility);
     const draw = (now: number) => {
-      if (!running) return;
+      frame = 0;
+      if (!running || !onScreen || document.hidden) return;
       const p = paramsRef.current;
       const elapsed = reduceMotion ? 0 : ((now - start) / 1000) * p.speed;
       const cloud = parseHex(p.cloudColor);
@@ -340,6 +355,8 @@ export const CloudShader = ({
       running = false;
       cancelAnimationFrame(frame);
       observer.disconnect();
+      io.disconnect();
+      document.removeEventListener("visibilitychange", onVisibility);
       gl.deleteBuffer(buffer);
       gl.deleteProgram(program);
       gl.deleteShader(vert);

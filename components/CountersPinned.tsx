@@ -7,9 +7,9 @@ import { P, photo } from "@/lib/data";
 /*
  * "The Maldives in numbers": pinned, and driven by your scroll.
  * - Each number simply rises into view (no counting-up effect).
- * - Camera pull-back: the aerial of Malé starts tight and blurred, then pulls back and sharpens.
+ * - Camera pull-back: the aerial of Malé starts tight, then pulls back.
  * - Each divider draws itself as its number lands; each label decodes from scrambled letters.
- * Only transforms, opacity and one filter on the photo change while scrolling.
+ * Only transforms and opacity change while scrolling.
  */
 const STATS = [
   { value: "1,192", label: "Coral islands", note: "About 187 are lived on; the rest are resorts, farms or empty sand." },
@@ -49,8 +49,9 @@ export default function CountersPinned() {
         scrollTrigger: { trigger: ref.current, start: "top top", end: "+=160%", pin: true, scrub: 1, anticipatePin: 1 },
       });
 
-      // Camera: tight and blurred → wide and sharp
-      tl.fromTo(q("[data-bg]"), { scale: 1.9, filter: "blur(12px)" }, { scale: 1, filter: "blur(0px)", duration: 1, ease: "power2.out" }, 0);
+      // Camera: tight → wide. Transform only: animating a blur on a full-screen photo while
+      // scrolling repaints the whole image every frame and was the main cause of scroll lag.
+      tl.fromTo(q("[data-bg]"), { scale: 1.9 }, { scale: 1, duration: 1, ease: "power2.out" }, 0);
       tl.from(q("[data-eyebrow], [data-intro] > *"), { y: 30, autoAlpha: 0, duration: 0.2, stagger: 0.04 }, 0.02);
 
       // Each stat: the number rises in, its divider draws, its label decodes
@@ -71,10 +72,12 @@ export default function CountersPinned() {
           onUpdate: () => {
             // snap to the real word near the end, so a scrub that stops a frame short still reads correctly
             const n = p.v > 0.9 ? text.length : Math.floor(p.v * text.length);
-            label.textContent = text
+            const next = text
               .split("")
               .map((c, j) => (j < n || c === " " ? c : GLYPHS[(j * 7 + Math.floor(p.v * 40)) % GLYPHS.length]))
               .join("");
+            // write only when the letters actually change, so most scroll frames touch nothing
+            if (label.textContent !== next) label.textContent = next;
           },
         }, at + 0.15);
       });
@@ -118,7 +121,7 @@ export default function CountersPinned() {
                 <p data-num className="text-[56px] leading-none font-semibold tracking-[-0.04em] sm:text-[72px] xl:text-[96px]">
                   <Num value={s.value} />
                 </p>
-                <p data-label data-text={s.label.toUpperCase()} className="mt-3 font-mono text-[12px] tracking-wide text-white/80">
+                <p data-label data-text={s.label.toUpperCase()} className="mt-3 font-mono text-[12px] tracking-wide text-white/80 [contain:layout_paint]">
                   {s.label.toUpperCase()}
                 </p>
                 <p data-note className="mt-2 max-w-xs text-[15px] leading-snug text-white/65">{s.note}</p>
