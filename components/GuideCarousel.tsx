@@ -88,12 +88,14 @@ export default function GuideCarousel() {
       // Drag / swipe with momentum
       let startX = 0, lastX = 0, lastT = 0, moved = 0;
       const down = (e: PointerEvent) => {
+        if (e.button !== 0) return;
         dragging = true;
         glide?.kill();
         startX = lastX = e.clientX;
         lastT = performance.now();
         moved = 0;
-        el.setPointerCapture(e.pointerId);
+        // No pointer capture yet: capturing on press sends the click to the stage instead of
+        // the card, so tapping a card (or its "Read guide" button) did nothing.
       };
       const move = (e: PointerEvent) => {
         if (!dragging) return;
@@ -104,22 +106,26 @@ export default function GuideCarousel() {
         lastX = e.clientX;
         lastT = now;
         moved = Math.abs(e.clientX - startX);
+        // a real drag: now keep following the pointer even if it leaves the row
+        if (moved > 6 && !el.hasPointerCapture(e.pointerId)) el.setPointerCapture(e.pointerId);
       };
       const up = () => {
         dragging = false; // vel keeps the fling, then eases back to the drift speed
       };
-      // a drag is not a click
+      // A drag is not a click. Listen on window (capture), which runs before the page-change
+      // curtain's document listener, so a drag that ends over a card never opens it.
       const click = (e: MouseEvent) => {
-        if (moved > 6) {
+        if (moved > 6 && el.contains(e.target as Node)) {
           e.preventDefault();
           e.stopPropagation();
         }
+        moved = 0;
       };
       el.addEventListener("pointerdown", down);
       el.addEventListener("pointermove", move);
       el.addEventListener("pointerup", up);
       el.addEventListener("pointercancel", up);
-      el.addEventListener("click", click, true);
+      window.addEventListener("click", click, true);
 
       const onResize = () => measure();
       window.addEventListener("resize", onResize);
@@ -141,6 +147,7 @@ export default function GuideCarousel() {
         run(false);
         io.disconnect();
         window.removeEventListener("resize", onResize);
+        window.removeEventListener("click", click, true);
       };
     },
     { scope: wrap },
@@ -162,7 +169,7 @@ export default function GuideCarousel() {
 
         <div
           ref={stage}
-          className="relative mt-8 h-[400px] cursor-grab sm:mt-12 sm:h-[460px] touch-pan-y select-none active:cursor-grabbing lg:h-[520px]"
+          className="relative mt-8 h-[380px] cursor-grab sm:mt-12 sm:h-[460px] touch-pan-y select-none active:cursor-grabbing lg:h-[520px]"
           aria-label="Most-read guides, scrolling. Drag, or use the arrows."
           role="region"
         >
@@ -173,10 +180,7 @@ export default function GuideCarousel() {
               aria-hidden={i >= guides.length}
               className="absolute top-0 left-0 w-[270px] will-change-transform sm:w-[320px] lg:w-[360px]"
             >
-              {/* one GPU layer per card (the outer div), not three: each extra layer inside the 3D arc is
-                  resampled on its own and showed as thin lines across the cards. The transparent
-                  outline makes the browser smooth the edges of the rotated card. */}
-              <div data-loop-inner className="[outline:1px_solid_transparent]">
+              <div data-loop-inner>
                 <GuideCard guide={g} tall sizes="360px" />
               </div>
             </div>
