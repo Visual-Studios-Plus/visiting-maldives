@@ -7,6 +7,7 @@ export default defineConfig({
   // Public read so the site can show them; writes need the branch credential (server only).
   buckets: {
     "site-photos": { access: "public_read" },
+    uploads: { access: "private" },
   },
   // Branch policy: per-branch tuning
   branch: (branch) => {
