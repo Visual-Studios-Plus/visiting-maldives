@@ -14,11 +14,16 @@ export default function Reveal({ children, className, as: Tag = "div" }: { child
         return;
       }
       gsap.set(items, { y: 40, opacity: 0 });
-      ScrollTrigger.batch(items, {
-        start: "top 88%",
-        once: true,
-        onEnter: (batch) => gsap.to(batch, { y: 0, opacity: 1, stagger: 0.08, duration: 1 }),
+      const show = (batch: Element[]) => gsap.to(batch, { y: 0, opacity: 1, stagger: 0.08, duration: 1, overwrite: true });
+      ScrollTrigger.batch(items, { start: "top 88%", once: true, onEnter: show });
+
+      // Safety net: anything already on (or above) the screen that hasn't revealed after a
+      // moment — e.g. positions measured before photos loaded — is shown, never left invisible.
+      const net = gsap.delayedCall(2.2, () => {
+        const stuck = items.filter((el) => Number(gsap.getProperty(el, "opacity")) < 0.05 && el.getBoundingClientRect().top < window.innerHeight);
+        if (stuck.length) show(stuck);
       });
+      return () => net.kill();
     },
     { scope: ref },
   );
