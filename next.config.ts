@@ -1,8 +1,16 @@
 import type { NextConfig } from "next";
 
+import { storageEndpoint } from "./lib/storage-endpoint";
+
 // Uploaded photos live in Neon Object Storage (bucket "site-photos"). Allow next/image to load
-// them from this branch's storage host only, and only from that bucket.
-const storage = process.env.AWS_ENDPOINT_URL_S3 ? new URL(process.env.AWS_ENDPOINT_URL_S3) : null;
+// them from this branch's storage host only, and only from that bucket. A badly pasted value
+// (quotes, missing https://) is cleaned up; an unusable one switches photo storage off with a
+// warning instead of failing the whole build.
+const endpoint = storageEndpoint();
+if (process.env.AWS_ENDPOINT_URL_S3 && !endpoint) {
+  console.warn("[storage] AWS_ENDPOINT_URL_S3 is set but isn't a valid https URL; photo uploads are off until it's fixed.");
+}
+const storage = endpoint ? new URL(endpoint) : null;
 
 const nextConfig: NextConfig = {
   /* config options here */

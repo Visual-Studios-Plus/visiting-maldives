@@ -1,3 +1,4 @@
+import { storageEndpoint } from "../storage-endpoint.ts";
 import type { CollectionDef, Field, ScalarField } from "./schema";
 
 /*
@@ -20,7 +21,7 @@ const MAX_TEXT = 5000;
 
 /** Photos uploaded to this site's Neon bucket: https://<storage host>/site-photos/<key> only. */
 function isOwnUpload(s: string): boolean {
-  const endpoint = process.env.AWS_ENDPOINT_URL_S3?.replace(/\/+$/, "");
+  const endpoint = storageEndpoint();
   if (!endpoint) return false;
   const prefix = `${endpoint}/site-photos/`;
   return s.startsWith(prefix) && /^[A-Za-z0-9/_.-]+$/.test(s.slice(prefix.length)) && !s.includes("..");

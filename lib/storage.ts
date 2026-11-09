@@ -1,6 +1,7 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { storageEndpoint } from "@/lib/storage-endpoint";
 
 /*
  * Photo uploads to Neon Object Storage (bucket "site-photos", public read; declared in neon.ts).
@@ -12,8 +13,16 @@ import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 export const PHOTO_BUCKET = "site-photos";
 export const MAX_PHOTO_BYTES = 4 * 1024 * 1024; // after in-browser resizing; stays under Vercel's request limit
 
-const endpoint = process.env.AWS_ENDPOINT_URL_S3?.replace(/\/+$/, "");
-const s3 = endpoint && process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY ? new S3Client({ forcePathStyle: true }) : null;
+// Settings are cleaned up (spaces, quotes, missing https://) and passed in explicitly, so a value
+// pasted into Vercel with quotes still works; the SDK would otherwise read the raw env vars.
+const clean = (v: string | undefined) => v?.trim().replace(/^["']+|["']+$/g, "").trim() || undefined;
+const endpoint = storageEndpoint();
+const accessKeyId = clean(process.env.AWS_ACCESS_KEY_ID);
+const secretAccessKey = clean(process.env.AWS_SECRET_ACCESS_KEY);
+const s3 =
+  endpoint && accessKeyId && secretAccessKey
+    ? new S3Client({ forcePathStyle: true, endpoint, region: clean(process.env.AWS_REGION) ?? "auto", credentials: { accessKeyId, secretAccessKey } })
+    : null;
 
 export const storageReady = () => Boolean(s3);
 
