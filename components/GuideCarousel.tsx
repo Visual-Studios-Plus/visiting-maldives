@@ -180,7 +180,7 @@ export default function GuideCarousel() {
               aria-hidden={i >= guides.length}
               className="absolute top-0 left-0 w-[320px] will-change-transform lg:w-[360px]"
             >
-              <div data-loop-inner>
+              <div data-loop-inner className="[backface-visibility:hidden] [transform:translateZ(0)]">
                 <GuideCard guide={g} tall sizes="360px" />
               </div>
             </div>
