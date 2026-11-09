@@ -38,7 +38,7 @@ export default function EatDrink() {
             {eats.map((e) => (
               <article key={e.name} data-reveal className="group grid grid-cols-[120px_1fr] gap-5 rounded-card bg-white/5 p-3 transition-colors hover:bg-white/10 sm:grid-cols-[180px_1fr]">
                 <div className="relative aspect-square overflow-hidden rounded-control">
-                  <Image src={photo(e.image, 500)} alt={e.name} fill sizes="180px" className="object-cover transition-transform duration-700 group-hover:scale-110" />
+                  <Image src={photo(e.image, 500)} alt={e.name} fill sizes="180px" className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)] group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100" />
                 </div>
                 <div className="flex flex-col justify-center py-2 pr-3">
                   <p className="eyebrow text-white/50">

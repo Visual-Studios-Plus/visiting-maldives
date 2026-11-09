@@ -8,14 +8,14 @@ export default function GuideCard({ guide, tall = false, sizes = "(min-width:102
   return (
     <Link
       href={`/guides/${guide.slug}`}
-      className={`group relative block overflow-hidden rounded-card bg-ink text-white transition-[translate,box-shadow] duration-500 hover:-translate-y-1.5 hover:shadow-[0_32px_56px_-20px_rgba(20,18,26,0.55)] shadow-[0_24px_48px_-20px_rgba(20,18,26,0.45)] ${tall ? "aspect-[3/4]" : "aspect-[4/5]"}`}
+      className={`group relative block overflow-hidden rounded-card bg-ink text-white transition-[translate,box-shadow] duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:-translate-y-1.5 motion-reduce:hover:translate-y-0 hover:shadow-[0_32px_56px_-20px_rgba(20,18,26,0.55)] shadow-[0_24px_48px_-20px_rgba(20,18,26,0.45)] ${tall ? "aspect-[3/4]" : "aspect-[4/5]"}`}
     >
       <Image
         src={photo(guide.image, 900)}
         alt={guide.title}
         fill
         sizes={sizes}
-        className="object-cover transition-transform duration-[1.2s] ease-out group-hover:scale-105"
+        className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)] group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/30 via-45% to-transparent" />
       <div className="absolute inset-x-0 bottom-0 p-5">

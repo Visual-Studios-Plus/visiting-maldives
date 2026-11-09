@@ -149,7 +149,7 @@ button.border-line:active {
 
 /* Photo cards: the whole card presses in, and its white button tints while held */
 a.group.rounded-card {
-  transition: translate 0.5s, box-shadow 0.5s, scale 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: translate 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), scale 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 a.group.rounded-card:active {
   scale: 0.985;
@@ -180,5 +180,24 @@ a:hover [data-arrow],
   nav button:active,
   [role="tab"]:active {
     transform: none;
+  }
+}
+
+/* Stay cards (link wraps the photo): the photo presses in on pointer-down, springs back on release */
+a.group > .rounded-card {
+  transition: scale 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+a.group:active > .rounded-card {
+  scale: 0.985;
+  transition-duration: 0.06s;
+}
+@media (prefers-reduced-motion: reduce) {
+  a.group:active > .rounded-card,
+  a.group.rounded-card:active {
+    scale: 1;
+  }
+  a:hover [data-arrow],
+  .group:hover [data-arrow] {
+    translate: none;
   }
 }

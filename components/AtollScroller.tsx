@@ -57,7 +57,7 @@ export default function AtollScroller() {
             className="group relative aspect-[4/5] w-[78vw] shrink-0 overflow-hidden rounded-card sm:w-[42vw] lg:aspect-auto lg:h-[calc(58vh/var(--z))] lg:w-[min(30vw,420px)]"
           >
             <div data-atoll-img className="absolute inset-[-10%]">
-              <Image src={photo(a.image, 1000)} alt={a.name} fill sizes="420px" className="object-cover transition-transform duration-[1.2s] group-hover:scale-105" />
+              <Image src={photo(a.image, 1000)} alt={a.name} fill sizes="420px" className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)] group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100" />
             </div>
             <div className="absolute inset-0 bg-gradient-to-t from-ink/90 via-transparent to-ink/30" />
             <span className="absolute top-4 left-4 font-mono text-[12px] text-white/80">0{i + 1} · {a.region}</span>

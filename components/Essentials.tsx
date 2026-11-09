@@ -14,7 +14,7 @@ export default function Essentials({ limit }: { limit?: number }) {
           data-reveal
           className="group relative flex min-h-[280px] flex-col overflow-hidden rounded-card bg-shell p-6 transition-colors hover:bg-[#F1ECEC]"
         >
-          <span className="absolute inset-y-0 left-0 w-1 origin-top scale-y-0 bg-red transition-transform duration-500 group-hover:scale-y-100" />
+          <span className="absolute inset-y-0 left-0 w-1 origin-top scale-y-0 bg-red transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] group-hover:scale-y-100 motion-reduce:transition-none" />
           <div className="flex items-center justify-between">
             <p className="eyebrow text-driftwood">{e.label}</p>
             <span className="font-mono text-[12px] text-driftwood">{String(i + 1).padStart(2, "0")}</span>

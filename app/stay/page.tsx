@@ -36,17 +36,17 @@ export default function Stay() {
           {stays.map((s) => (
             <Link key={s.slug} href={`/stay/${s.slug}`} data-reveal className="group block">
               <div className="relative aspect-[4/3] overflow-hidden rounded-card">
-                <Image src={photo(s.image, 900)} alt={s.name} fill sizes="(min-width:1024px) 33vw, 50vw" className="object-cover transition-transform duration-[1.2s] group-hover:scale-105" />
+                <Image src={photo(s.image, 900)} alt={s.name} fill sizes="(min-width:1024px) 33vw, 50vw" className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)] group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100" />
                 <span className="absolute top-3 left-3 rounded-control bg-white px-2.5 py-1 text-[13px] font-medium">{s.type}</span>
                 {s.partner && <span className="absolute top-3 right-3 rounded-control bg-ink px-2.5 py-1 text-[12px] text-white">Partner</span>}
               </div>
               <div className="mt-4 flex items-start justify-between gap-4">
                 <div>
                   <h3 className="text-[22px] leading-[26px] font-semibold group-hover:underline">{s.name}</h3>
-                  <div className="mt-1.5 flex items-center gap-2">
+                  <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 leading-none">
                     <Stars value={s.rating} />
-                    <span className="text-[14px] font-medium">{s.rating.toFixed(1)}</span>
-                    <span className="text-[13px] text-driftwood">({s.reviews.length} reviews)</span>
+                    <span className="text-[14px] font-medium tabular-nums">{s.rating.toFixed(1)}</span>
+                    <span className="text-[13px] whitespace-nowrap text-driftwood">({s.reviews.length} reviews)</span>
                   </div>
                   <p className="mt-1 text-[15px] text-driftwood">{s.note}</p>
                 </div>

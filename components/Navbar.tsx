@@ -74,8 +74,8 @@ export default function Navbar() {
               className="-ml-2 grid size-11 place-items-center lg:hidden"
             >
               <span className="relative block h-3 w-6">
-                <span className={`absolute left-0 h-0.5 w-6 bg-current transition-transform duration-300 ${open ? "top-1.5 rotate-45" : "top-0"}`} />
-                <span className={`absolute left-0 h-0.5 w-6 bg-current transition-transform duration-300 ${open ? "top-1.5 -rotate-45" : "top-3"}`} />
+                <span className={`absolute left-0 h-0.5 w-6 bg-current transition-transform duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] motion-reduce:transition-none ${open ? "top-1.5 rotate-45" : "top-0"}`} />
+                <span className={`absolute left-0 h-0.5 w-6 bg-current transition-transform duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] motion-reduce:transition-none ${open ? "top-1.5 -rotate-45" : "top-3"}`} />
               </span>
             </button>
             <ul className="hidden items-center lg:flex">

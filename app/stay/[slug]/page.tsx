@@ -35,7 +35,7 @@ export default async function StayPage({ params }: PageProps<"/stay/[slug]">) {
         <div>
           <div data-reveal className="flex flex-wrap items-center gap-3">
             <Stars value={stay.rating} size={22} />
-            <span className="text-[20px] font-semibold">{stay.rating.toFixed(1)}</span>
+            <span className="text-[20px] leading-none font-semibold tabular-nums">{stay.rating.toFixed(1)}</span>
             <span className="text-driftwood">Our rating · {stay.reviews.length} guest reviews</span>
             {stay.partner && <span className="rounded-control bg-ink px-2.5 py-1 text-[12px] text-white">Partner</span>}
           </div>
@@ -54,18 +54,18 @@ export default async function StayPage({ params }: PageProps<"/stay/[slug]">) {
             <h2 data-reveal className="text-[28px] font-semibold tracking-tight">Reviews</h2>
             <div data-reveal className="mt-6 grid gap-6 rounded-card bg-shell p-6 sm:grid-cols-[auto_1fr] sm:items-center">
               <div className="text-center sm:pr-6">
-                <p className="text-[48px] leading-none font-semibold">{avg.toFixed(1)}</p>
+                <p className="text-[48px] leading-none font-semibold tracking-tight tabular-nums">{avg.toFixed(1)}</p>
                 <Stars value={avg} size={18} className="mt-2" />
                 <p className="mt-1 text-[13px] text-driftwood">{stay.reviews.length} reviews</p>
               </div>
               <div className="space-y-1.5">
                 {dist.map((d) => (
                   <div key={d.n} className="flex items-center gap-3 text-[13px]">
-                    <span className="w-10 font-mono">{d.n} ★</span>
+                    <span className="w-10 shrink-0 font-mono">{d.n} ★</span>
                     <span className="h-2 flex-1 overflow-hidden rounded-full bg-black/10">
                       <span className="block h-full rounded-full bg-[#f5a623]" style={{ width: `${(d.c / stay.reviews.length) * 100}%` }} />
                     </span>
-                    <span className="w-4 text-right text-driftwood">{d.c}</span>
+                    <span className="w-4 text-right tabular-nums text-driftwood">{d.c}</span>
                   </div>
                 ))}
               </div>
@@ -73,7 +73,7 @@ export default async function StayPage({ params }: PageProps<"/stay/[slug]">) {
             <ul className="mt-8 divide-y divide-black/10">
               {stay.reviews.map((r, i) => (
                 <li key={i} data-reveal className="py-6">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
                     <p className="font-semibold">
                       {r.author} <span className="font-normal text-driftwood">· {r.from}</span>
                     </p>
@@ -119,10 +119,10 @@ export default async function StayPage({ params }: PageProps<"/stay/[slug]">) {
           {more.map((s) => (
             <Link key={s.slug} href={`/stay/${s.slug}`} data-reveal className="group block">
               <div className="relative aspect-[4/3] overflow-hidden rounded-card">
-                <Image src={photo(s.image, 700)} alt={s.name} fill sizes="33vw" className="object-cover transition-transform duration-[1.2s] group-hover:scale-105" />
+                <Image src={photo(s.image, 700)} alt={s.name} fill sizes="33vw" className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)] group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100" />
               </div>
               <p className="mt-3 font-semibold group-hover:underline">{s.name}</p>
-              <div className="mt-1 flex items-center gap-2 text-[13px] text-driftwood">
+              <div className="mt-1 flex items-center gap-2 text-[13px] leading-none text-driftwood">
                 <Stars value={s.rating} size={13} /> {s.rating.toFixed(1)} · {s.atoll}
               </div>
             </Link>
