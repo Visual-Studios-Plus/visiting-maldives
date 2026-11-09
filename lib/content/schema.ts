@@ -44,7 +44,7 @@ export type CollectionDef = {
 
 export const CATEGORY_OPTIONS = ["Marine life", "Heritage", "Islands", "Food", "Adventure"];
 
-const IMAGE_HELP = "An Unsplash photo ID (e.g. 1544551763-46a013bb70d5) or a path to a file in /public, like /photos/hukuru-miskiy.jpg.";
+const IMAGE_HELP = "Upload a photo (drag it here or choose a file), or enter an Unsplash photo ID or a path like /photos/hukuru-miskiy.jpg. Shown on cards and at the top of the page.";
 const SLUG_HELP = "Lower-case words joined by hyphens. Used in the page address, so changing it breaks existing links.";
 
 export const COLLECTIONS: CollectionDef[] = [
@@ -68,7 +68,19 @@ export const COLLECTIONS: CollectionDef[] = [
       { name: "atoll", label: "Atoll or area", type: "text", required: true },
       { name: "season", label: "Best season", type: "text", required: true, placeholder: "Jun–Nov" },
       { name: "read", label: "Reading time (minutes)", type: "number", required: true, min: 1, max: 60 },
-      { name: "image", label: "Photo", type: "image", required: true, help: IMAGE_HELP },
+      { name: "image", label: "Cover photo", type: "image", required: true, help: IMAGE_HELP },
+      {
+        name: "gallery",
+        label: "Photo gallery",
+        type: "group",
+        itemLabel: "photo",
+        help: "Extra photos shown in a gallery on the page. The cover photo above is the one used on cards.",
+        fields: [
+          { name: "src", label: "Photo", type: "image", required: true },
+          { name: "alt", label: "Describe the photo", type: "text", required: true, help: "For people using screen readers, e.g. “Manta rays feeding at the surface”." },
+          { name: "caption", label: "Caption (optional)", type: "text" },
+        ],
+      },
       {
         name: "body",
         label: "Sections",
@@ -113,7 +125,19 @@ export const COLLECTIONS: CollectionDef[] = [
       { name: "intro", label: "Introduction", type: "textarea", required: true },
       { name: "bestFor", label: "Best for", type: "tags", help: "Press Enter or comma after each one.", placeholder: "Diving" },
       { name: "transfer", label: "Transfer", type: "text", required: true, placeholder: "Seaplane · 35 min" },
-      { name: "image", label: "Photo", type: "image", required: true, help: IMAGE_HELP },
+      { name: "image", label: "Cover photo", type: "image", required: true, help: IMAGE_HELP },
+      {
+        name: "gallery",
+        label: "Photo gallery",
+        type: "group",
+        itemLabel: "photo",
+        help: "Extra photos shown in a gallery on the page. The cover photo above is the one used on cards.",
+        fields: [
+          { name: "src", label: "Photo", type: "image", required: true },
+          { name: "alt", label: "Describe the photo", type: "text", required: true, help: "For people using screen readers, e.g. “Manta rays feeding at the surface”." },
+          { name: "caption", label: "Caption (optional)", type: "text" },
+        ],
+      },
     ],
   },
   {
@@ -136,7 +160,19 @@ export const COLLECTIONS: CollectionDef[] = [
       { name: "rating", label: "Our rating (out of 5)", type: "number", required: true, min: 0, max: 5, step: 0.1 },
       { name: "note", label: "Short note", type: "text", required: true, help: "One line on the card." },
       { name: "about", label: "About", type: "textarea", required: true },
-      { name: "image", label: "Photo", type: "image", required: true, help: IMAGE_HELP },
+      { name: "image", label: "Cover photo", type: "image", required: true, help: IMAGE_HELP },
+      {
+        name: "gallery",
+        label: "Photo gallery",
+        type: "group",
+        itemLabel: "photo",
+        help: "Extra photos shown in a gallery on the page. The cover photo above is the one used on cards.",
+        fields: [
+          { name: "src", label: "Photo", type: "image", required: true },
+          { name: "alt", label: "Describe the photo", type: "text", required: true, help: "For people using screen readers, e.g. “Manta rays feeding at the surface”." },
+          { name: "caption", label: "Caption (optional)", type: "text" },
+        ],
+      },
       { name: "partner", label: "Partner listing", type: "checkbox", help: "Shows a “Partner” label. Required for paid listings." },
       { name: "amenities", label: "What's included", type: "tags", placeholder: "House reef" },
       {

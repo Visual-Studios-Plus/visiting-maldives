@@ -5,6 +5,7 @@ import Reveal from "@/components/Reveal";
 import SectionHead from "@/components/SectionHead";
 import GuideCard from "@/components/GuideCard";
 import ViewTracker from "@/components/ViewTracker";
+import PhotoGallery from "@/components/PhotoGallery";
 import { getAtoll, getAtolls, getGuides } from "@/lib/content/store";
 
 // Every page is prerendered from generateStaticParams, so a blocking route is fine here
@@ -43,6 +44,11 @@ export default async function AtollPage({ params }: PageProps<"/atolls/[slug]">)
           </div>
         ))}
       </Reveal>
+      {atoll.gallery?.length ? (
+        <div className="container-vm -mt-4 pb-12 lg:pb-20">
+          <PhotoGallery photos={atoll.gallery} title={`${atoll.name} in photos`} />
+        </div>
+      ) : null}
       <Reveal as="section" className="container-vm pb-12 lg:pb-24">
         <SectionHead eyebrow="Guides" title={`In and around`} accent={atoll.name} href="/things-to-do" cta="All guides" />
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

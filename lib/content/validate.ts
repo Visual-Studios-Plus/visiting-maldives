@@ -18,6 +18,14 @@ const LOCAL_FILE = /^\/(?!\/)[A-Za-z0-9._\-/]+\.(?:jpe?g|png|webp|avif|gif|svg)$
 const SITE_PATH = /^\/(?!\/)[A-Za-z0-9._~\-/?#=&%]*$/;
 const MAX_TEXT = 5000;
 
+/** Photos uploaded to this site's Neon bucket: https://<storage host>/site-photos/<key> only. */
+function isOwnUpload(s: string): boolean {
+  const endpoint = process.env.AWS_ENDPOINT_URL_S3?.replace(/\/+$/, "");
+  if (!endpoint) return false;
+  const prefix = `${endpoint}/site-photos/`;
+  return s.startsWith(prefix) && /^[A-Za-z0-9/_.-]+$/.test(s.slice(prefix.length)) && !s.includes("..");
+}
+
 function isSafeLink(s: string): boolean {
   if (SITE_PATH.test(s)) return true;
   try {
@@ -55,7 +63,7 @@ function cleanScalar(f: ScalarField, raw: unknown, path: string, errors: Errors)
       }
       if (s.length > MAX_TEXT) errors[path] = `${f.label} is too long (max ${MAX_TEXT} characters).`;
       if (f.type === "select" && !f.options.includes(s)) errors[path] = `Choose one of: ${f.options.join(", ")}.`;
-      if (f.type === "image" && !(UNSPLASH_ID.test(s) || (LOCAL_FILE.test(s) && !s.includes("..")))) errors[path] = "Use an Unsplash photo ID, or a path to an image in /public such as /photos/name.jpg.";
+      if (f.type === "image" && !(UNSPLASH_ID.test(s) || (LOCAL_FILE.test(s) && !s.includes("..")) || isOwnUpload(s))) errors[path] = "Upload a photo, or use an Unsplash photo ID or a path to an image in /public such as /photos/name.jpg.";
       if (f.type === "link" && !isSafeLink(s)) errors[path] = "Use a page on this site (starting with /) or a full https:// address.";
       return s;
     }

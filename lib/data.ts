@@ -4,8 +4,12 @@
 export const CHECKED = "Checked 3 Nov 2026";
 
 // Local photos (real Maldivian places, Wikimedia Commons, see /credits) start with "/".
+// Photos uploaded in the dashboard are full https URLs (Neon Object Storage) and pass through.
 export const photo = (id: string, w = 1600) =>
-  id.startsWith("/") ? id : `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&q=75`;
+  id.startsWith("/") || id.startsWith("https://") ? id : `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&q=75`;
+
+/** One photo in a gallery (guides, atolls, places to stay). */
+export type GalleryPhoto = { src: string; alt: string; caption?: string };
 
 export const P = {
   aerial: "1514282401047-d79a71a590e8",
@@ -55,6 +59,7 @@ export type Guide = {
   image: string;
   body: { heading: string; text: string }[];
   facts: { label: string; value: string }[];
+  gallery?: GalleryPhoto[];
 };
 
 export const guides: Guide[] = [
@@ -240,6 +245,7 @@ export type Atoll = {
   bestFor: string[];
   transfer: string;
   image: string;
+  gallery?: GalleryPhoto[];
 };
 
 export const atolls: Atoll[] = [
@@ -261,6 +267,7 @@ export type Stay = {
   facts: { label: string; value: string }[];
   /** PLACEHOLDER sample reviews: replace with real, verified guest reviews before launch */
   reviews: Review[];
+  gallery?: GalleryPhoto[];
 };
 
 const R = (author: string, from: string, date: string, rating: number, text: string): Review => ({ author, from, date, rating, text });

@@ -6,6 +6,7 @@ import PageHero from "@/components/PageHero";
 import Reveal from "@/components/Reveal";
 import Stars from "@/components/Stars";
 import ViewTracker from "@/components/ViewTracker";
+import PhotoGallery from "@/components/PhotoGallery";
 import { photo } from "@/lib/data";
 import { getStay, getStays } from "@/lib/content/store";
 
@@ -52,6 +53,8 @@ export default async function StayPage({ params }: PageProps<"/stay/[slug]">) {
               <li key={a} className="rounded-control bg-shell px-3.5 py-2 text-[14px]">{a}</li>
             ))}
           </ul>
+
+          {stay.gallery?.length ? <PhotoGallery photos={stay.gallery} /> : null}
 
           <section id="reviews" className="mt-14">
             <h2 data-reveal className="text-[28px] font-semibold tracking-tight">Reviews</h2>

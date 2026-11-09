@@ -6,6 +6,7 @@ import Reveal from "@/components/Reveal";
 import GuideCard from "@/components/GuideCard";
 import SaveButton from "@/components/SaveButton";
 import ViewTracker from "@/components/ViewTracker";
+import PhotoGallery from "@/components/PhotoGallery";
 import { CHECKED } from "@/lib/data";
 import { getGuide, getGuides } from "@/lib/content/store";
 
@@ -66,6 +67,7 @@ export default async function GuidePage({ params }: PageProps<"/guides/[slug]">)
           <p data-reveal className="mt-12 max-w-2xl rounded-card bg-shell p-5 text-[15px] leading-[22px] text-driftwood">
             Facts in this guide are checked against official sources every six months. Spot something out of date? Tell us and we will fix it.
           </p>
+          {guide.gallery?.length ? <PhotoGallery photos={guide.gallery} /> : null}
         </article>
         <aside data-reveal className="hidden h-max rounded-card bg-ink p-6 text-white lg:sticky lg:top-24 lg:block">
           <p className="eyebrow text-white/60">At a glance</p>
