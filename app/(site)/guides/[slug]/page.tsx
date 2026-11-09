@@ -9,6 +9,9 @@ import ViewTracker from "@/components/ViewTracker";
 import { CHECKED } from "@/lib/data";
 import { getGuide, getGuides } from "@/lib/content/store";
 
+// Every page is prerendered from generateStaticParams, so a blocking route is fine here
+export const instant = false;
+
 export async function generateStaticParams() {
   return (await getGuides()).map((g) => ({ slug: g.slug }));
 }

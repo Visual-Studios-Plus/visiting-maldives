@@ -7,6 +7,9 @@ import GuideCard from "@/components/GuideCard";
 import ViewTracker from "@/components/ViewTracker";
 import { getAtoll, getAtolls, getGuides } from "@/lib/content/store";
 
+// Every page is prerendered from generateStaticParams, so a blocking route is fine here
+export const instant = false;
+
 export async function generateStaticParams() {
   return (await getAtolls()).map((a) => ({ slug: a.slug }));
 }

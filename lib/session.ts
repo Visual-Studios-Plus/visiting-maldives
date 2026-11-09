@@ -1,5 +1,6 @@
 import "server-only";
-import { cookies } from "next/headers";
+import { headers } from "next/headers";
+import { connection } from "next/server";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { SESSION_COOKIE, readSessionToken, safeEqual, type Role } from "@/lib/auth";
@@ -52,9 +53,23 @@ export async function authenticate(emailRaw: string, password: string): Promise<
   return null;
 }
 
+/** The session cookie, read from the request's Cookie header. */
+async function sessionCookie(): Promise<string | undefined> {
+  // Request time only: the check compares the token's expiry with the current time.
+  await connection();
+  // Read from headers() rather than cookies(): when a form posts back without JavaScript, the
+  // page re-renders inside the action and cookies() there throws a Next.js invariant error.
+  const raw = (await headers()).get("cookie") ?? "";
+  for (const part of raw.split(";")) {
+    const [name, ...rest] = part.trim().split("=");
+    if (name === SESSION_COOKIE) return decodeURIComponent(rest.join("="));
+  }
+  return undefined;
+}
+
 /** The signed-in user, or null. */
 export async function getCurrentUser(): Promise<CurrentUser | null> {
-  const claims = await readSessionToken((await cookies()).get(SESSION_COOKIE)?.value);
+  const claims = await readSessionToken(await sessionCookie());
   if (!claims) return null;
   if (claims.uid === ENV_ADMIN_ID) {
     // only valid while there's no database, or no accounts in it yet
