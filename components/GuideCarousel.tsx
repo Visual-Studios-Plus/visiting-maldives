@@ -4,16 +4,15 @@ import { useRef } from "react";
 import { gsap, useGSAP, reduced, splitReveal } from "@/lib/gsap";
 import { guides } from "@/lib/data";
 import GuideCard from "./GuideCard";
-import MobileGuides from "./MobileGuides";
 
 /*
  * "Start with our most-read guides": an endless, slowly drifting row of guide cards.
  * - Infinite: cards are positioned on a loop each frame, so the row never ends.
- * - Centre focus: cards grow, straighten and brighten as they pass the middle, and turn
- *   away a little towards the edges (a gentle 3D arc).
+ * - Flat row: every card is the same size and fully visible (no centre focus, no fading).
  * - Control: drag or swipe with momentum, arrows glide one card, hovering pauses the drift.
  * - Entrance: title lines rise, then the cards sweep up into place.
- * Only transforms and opacity change per frame, with no layout reads.
+ * Only one transform changes per frame, with no layout reads. It only runs while on screen,
+ * and phones get a tighter gap.
  */
 const SPEED = 38; // px per second of idle drift
 
@@ -30,11 +29,12 @@ export default function GuideCarousel() {
       const still = reduced();
 
       // Geometry, measured once and on resize
+      // Phones get a tighter gap
       let W = 0, cardW = 0, step = 0, loop = 0;
       const measure = () => {
         W = el.clientWidth;
         cardW = cards[0].offsetWidth;
-        step = cardW + 20;
+        step = cardW + (W < 640 ? 14 : 20);
         loop = step * cards.length;
       };
       measure();
@@ -45,27 +45,11 @@ export default function GuideCarousel() {
       const target = { speed: still ? 0 : SPEED };
       let dragging = false;
 
-      const setters = cards.map((c) => ({
-        x: gsap.quickSetter(c, "x", "px"),
-        scale: gsap.quickSetter(c, "scale"),
-        rot: gsap.quickSetter(c, "rotationY", "deg"),
-        op: gsap.quickSetter(c, "opacity"),
-        el: c,
-      }));
+      const setters = cards.map((c) => gsap.quickSetter(c, "x", "px") as (v: number) => void);
       const wrapX = (v: number) => gsap.utils.wrap(-step, loop - step, v);
 
       const render = () => {
-        setters.forEach((s, i) => {
-          const x = wrapX(i * step - pos); // left edge of this card in the stage
-          const centre = x + cardW / 2 - W / 2;
-          const d = gsap.utils.clamp(-1.4, 1.4, centre / (W * 0.55));
-          const a = Math.abs(d);
-          s.x(x);
-          s.scale(1 - Math.min(a, 1) * 0.16);
-          s.rot(-d * 14);
-          s.op(1 - Math.min(a, 1.4) * 0.38);
-          s.el.style.zIndex = String(100 - Math.round(a * 50));
-        });
+        setters.forEach((setX, i) => setX(wrapX(i * step - pos))); // left edge of each card
       };
 
       const tick = (...[, dt]: [number, number]) => {
@@ -75,7 +59,16 @@ export default function GuideCarousel() {
         }
         render();
       };
-      gsap.ticker.add(tick);
+      // Run only while the row is on screen (and the tab is visible): saves battery on phones
+      let running = false;
+      const run = (on: boolean) => {
+        if (on === running) return;
+        running = on;
+        if (on) gsap.ticker.add(tick);
+        else gsap.ticker.remove(tick);
+      };
+      const io = new IntersectionObserver(([e]) => run(e.isIntersecting), { rootMargin: "100px 0px" });
+      io.observe(el);
       render();
 
       // Arrows: glide exactly one card
@@ -145,7 +138,8 @@ export default function GuideCarousel() {
       }
 
       return () => {
-        gsap.ticker.remove(tick);
+        run(false);
+        io.disconnect();
         window.removeEventListener("resize", onResize);
       };
     },
@@ -158,8 +152,7 @@ export default function GuideCarousel() {
 
   return (
     <section ref={wrap} className="overflow-x-clip py-12 lg:py-24">
-      <MobileGuides />
-      <div className="hidden sm:block">
+      <div>
         <div className="container-vm text-center">
           <span data-land className="eyebrow inline-block rounded-control bg-shell px-2.5 py-1 text-red">
             Travel guides
@@ -169,7 +162,7 @@ export default function GuideCarousel() {
 
         <div
           ref={stage}
-          className="relative mt-12 h-[460px] cursor-grab touch-pan-y select-none [perspective:1400px] active:cursor-grabbing lg:h-[520px]"
+          className="relative mt-8 h-[400px] cursor-grab sm:mt-12 sm:h-[460px] touch-pan-y select-none active:cursor-grabbing lg:h-[520px]"
           aria-label="Most-read guides, scrolling. Drag, or use the arrows."
           role="region"
         >
@@ -178,7 +171,7 @@ export default function GuideCarousel() {
               key={`${g.slug}-${i}`}
               data-loop-card
               aria-hidden={i >= guides.length}
-              className="absolute top-0 left-0 w-[320px] will-change-transform lg:w-[360px]"
+              className="absolute top-0 left-0 w-[270px] will-change-transform sm:w-[320px] lg:w-[360px]"
             >
               {/* one GPU layer per card (the outer div), not three: each extra layer inside the 3D arc is
                   resampled on its own and showed as thin lines across the cards. The transparent
