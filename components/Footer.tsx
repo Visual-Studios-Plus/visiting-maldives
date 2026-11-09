@@ -38,9 +38,6 @@ export default function Footer() {
       <div className="border-t border-white/10">
         <div className="container-vm flex flex-col gap-2 py-6 font-mono text-[12px] text-white/50 sm:flex-row sm:justify-between">
           <p>© 2026 Visiting Maldives · Independent guide. Partner content is always labelled.</p>
-          <p>
-            Facts checked 3 Nov 2026 · <Link href="/credits" className="hover:text-white">Photo credits</Link>
-          </p>
         </div>
       </div>
     </footer>

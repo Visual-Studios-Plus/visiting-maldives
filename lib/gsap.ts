@@ -37,16 +37,16 @@ export function splitReveal(scope: Element | null) {
   });
 }
 
-/** Fired by the loading screen as it starts to lift. */
+/** Fired by the loading screen, or the page-change curtain, as it starts to lift. */
 export const LOADED_EVENT = "vm:loaded";
 
 /**
- * Runs `start` once the loading screen lifts, or right away when there is none (later page
- * changes). The loader now waits for the page's images, so its length varies: intros wait
+ * Runs `start` once the loading screen (first visit) or the page-change curtain lifts, or right
+ * away when neither is up. Both wait for the page's images, so their length varies: intros wait
  * for this signal instead of a fixed delay. Returns a cleanup for useGSAP.
  */
 export function afterLoader(start: () => void) {
-  if (typeof document === "undefined" || !document.getElementById("vm-loader")) {
+  if (typeof document === "undefined" || !document.querySelector("#vm-loader, [data-curtain-up]")) {
     start();
     return () => {};
   }
