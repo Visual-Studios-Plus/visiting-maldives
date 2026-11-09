@@ -251,16 +251,86 @@ export const atolls: Atoll[] = [
   { slug: "addu", name: "Addu City", dhivehi: "އައްޑޫ", region: "South", tagline: "South of the equator", intro: "The southernmost atoll, linked by causeway, with cycling, wetlands and green turtles.", bestFor: ["Cycling", "Turtles", "History"], transfer: "Flight · 70 min", image: P.addu },
 ];
 
-export type Stay = { name: string; type: "Resort" | "Guesthouse" | "Liveaboard"; atoll: string; price: string; note: string; image: string; partner?: boolean };
+export type Review = { author: string; from: string; date: string; rating: number; text: string };
+export type Stay = {
+  slug: string; name: string; type: "Resort" | "Guesthouse" | "Liveaboard"; atoll: string; price: string; note: string; image: string; partner?: boolean;
+  /** Our editorial score out of 5 */
+  rating: number;
+  about: string;
+  amenities: string[];
+  facts: { label: string; value: string }[];
+  /** PLACEHOLDER sample reviews: replace with real, verified guest reviews before launch */
+  reviews: Review[];
+};
+
+const R = (author: string, from: string, date: string, rating: number, text: string): Review => ({ author, from, date, rating, text });
 
 export const stays: Stay[] = [
-  { name: "Overwater villas", type: "Resort", atoll: "Baa Atoll", price: "From USD 900", note: "One island, one resort. Seaplane transfer.", image: P.villas },
-  { name: "Lagoon villas", type: "Resort", atoll: "South Ari", price: "From USD 650", note: "Close to the whale-shark reef.", image: P.villaDeck },
-  { name: "Beach guesthouse", type: "Guesthouse", atoll: "Kaafu", price: "From USD 70", note: "Local island, public ferry, bikini beach.", image: P.felidhoo },
-  { name: "Surf guesthouse", type: "Guesthouse", atoll: "North Malé", price: "From USD 90", note: "Five minutes by boat to Cokes.", image: P.wave },
-  { name: "Dive liveaboard", type: "Liveaboard", atoll: "Central atolls", price: "From USD 1,400 / week", note: "Seven nights, three dives a day.", image: P.reef, partner: true },
-  { name: "Pool villas", type: "Resort", atoll: "Raa Atoll", price: "From USD 750", note: "Quiet reef, few boats.", image: P.resortPool },
+  {
+    slug: "overwater-villas-baa", name: "Overwater villas", type: "Resort", atoll: "Baa Atoll", price: "From USD 900", note: "One island, one resort. Seaplane transfer.", image: P.villas, rating: 4.8,
+    about: "Villas on stilts over a shallow lagoon, a short boat ride from Hanifaru Bay. Steps lead straight from your deck into the water, and the house reef starts a few metres out.",
+    amenities: ["Private deck with lagoon access", "House reef", "Spa", "Dive centre", "All-inclusive option", "Kids' club"],
+    facts: [{ label: "Transfer", value: "Seaplane · 35 min" }, { label: "Check-in", value: "14:00" }, { label: "Best for", value: "Couples, mantas" }],
+    reviews: [
+      R("Sample guest", "United Kingdom", "Oct 2026", 5, "Snorkelled with mantas on the second morning. The staff knew exactly when the bay was busy and when to go."),
+      R("Sample guest", "Germany", "Aug 2026", 5, "Quiet, well run, and the house reef is better than most dive sites we've paid for."),
+      R("Sample guest", "India", "Jun 2026", 4, "Beautiful villa. Food prices on the half-board plan add up quickly, so look at all-inclusive."),
+    ],
+  },
+  {
+    slug: "lagoon-villas-south-ari", name: "Lagoon villas", type: "Resort", atoll: "South Ari", price: "From USD 650", note: "Close to the whale-shark reef.", image: P.villaDeck, rating: 4.5,
+    about: "Low beach and lagoon villas on the southern rim of Ari, close to the whale-shark area at Maamigili. Excursions run most days of the year.",
+    amenities: ["Beach and lagoon villas", "Whale-shark excursions", "Two pools", "Dive centre", "Water sports"],
+    facts: [{ label: "Transfer", value: "Seaplane · 25 min" }, { label: "Check-in", value: "14:00" }, { label: "Best for", value: "Whale sharks, families" }],
+    reviews: [
+      R("Sample guest", "Australia", "Sep 2026", 5, "Saw a whale shark on the first trip out. Guides were careful about distance and numbers in the water."),
+      R("Sample guest", "Italy", "Jul 2026", 4, "Lovely lagoon, slightly dated bathrooms. Great value for Ari."),
+    ],
+  },
+  {
+    slug: "beach-guesthouse-kaafu", name: "Beach guesthouse", type: "Guesthouse", atoll: "Kaafu", price: "From USD 70", note: "Local island, public ferry, bikini beach.", image: P.felidhoo, rating: 4.3,
+    about: "A family-run guesthouse on a local island, two minutes from the marked bikini beach. Breakfast is Maldivian, and the owners arrange snorkel trips and sandbank picnics.",
+    amenities: ["Breakfast included", "Air conditioning", "Bikini beach nearby", "Snorkel trips", "Wi-Fi"],
+    facts: [{ label: "Transfer", value: "Public ferry or speedboat" }, { label: "Check-in", value: "12:00" }, { label: "Best for", value: "Budget, local life" }],
+    reviews: [
+      R("Sample guest", "France", "Oct 2026", 5, "The family treated us like guests in their home. Sandbank trip was the highlight."),
+      R("Sample guest", "Poland", "May 2026", 4, "Simple rooms, spotless. Remember there's no alcohol on local islands."),
+      R("Sample guest", "Japan", "Mar 2026", 4, "Easy ferry connection, and the bikini beach is quiet on weekdays."),
+    ],
+  },
+  {
+    slug: "surf-guesthouse-north-male", name: "Surf guesthouse", type: "Guesthouse", atoll: "North Malé", price: "From USD 90", note: "Five minutes by boat to Cokes.", image: P.wave, rating: 4.4,
+    about: "A surf-focused guesthouse on Thulusdhoo with daily boats to Cokes and Chickens. Boards, coaching and surf-forecast briefings every evening.",
+    amenities: ["Daily surf boats", "Board rental", "Coaching", "Breakfast and dinner", "Rooftop lounge"],
+    facts: [{ label: "Transfer", value: "Speedboat · 30 min" }, { label: "Check-in", value: "12:00" }, { label: "Season", value: "March to October" }],
+    reviews: [
+      R("Sample guest", "Brazil", "Jul 2026", 5, "Uncrowded mornings at Cokes and a crew that actually reads the swell."),
+      R("Sample guest", "USA", "Jun 2026", 4, "Great waves, basic rooms. Exactly what a surf trip should be."),
+    ],
+  },
+  {
+    slug: "dive-liveaboard", name: "Dive liveaboard", type: "Liveaboard", atoll: "Central atolls", price: "From USD 1,400 / week", note: "Seven nights, three dives a day.", image: P.reef, partner: true, rating: 4.6,
+    about: "A week on a dive boat moving between Ari, Vaavu and South Malé, following the currents and the best conditions. Includes night dives and a dedicated dive dhoni.",
+    amenities: ["Three dives a day", "Nitrox", "Dive dhoni", "All meals", "Air-conditioned cabins"],
+    facts: [{ label: "Duration", value: "7 nights" }, { label: "Departs", value: "Malé, Saturdays" }, { label: "Level", value: "Advanced recommended" }],
+    reviews: [
+      R("Sample guest", "Netherlands", "Apr 2026", 5, "Hammerheads at dawn in Rasdhoo and mantas at night. Briefings were excellent."),
+      R("Sample guest", "Spain", "Feb 2026", 4, "Intense schedule, cabins are small, but the diving is world class."),
+    ],
+  },
+  {
+    slug: "pool-villas-raa", name: "Pool villas", type: "Resort", atoll: "Raa Atoll", price: "From USD 750", note: "Quiet reef, few boats.", image: P.resortPool, rating: 4.7,
+    about: "Beach villas with private pools on a lightly visited reef in Raa. Few other resorts nearby, so dive and snorkel sites stay quiet.",
+    amenities: ["Private pool", "Beach villa", "House reef", "Spa", "Sunset bar"],
+    facts: [{ label: "Transfer", value: "Seaplane · 45 min" }, { label: "Check-in", value: "15:00" }, { label: "Best for", value: "Quiet stays" }],
+    reviews: [
+      R("Sample guest", "Switzerland", "Sep 2026", 5, "We had the reef to ourselves most days. Pool villa was worth it."),
+      R("Sample guest", "UAE", "Jan 2026", 4, "Long seaplane ride but very peaceful once you arrive."),
+    ],
+  },
 ];
+
+export const getStay = (slug: string) => stays.find((s) => s.slug === slug);
 
 export type Eat = { name: string; kind: string; area: string; price: string; dish: string; image: string };
 
