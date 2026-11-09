@@ -6,13 +6,13 @@ import SectionHead from "@/components/SectionHead";
 import GuideCard from "@/components/GuideCard";
 import ViewTracker from "@/components/ViewTracker";
 import PhotoGallery from "@/components/PhotoGallery";
-import { getAtoll, getAtolls, getGuides } from "@/lib/content/store";
+import { slugParams, getAtoll, getAtolls, getGuides } from "@/lib/content/store";
 
 // Every page is prerendered from generateStaticParams, so a blocking route is fine here
 export const instant = false;
 
 export async function generateStaticParams() {
-  return (await getAtolls()).map((a) => ({ slug: a.slug }));
+  return slugParams(await getAtolls());
 }
 
 export async function generateMetadata({ params }: PageProps<"/atolls/[slug]">): Promise<Metadata> {

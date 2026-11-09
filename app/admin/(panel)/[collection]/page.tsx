@@ -108,14 +108,14 @@ async function List({ def }: { def: CollectionDef }) {
 
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
         <p className="flex items-center gap-2">
-          <Badge variant={edited ? "default" : "secondary"}>{edited ? "Edited" : "Built-in content"}</Badge>
-          {edited ? "Saved in the dashboard." : "Your first save stores a copy you can edit."}
+          <Badge variant={edited ? "default" : "secondary"}>{edited ? "In database" : "Not seeded yet"}</Badge>
+          {edited ? "Stored in the database." : "Empty: run npm run db:seed to load the starting content."}
         </p>
         {edited && isAdmin && (
           <ConfirmButton
             action={restoreBuiltIn.bind(null, def.key)}
             title={`Restore the original ${def.label.toLowerCase()}?`}
-            description="This removes every change made in the dashboard to this list and shows the site's built-in content again. It can't be undone."
+            description="This replaces the whole list with the original seed content, removing every change made in the dashboard. It can't be undone."
             confirmLabel="Restore original"
             variant="ghost"
             size="sm"

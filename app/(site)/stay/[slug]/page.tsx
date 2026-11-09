@@ -8,13 +8,13 @@ import Stars from "@/components/Stars";
 import ViewTracker from "@/components/ViewTracker";
 import PhotoGallery from "@/components/PhotoGallery";
 import { photo } from "@/lib/data";
-import { getStay, getStays } from "@/lib/content/store";
+import { slugParams, getStay, getStays } from "@/lib/content/store";
 
 // Every stay is prerendered from generateStaticParams, so a blocking route is fine here
 export const instant = false;
 
 export async function generateStaticParams() {
-  return (await getStays()).map((s) => ({ slug: s.slug }));
+  return slugParams(await getStays());
 }
 
 export async function generateMetadata({ params }: PageProps<"/stay/[slug]">): Promise<Metadata> {

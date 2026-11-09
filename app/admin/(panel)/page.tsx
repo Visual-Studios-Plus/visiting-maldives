@@ -60,7 +60,7 @@ async function Collections() {
                 <CardDescription>{c.description}</CardDescription>
               </CardHeader>
               <CardContent className="mt-auto flex items-center justify-between">
-                <Badge variant={edited ? "default" : "secondary"}>{edited ? "Edited" : "Built-in content"}</Badge>
+                <Badge variant={edited ? "default" : "secondary"}>{edited ? "In database" : "Not seeded yet"}</Badge>
                 <span className="flex items-center gap-1 text-sm font-medium text-primary">
                   Manage <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
                 </span>

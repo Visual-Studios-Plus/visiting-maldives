@@ -123,11 +123,11 @@ export async function moveItem(key: CollectionKey, index: number, dir: -1 | 1) {
   updateTag(contentTag(key));
 }
 
-/** Admins only: throws away dashboard edits for a collection and shows the built-in content again. */
+/** Admins only: replaces a collection with its seed content (prisma/seed/content.ts). */
 export async function restoreBuiltIn(key: CollectionKey) {
-  await requireAdmin();
+  const user = await requireAdmin();
   collectionOrThrow(key);
-  await resetCollection(key);
+  await resetCollection(key, user.id);
   updateTag(contentTag(key));
   redirect(`/admin/${key}?restored=1`);
 }

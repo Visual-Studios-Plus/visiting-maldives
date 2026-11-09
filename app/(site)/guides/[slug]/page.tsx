@@ -8,13 +8,13 @@ import SaveButton from "@/components/SaveButton";
 import ViewTracker from "@/components/ViewTracker";
 import PhotoGallery from "@/components/PhotoGallery";
 import { CHECKED } from "@/lib/data";
-import { getGuide, getGuides } from "@/lib/content/store";
+import { slugParams, getGuide, getGuides } from "@/lib/content/store";
 
 // Every page is prerendered from generateStaticParams, so a blocking route is fine here
 export const instant = false;
 
 export async function generateStaticParams() {
-  return (await getGuides()).map((g) => ({ slug: g.slug }));
+  return slugParams(await getGuides());
 }
 
 export async function generateMetadata({ params }: PageProps<"/guides/[slug]">): Promise<Metadata> {

@@ -12,7 +12,8 @@
     "db:migrate": "node --env-file-if-exists=.env.local node_modules/prisma/build/index.js migrate dev",
     "db:deploy": "node --env-file-if-exists=.env.local node_modules/prisma/build/index.js migrate deploy",
     "db:studio": "node --env-file-if-exists=.env.local node_modules/prisma/build/index.js studio",
-    "db:status": "node --env-file-if-exists=.env.local node_modules/prisma/build/index.js migrate status"
+    "db:status": "node --env-file-if-exists=.env.local node_modules/prisma/build/index.js migrate status",
+    "db:seed": "node --env-file-if-exists=.env.local --no-warnings prisma/seed.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1164.0",
@@ -46,5 +47,8 @@
     "prisma": "^6.19.3",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "prisma": {
+    "seed": "node --no-warnings prisma/seed.ts"
   }
 }
