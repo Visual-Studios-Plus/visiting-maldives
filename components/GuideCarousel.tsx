@@ -49,20 +49,38 @@ export default function GuideCarousel({ guides }: { guides: Guide[] }) {
       let dragging = false;
 
       const setters = cards.map((c) => ({
+        el: c,
         x: gsap.quickSetter(c, "x", "px") as (v: number) => void,
         rot: gsap.quickSetter(c, "rotationY", "deg") as (v: number) => void,
+        shown: true,
+        lastRot: NaN,
       }));
       const wrapX = (v: number) => gsap.utils.wrap(-step, loop - step, v);
 
       // The curve: cards turn away a little as they move from the middle towards the edges.
       // No size change and no fading, so every card stays fully visible.
+      // Performance: of the 16 cards only the 3–5 on screen are visible at a time. Off-screen cards
+      // are hidden and skipped (no transform writes, nothing for the GPU to draw), and a card's
+      // tilt is rewritten only when it changes by a visible amount.
       const render = () => {
-        setters.forEach((s, i) => {
+        for (let i = 0; i < setters.length; i++) {
+          const s = setters[i];
           const x = wrapX(i * step - pos); // left edge of this card
-          const d = gsap.utils.clamp(-1.4, 1.4, (x + cardW / 2 - W / 2) / (W * 0.55)); // 0 = middle
+          const onScreen = x > -cardW - 60 && x < W + 60;
+          if (onScreen !== s.shown) {
+            s.shown = onScreen;
+            s.el.style.visibility = onScreen ? "" : "hidden";
+            s.lastRot = NaN; // re-apply the tilt when it comes back
+          }
+          if (!onScreen) continue;
           s.x(x);
-          s.rot(-d * tilt);
-        });
+          const d = gsap.utils.clamp(-1.4, 1.4, (x + cardW / 2 - W / 2) / (W * 0.55)); // 0 = middle
+          const r = Math.round(-d * tilt * 10) / 10; // 0.1° steps: smaller changes aren't visible
+          if (r !== s.lastRot) {
+            s.lastRot = r;
+            s.rot(r);
+          }
+        }
       };
 
       const tick = (...[, dt]: [number, number]) => {
@@ -140,7 +158,10 @@ export default function GuideCarousel({ guides }: { guides: Guide[] }) {
       el.addEventListener("pointercancel", up);
       window.addEventListener("click", click, true);
 
-      const onResize = () => measure();
+      const onResize = () => {
+        measure();
+        render();
+      };
       window.addEventListener("resize", onResize);
 
       // Entrance: cards sweep up from below, centre first
@@ -191,7 +212,7 @@ export default function GuideCarousel({ guides }: { guides: Guide[] }) {
               key={`${g.slug}-${i}`}
               data-loop-card
               aria-hidden={i >= guides.length}
-              className="absolute top-0 left-0 w-[270px] will-change-transform sm:w-[320px] lg:w-[360px]"
+              className="absolute top-0 left-0 w-[270px] sm:w-[320px] lg:w-[360px]"
             >
               {/* transparent outline: smooths the edges of the turned cards (no jagged lines) */}
               <div data-loop-inner className="[outline:1px_solid_transparent]">
