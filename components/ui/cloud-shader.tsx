@@ -241,13 +241,10 @@ export const CloudShader = ({
     skyBottomColor,
   });
 
-  paramsRef.current = {
-    speed,
-    count,
-    cloudColor,
-    skyTopColor,
-    skyBottomColor,
-  };
+  // keep the draw loop's settings current (in an effect: refs mustn't change during render)
+  useEffect(() => {
+    paramsRef.current = { speed, count, cloudColor, skyTopColor, skyBottomColor };
+  }, [speed, count, cloudColor, skyTopColor, skyBottomColor]);
 
   useEffect(() => {
     const canvas = canvasRef.current;

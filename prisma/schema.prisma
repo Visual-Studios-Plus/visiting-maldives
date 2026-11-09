@@ -1,0 +1,72 @@
+// Database for the dashboard: staff accounts, content, metrics and sign-in limits.
+// Change a model here, run `npm run db:migrate -- --name what-changed` against a dev database,
+// commit the new folder in prisma/migrations, and Vercel applies it on the next deploy.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  // Neon on Vercel sets both: the pooled URL for the site, the direct one for migrations
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+/// ADMIN: everything (accounts, deleting, reordering, restoring). WRITER: create and edit content.
+enum Role {
+  ADMIN
+  WRITER
+}
+
+/// A dashboard account. Passwords are scrypt hashes, never stored in readable form.
+model User {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  name           String
+  role           Role      @default(WRITER)
+  passwordHash   String    @map("password_hash")
+  active         Boolean   @default(true)
+  /// Bumped to sign the user out everywhere (role change, deactivation, password reset)
+  sessionVersion Int       @default(1) @map("session_version")
+  lastLoginAt    DateTime? @map("last_login_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+/// One row per editable collection (guides, atolls, stays, eats, events, essentials),
+/// holding the whole list as JSON in the order shown on the site.
+model SiteContent {
+  key       String   @id
+  data      Json
+  updatedAt DateTime @updatedAt @map("updated_at")
+  /// Who saved it last (user id), for the dashboard
+  updatedBy String?  @map("updated_by")
+
+  @@map("site_content")
+}
+
+/// Daily counters, e.g. (guide, manta-season, view, 2026-11-10) = 42. No personal data.
+model Metric {
+  type  String /// guide | stay | atoll
+  slug  String
+  event String /// view | save | unsave
+  day   DateTime @db.Date
+  count Int      @default(0)
+
+  @@id([type, slug, event, day])
+  @@index([type, day])
+  @@map("metrics")
+}
+
+/// Failed dashboard sign-ins, keyed by a salted hash of the address (never the address itself).
+model AdminLoginAttempt {
+  id  Int      @id @default(autoincrement())
+  key String
+  at  DateTime @default(now())
+
+  @@index([key, at])
+  @@map("admin_login_attempts")
+}

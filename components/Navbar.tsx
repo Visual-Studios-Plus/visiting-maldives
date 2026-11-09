@@ -4,11 +4,12 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { afterLoader, gsap, useGSAP } from "@/lib/gsap";
 import Image from "next/image";
-import { guides, navItems, photo } from "@/lib/data";
+import { navItems, photo, type Guide } from "@/lib/data";
 import { useSaved } from "@/lib/saved";
 import { Mark } from "./Logo";
 
-export default function Navbar() {
+/** `featured`: the first few guides, from the content store (passed in by the site layout). */
+export default function Navbar({ featured }: { featured: Guide[] }) {
   const pathname = usePathname();
   const router = useRouter();
   const [solid, setSolid] = useState(false);
@@ -158,7 +159,7 @@ export default function Navbar() {
           <div data-menu-item>
             <p className="eyebrow text-white/70">Popular right now</p>
             <ul className="mt-3 space-y-3">
-              {guides.slice(0, 3).map((g) => (
+              {featured.map((g) => (
                 <li key={g.slug}>
                   <Link href={`/guides/${g.slug}`} className="flex items-center gap-3 font-medium">
                     <span className="relative size-11 shrink-0 overflow-hidden rounded-control">

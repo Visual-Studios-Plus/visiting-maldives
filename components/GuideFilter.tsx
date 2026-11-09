@@ -2,10 +2,10 @@
 import { useSearchParams } from "next/navigation";
 import { useRef, useState } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
-import { categories, guides, type Category } from "@/lib/data";
+import { categories, type Category, type Guide } from "@/lib/data";
 import GuideCard from "./GuideCard";
 
-export default function GuideFilter() {
+export default function GuideFilter({ guides }: { guides: Guide[] }) {
   const params = useSearchParams();
   const initial = (params.get("c") as Category | null) ?? "All";
   const [active, setActive] = useState<Category | "All">(categories.includes(initial as Category) ? initial : "All");

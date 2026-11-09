@@ -1,4 +1,72 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+
+/*
+ * Dashboard theme (shadcn/ui). The colour variables are defined only inside `.admin-ui` (the
+ * dashboard's root), so these utilities do nothing on the public site and never restyle it.
+ * Radius sizes fall back to Tailwind's defaults outside the dashboard for the same reason.
+ */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --radius-sm: var(--radius-admin-sm, 0.25rem);
+  --radius-md: var(--radius-admin-md, 0.375rem);
+  --radius-lg: var(--radius-admin-lg, 0.5rem);
+  --radius-xl: var(--radius-admin-xl, 0.75rem);
+}
+
+/* body:has(.admin-ui) also covers dialogs and menus, which render at the end of <body> */
+.admin-ui,
+body:has(.admin-ui) {
+  --background: #ffffff;
+  --foreground: #14121a;
+  --card: #ffffff;
+  --card-foreground: #14121a;
+  --popover: #ffffff;
+  --popover-foreground: #14121a;
+  --primary: #d21034;
+  --primary-foreground: #ffffff;
+  --secondary: #f6f3f3;
+  --secondary-foreground: #14121a;
+  --muted: #f6f3f3;
+  --muted-foreground: #615c66;
+  --accent: #f6f3f3;
+  --accent-foreground: #14121a;
+  --destructive: #a80c29;
+  --border: #e8e2e3;
+  --input: #e8e2e3;
+  --ring: #14121a;
+  --chart-1: #d21034;
+  --chart-2: #0b8f8c;
+  --radius-admin-sm: 4px;
+  --radius-admin-md: 6px;
+  --radius-admin-lg: 8px;
+  --radius-admin-xl: 12px;
+}
+body:has(.admin-ui) *,
+body:has(.admin-ui) *::before,
+body:has(.admin-ui) *::after {
+  border-color: var(--border);
+  outline-color: color-mix(in oklab, var(--ring) 50%, transparent);
+}
 
 /* Visiting Maldives design tokens (Brand guide v1.0, p.21 & p.37) */
 @theme {

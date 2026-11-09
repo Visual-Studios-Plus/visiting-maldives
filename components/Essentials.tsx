@@ -1,9 +1,11 @@
 import Link from "next/link";
-import { CHECKED, essentials } from "@/lib/data";
+import { CHECKED } from "@/lib/data";
+import { getEssentials } from "@/lib/content/store";
 
 // Essentials card (brand guide p.34): numbered label, big figure in ink, short fact,
 // green "checked" stamp, optional guide link. Red is kept for the link only.
-export default function Essentials({ limit }: { limit?: number }) {
+export default async function Essentials({ limit }: { limit?: number }) {
+  const essentials = await getEssentials();
   const list = limit ? essentials.slice(0, limit) : essentials;
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

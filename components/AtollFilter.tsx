@@ -3,12 +3,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
-import { atolls, photo, type Atoll } from "@/lib/data";
+import { photo, type Atoll } from "@/lib/data";
 
 const regions = ["All", "North", "Central", "South"] as const;
 
 /** All atolls in one grid, filtered by region with the same pinned chip bar as Things to do. */
-export default function AtollFilter() {
+export default function AtollFilter({ atolls }: { atolls: Atoll[] }) {
   const [region, setRegion] = useState<(typeof regions)[number]>("All");
   const grid = useRef<HTMLDivElement>(null);
   const list = atolls.filter((a) => region === "All" || a.region === region);

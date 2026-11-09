@@ -2,6 +2,7 @@
 import { useRef } from "react";
 import { gsap } from "@/lib/gsap";
 import { useSaved } from "@/lib/saved";
+import { track } from "@/lib/track";
 
 export default function SaveButton({ slug, className = "" }: { slug: string; className?: string }) {
   const { has, toggle } = useSaved();
@@ -17,6 +18,7 @@ export default function SaveButton({ slug, className = "" }: { slug: string; cla
         e.preventDefault();
         e.stopPropagation();
         toggle(slug);
+        track("guide", slug, saved ? "unsave" : "save"); // counted for the dashboard; nothing personal sent
         gsap.fromTo(ref.current, { scale: 0.75 }, { scale: 1, duration: 0.5, ease: "back.out(3)" });
       }}
       className={`grid size-11 place-items-center rounded-control bg-white/90 text-ink transition-colors hover:bg-white ${className}`}

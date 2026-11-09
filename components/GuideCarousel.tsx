@@ -2,21 +2,22 @@
 import Link from "next/link";
 import { useRef } from "react";
 import { gsap, useGSAP, reduced, splitReveal } from "@/lib/gsap";
-import { guides } from "@/lib/data";
+import type { Guide } from "@/lib/data";
 import GuideCard from "./GuideCard";
 
 /*
  * "Start with our most-read guides": an endless, slowly drifting row of guide cards.
  * - Infinite: cards are positioned on a loop each frame, so the row never ends.
- * - Flat row: every card is the same size and fully visible (no centre focus, no fading).
+ * - Curve: cards turn away gently towards the edges (a 3D arc); every card stays the same
+ *   size and fully visible (no centre focus, no fading).
  * - Control: drag or swipe with momentum, arrows glide one card, hovering pauses the drift.
  * - Entrance: title lines rise, then the cards sweep up into place.
- * Only one transform changes per frame, with no layout reads. It only runs while on screen,
- * and phones get a tighter gap.
+ * Only transforms change per frame, with no layout reads. It only runs while on screen, and
+ * phones get a gentler curve and a tighter gap.
  */
 const SPEED = 38; // px per second of idle drift
 
-export default function GuideCarousel() {
+export default function GuideCarousel({ guides }: { guides: Guide[] }) {
   const wrap = useRef<HTMLElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   const api = useRef<{ nudge: (dir: 1 | -1) => void }>({ nudge: () => {} });
@@ -29,13 +30,15 @@ export default function GuideCarousel() {
       const still = reduced();
 
       // Geometry, measured once and on resize
-      // Phones get a tighter gap
-      let W = 0, cardW = 0, step = 0, loop = 0;
+      // Phones get a gentler curve and a tighter gap
+      let W = 0, cardW = 0, step = 0, loop = 0, tilt = 14;
       const measure = () => {
         W = el.clientWidth;
         cardW = cards[0].offsetWidth;
-        step = cardW + (W < 640 ? 14 : 20);
+        const phone = W < 640;
+        step = cardW + (phone ? 14 : 20);
         loop = step * cards.length;
+        tilt = phone ? 9 : 14;
       };
       measure();
 
@@ -45,11 +48,21 @@ export default function GuideCarousel() {
       const target = { speed: still ? 0 : SPEED };
       let dragging = false;
 
-      const setters = cards.map((c) => gsap.quickSetter(c, "x", "px") as (v: number) => void);
+      const setters = cards.map((c) => ({
+        x: gsap.quickSetter(c, "x", "px") as (v: number) => void,
+        rot: gsap.quickSetter(c, "rotationY", "deg") as (v: number) => void,
+      }));
       const wrapX = (v: number) => gsap.utils.wrap(-step, loop - step, v);
 
+      // The curve: cards turn away a little as they move from the middle towards the edges.
+      // No size change and no fading, so every card stays fully visible.
       const render = () => {
-        setters.forEach((setX, i) => setX(wrapX(i * step - pos))); // left edge of each card
+        setters.forEach((s, i) => {
+          const x = wrapX(i * step - pos); // left edge of this card
+          const d = gsap.utils.clamp(-1.4, 1.4, (x + cardW / 2 - W / 2) / (W * 0.55)); // 0 = middle
+          s.x(x);
+          s.rot(-d * tilt);
+        });
       };
 
       const tick = (...[, dt]: [number, number]) => {
@@ -169,7 +182,7 @@ export default function GuideCarousel() {
 
         <div
           ref={stage}
-          className="relative mt-8 h-[380px] cursor-grab sm:mt-12 sm:h-[460px] touch-pan-y select-none active:cursor-grabbing lg:h-[520px]"
+          className="relative mt-8 h-[380px] cursor-grab [perspective:1400px] sm:mt-12 sm:h-[460px] touch-pan-y select-none active:cursor-grabbing lg:h-[520px]"
           aria-label="Most-read guides, scrolling. Drag, or use the arrows."
           role="region"
         >
@@ -180,7 +193,8 @@ export default function GuideCarousel() {
               aria-hidden={i >= guides.length}
               className="absolute top-0 left-0 w-[270px] will-change-transform sm:w-[320px] lg:w-[360px]"
             >
-              <div data-loop-inner>
+              {/* transparent outline: smooths the edges of the turned cards (no jagged lines) */}
+              <div data-loop-inner className="[outline:1px_solid_transparent]">
                 <GuideCard guide={g} tall sizes="360px" />
               </div>
             </div>

@@ -1,0 +1,2 @@
+/* shadcn CLI writes theme variables here. NOT imported anywhere: the dashboard theme lives,
+   scoped to .admin-ui, in app/globals.css, so the public site is never restyled. */

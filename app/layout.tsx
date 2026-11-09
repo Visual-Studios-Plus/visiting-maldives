@@ -1,10 +1,5 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, Noto_Sans_Thaana, Schibsted_Grotesk } from "next/font/google";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import Loader from "@/components/Loader";
-import SmoothScroll from "@/components/SmoothScroll";
-import PageTransition from "@/components/PageTransition";
 import "./globals.css";
 
 const schibsted = Schibsted_Grotesk({ variable: "--font-schibsted", subsets: ["latin"], weight: ["400", "500", "600", "700", "800"] });
@@ -20,14 +15,8 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en-GB" className={`${schibsted.variable} ${plexMono.variable} ${thaana.variable} antialiased`}>
-      <body className="flex min-h-screen flex-col">
-        <Loader />
-        <SmoothScroll />
-        <PageTransition />
-        <Navbar />
-        <main className="flex-1">{children}</main>
-        <Footer />
-      </body>
+      {/* The public site adds its chrome in app/(site)/layout.tsx; the dashboard (app/admin) has its own. */}
+      <body className="flex min-h-screen flex-col">{children}</body>
     </html>
   );
 }
