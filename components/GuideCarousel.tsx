@@ -8,12 +8,11 @@ import GuideCard from "./GuideCard";
 /*
  * "Start with our most-read guides": an endless, slowly drifting row of guide cards.
  * - Infinite: cards are positioned on a loop each frame, so the row never ends.
- * - Curve: cards turn away gently towards the edges (a 3D arc); every card stays the same
- *   size and fully visible (no centre focus, no fading).
+ * - Flat row: cards slide side by side, all the same size and fully visible (no tilt, no 3D).
  * - Control: drag or swipe with momentum, arrows glide one card, hovering pauses the drift.
  * - Entrance: title lines rise, then the cards sweep up into place.
- * Only transforms change per frame, with no layout reads. It only runs while on screen, and
- * phones get a gentler curve and a tighter gap.
+ * Only one transform (x) changes per frame, only for the cards on screen, with no layout reads.
+ * It only runs while the row is on screen. Phones get a tighter gap.
  */
 const SPEED = 38; // px per second of idle drift
 
@@ -30,15 +29,13 @@ export default function GuideCarousel({ guides }: { guides: Guide[] }) {
       const still = reduced();
 
       // Geometry, measured once and on resize
-      // Phones get a gentler curve and a tighter gap
-      let W = 0, cardW = 0, step = 0, loop = 0, tilt = 14;
+      // Phones get a tighter gap
+      let W = 0, cardW = 0, step = 0, loop = 0;
       const measure = () => {
         W = el.clientWidth;
         cardW = cards[0].offsetWidth;
-        const phone = W < 640;
-        step = cardW + (phone ? 14 : 20);
+        step = cardW + (W < 640 ? 14 : 20);
         loop = step * cards.length;
-        tilt = phone ? 9 : 14;
       };
       measure();
 
@@ -51,17 +48,12 @@ export default function GuideCarousel({ guides }: { guides: Guide[] }) {
       const setters = cards.map((c) => ({
         el: c,
         x: gsap.quickSetter(c, "x", "px") as (v: number) => void,
-        rot: gsap.quickSetter(c, "rotationY", "deg") as (v: number) => void,
-        shown: true,
-        lastRot: NaN,
+        shown: undefined as boolean | undefined, // decided on the first frame
       }));
       const wrapX = (v: number) => gsap.utils.wrap(-step, loop - step, v);
 
-      // The curve: cards turn away a little as they move from the middle towards the edges.
-      // No size change and no fading, so every card stays fully visible.
       // Performance: of the 16 cards only the 3–5 on screen are visible at a time. Off-screen cards
-      // are hidden and skipped (no transform writes, nothing for the GPU to draw), and a card's
-      // tilt is rewritten only when it changes by a visible amount.
+      // are hidden and skipped (no transform writes, nothing for the GPU to draw).
       const render = () => {
         for (let i = 0; i < setters.length; i++) {
           const s = setters[i];
@@ -70,16 +62,11 @@ export default function GuideCarousel({ guides }: { guides: Guide[] }) {
           if (onScreen !== s.shown) {
             s.shown = onScreen;
             s.el.style.visibility = onScreen ? "" : "hidden";
-            s.lastRot = NaN; // re-apply the tilt when it comes back
+            // visible cards get their own GPU layer, so moving them only slides a finished image
+            // (no repaint of photo, gradient and shadow each frame); hidden cards release theirs
+            s.el.style.willChange = onScreen ? "transform" : "auto";
           }
-          if (!onScreen) continue;
-          s.x(x);
-          const d = gsap.utils.clamp(-1.4, 1.4, (x + cardW / 2 - W / 2) / (W * 0.55)); // 0 = middle
-          const r = Math.round(-d * tilt * 10) / 10; // 0.1° steps: smaller changes aren't visible
-          if (r !== s.lastRot) {
-            s.lastRot = r;
-            s.rot(r);
-          }
+          if (onScreen) s.x(x);
         }
       };
 
@@ -203,7 +190,7 @@ export default function GuideCarousel({ guides }: { guides: Guide[] }) {
 
         <div
           ref={stage}
-          className="relative mt-8 h-[380px] cursor-grab [perspective:1400px] sm:mt-12 sm:h-[460px] touch-pan-y select-none active:cursor-grabbing lg:h-[520px]"
+          className="relative mt-8 h-[380px] cursor-grab sm:mt-12 sm:h-[460px] touch-pan-y select-none active:cursor-grabbing lg:h-[520px]"
           aria-label="Most-read guides, scrolling. Drag, or use the arrows."
           role="region"
         >
@@ -214,8 +201,7 @@ export default function GuideCarousel({ guides }: { guides: Guide[] }) {
               aria-hidden={i >= guides.length}
               className="absolute top-0 left-0 w-[270px] sm:w-[320px] lg:w-[360px]"
             >
-              {/* transparent outline: smooths the edges of the turned cards (no jagged lines) */}
-              <div data-loop-inner className="[outline:1px_solid_transparent]">
+              <div data-loop-inner>
                 <GuideCard guide={g} tall sizes="360px" />
               </div>
             </div>
