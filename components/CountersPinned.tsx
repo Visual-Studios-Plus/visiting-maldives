@@ -6,8 +6,7 @@ import { P, photo } from "@/lib/data";
 
 /*
  * "The Maldives in numbers": pinned, and driven by your scroll.
- * - Odometer digits: every digit is a reel of 0–9 that your scroll winds into place;
- *   lower places spin more turns, like a rolling counter. Scroll back and they unwind.
+ * - Each number simply rises into view (no counting-up effect).
  * - Camera pull-back: the aerial of Malé starts tight and blurred, then pulls back and sharpens.
  * - Each divider draws itself as its number lands; each label decodes from scrambled letters.
  * Only transforms, opacity and one filter on the photo change while scrolling.
@@ -18,40 +17,20 @@ const STATS = [
   { value: "99%", label: "Ocean", note: "The country is mostly sea, so every trip includes a boat, seaplane or ferry." },
   { value: "2", label: "Monsoon seasons", note: "Dry northeast Dec–Apr; wetter southwest May–Nov, best for mantas and surf." },
 ];
-const SPINS = 2; // extra full turns for the lowest digit
-const REEL = Array.from({ length: (SPINS + 1) * 10 }, (_, i) => i % 10);
-
-/** One number, split into digit reels and fixed characters (comma, %). */
-function Odometer({ value }: { value: string }) {
-  const digits = value.replace(/\D/g, "").length;
-  let seen = 0;
+/** The number as written, with the % in the accent colour. */
+function Num({ value }: { value: string }) {
   return (
-    <span className="inline-flex" aria-label={value}>
-      {value.split("").map((ch, i) => {
-        if (!/\d/.test(ch)) {
-          return (
-            <span key={i} aria-hidden className={ch === "%" ? "text-red" : ""}>
-              {ch}
-            </span>
-          );
-        }
-        // lower places spin more turns
-        const place = digits - 1 - seen++;
-        const turns = Math.max(0, SPINS - place);
-        const stop = turns * 10 + Number(ch);
-        return (
-          <span key={i} aria-hidden className="relative inline-block h-[1em] overflow-hidden align-top">
-            <span data-reel data-stop={stop} className="flex flex-col will-change-transform">
-              {REEL.map((n, k) => (
-                <span key={k} className="block h-[1em] leading-none">
-                  {n}
-                </span>
-              ))}
-            </span>
+    <>
+      {value.split(/(%)/).map((part, i) =>
+        part === "%" ? (
+          <span key={i} className="text-red">
+            %
           </span>
-        );
-      })}
-    </span>
+        ) : (
+          part
+        ),
+      )}
+    </>
   );
 }
 
@@ -63,13 +42,7 @@ export default function CountersPinned() {
   useGSAP(
     () => {
       const q = gsap.utils.selector(ref);
-      const reels = q("[data-reel]") as HTMLElement[];
-      const place = (el: HTMLElement) => gsap.set(el, { yPercent: (-100 * Number(el.dataset.stop)) / REEL.length });
-
-      if (reduced()) {
-        reels.forEach(place);
-        return;
-      }
+      if (reduced()) return;
 
       const tl = gsap.timeline({
         defaults: { ease: "none" },
@@ -80,14 +53,11 @@ export default function CountersPinned() {
       tl.fromTo(q("[data-bg]"), { scale: 1.9, filter: "blur(12px)" }, { scale: 1, filter: "blur(0px)", duration: 1, ease: "power2.out" }, 0);
       tl.from(q("[data-eyebrow], [data-intro] > *"), { y: 30, autoAlpha: 0, duration: 0.2, stagger: 0.04 }, 0.02);
 
-      // Each stat: number rises, its reels wind into place, its divider draws, its label decodes
+      // Each stat: the number rises in, its divider draws, its label decodes
       q("[data-stat]").forEach((stat, i) => {
         const at = 0.08 + i * 0.12;
         const s = stat as HTMLElement;
         tl.from(s.querySelector("[data-num]"), { yPercent: 40, autoAlpha: 0, duration: 0.25, ease: "power2.out" }, at);
-        s.querySelectorAll<HTMLElement>("[data-reel]").forEach((r, k) => {
-          tl.fromTo(r, { yPercent: 0 }, { yPercent: (-100 * Number(r.dataset.stop)) / REEL.length, duration: 0.55, ease: "power3.out" }, at + k * 0.03);
-        });
         tl.fromTo(s.querySelector("[data-rule]"), { scaleX: 0 }, { scaleX: 1, duration: 0.45, ease: "power2.inOut" }, at);
         tl.from(s.querySelector("[data-note]"), { y: 12, autoAlpha: 0, duration: 0.25 }, at + 0.25);
 
@@ -110,6 +80,10 @@ export default function CountersPinned() {
       });
       tl.from(q("[data-source]"), { autoAlpha: 0, duration: 0.15 }, 0.75);
       tl.to({}, { duration: 0.15 }); // a beat to read before the pin releases
+      // Measure now. Until its first refresh the trigger reads start = end = 0, so at scroll 0 the
+      // scene counts as finished: it renders its end state (full-size card) and then scrubs back.
+      tl.scrollTrigger?.refresh();
+      tl.progress(tl.scrollTrigger?.progress ?? 0);
     },
     { scope: ref },
   );
@@ -142,7 +116,7 @@ export default function CountersPinned() {
               <div key={s.label} data-stat className="relative pt-5">
                 <span data-rule className="absolute top-0 left-0 h-px w-full origin-left bg-white/35" />
                 <p data-num className="text-[56px] leading-none font-semibold tracking-[-0.04em] sm:text-[72px] xl:text-[96px]">
-                  <Odometer value={s.value} />
+                  <Num value={s.value} />
                 </p>
                 <p data-label data-text={s.label.toUpperCase()} className="mt-3 font-mono text-[12px] tracking-wide text-white/80">
                   {s.label.toUpperCase()}

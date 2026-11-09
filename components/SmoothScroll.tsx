@@ -41,11 +41,15 @@ export default function SmoothScroll() {
     let pending = 0;
     const refresh = () => {
       cancelAnimationFrame(pending);
-      pending = requestAnimationFrame(() => ScrollTrigger.refresh());
+      // safe = true: if the user is mid-scroll, wait until scrolling stops. Re-measuring
+      // during a scrubbed, pinned animation resets it visibly (the card jumps back and replays).
+      pending = requestAnimationFrame(() => ScrollTrigger.refresh(true));
     };
     const t1 = window.setTimeout(refresh, 120);
     const t2 = window.setTimeout(refresh, 900);
-    const imgs = Array.from(document.querySelectorAll<HTMLImageElement>("main img")).filter((i) => !i.complete);
+    // Only images that can change the layout. `fill` images sit in a box that is already
+    // sized, so their loading never moves anything and must not trigger a re-measure.
+    const imgs = Array.from(document.querySelectorAll<HTMLImageElement>("main img")).filter((i) => !i.complete && i.dataset.nimg !== "fill");
     imgs.forEach((i) => i.addEventListener("load", refresh, { once: true }));
 
     return () => {

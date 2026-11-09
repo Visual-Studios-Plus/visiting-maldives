@@ -68,13 +68,16 @@ export default function ExploreStack() {
           pin: true,
           scrub: 1,
           anticipatePin: 1,
+          invalidateOnRefresh: true,
         },
       });
 
       // 1. The card grows to fill the screen; the marquee steps back
       tl.fromTo(
         q("[data-frame]"),
-        { width: "min(46vw, 520px)", height: "62%", borderRadius: 12 },
+        // a real pixel width: GSAP cannot tween from a CSS min(), and on re-measure it fell back to
+        // the end width, so the card showed full-size before the scene began. Matches the CSS class.
+        { width: () => Math.min(window.innerWidth * 0.46, 520), height: "62%", borderRadius: 12 },
         {
           width: "100%",
           height: "100%",
@@ -124,6 +127,11 @@ export default function ExploreStack() {
         { scaleX: 1, ease: "none", duration: tl.duration() - start },
         start,
       );
+
+      // Measure now. Until its first refresh the trigger reads start = end = 0, so at scroll 0 the
+      // scene counts as finished: it renders its end state (full-size card) and then scrubs back.
+      tl.scrollTrigger?.refresh();
+      tl.progress(tl.scrollTrigger?.progress ?? 0);
 
       // marquee drifts on its own
       gsap.to(q("[data-marquee-track]"), {

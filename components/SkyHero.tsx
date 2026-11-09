@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useRef } from "react";
 import { CloudShader } from "@/components/ui/cloud-shader";
 import { gsap, useGSAP, reduced } from "@/lib/gsap";
-import { P, photo } from "@/lib/data";
 
 /*
  * Homepage hero: a bird's-eye view of a Maldives island (beach, palms and lagoon from
@@ -44,7 +43,7 @@ export default function SkyHero() {
       <section ref={ref} className="relative h-[calc(118svh/var(--z))] min-h-[700px] overflow-hidden bg-[#7fd3d1] text-white">
         {/* The island from straight above */}
         <div data-island className="absolute inset-0 will-change-transform">
-          <Image src={photo(P.birdsEye, 2400)} alt="A white sandbank in a turquoise lagoon, seen from straight above, with one person standing on it" fill priority sizes="100vw" className="object-cover" />
+          <Image src="/photos/hero-island-hd.jpg" alt="A small island ringed by white sand and a turquoise lagoon, seen from straight above, with one villa among the palms and a yacht offshore" fill priority sizes="100vw" className="object-cover" />
         </div>
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_48%,rgba(20,18,26,0.45),rgba(20,18,26,0.1)_70%)]" />
         <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-ink/45 to-transparent" />
