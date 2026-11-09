@@ -53,7 +53,13 @@ export default function ExploreStack() {
       const q = gsap.utils.selector(ref);
       const imgs = q("[data-way-img]");
       const texts = q("[data-way-text]");
-      if (reduced()) return;
+      if (reduced()) {
+        // no scroll scene: show the first way, full-frame, at once
+        gsap.set(q("[data-frame]"), { clipPath: "none" });
+        gsap.set(texts[0], { autoAlpha: 1 });
+        gsap.set(texts[0].querySelector("[data-way-title]"), { yPercent: 0 });
+        return;
+      }
 
       gsap.set(imgs.slice(1), { yPercent: 100 });
       gsap.set(texts, { autoAlpha: 0, pointerEvents: "none" });
@@ -77,16 +83,19 @@ export default function ExploreStack() {
       // Animating width/height instead re-ran layout and re-cropped four full-screen photos
       // on every scroll frame, which made this scene lag. Pixel insets, recomputed on resize.
       const section = ref.current!;
+      // the small centred square the card shows before it opens up
       const cardClip = () => {
-        const w = Math.min(window.innerWidth * 0.46, 520);
-        const h = section.clientHeight * 0.62;
-        return `inset(${(section.clientHeight - h) / 2}px ${(section.clientWidth - w) / 2}px round 12px)`;
+        const side = Math.min(window.innerWidth * 0.34, section.clientHeight * 0.42, 380);
+        return `inset(${(section.clientHeight - side) / 2}px ${(section.clientWidth - side) / 2}px round 12px)`;
       };
+      // a point at the centre: nothing shows while the section scrolls into view
+      const hiddenClip = () => `inset(${section.clientHeight / 2}px ${section.clientWidth / 2}px round 12px)`;
+      // 0. Once pinned, the small square appears from the centre; 1. then it opens to full screen
       tl.fromTo(
         q("[data-frame]"),
-        { clipPath: cardClip },
-        { clipPath: "inset(0px 0px round 0px)", ease: "none", duration: 1 },
-      )
+        { clipPath: hiddenClip },
+        { clipPath: cardClip, ease: "power2.out", duration: 0.3 },
+      ).to(q("[data-frame]"), { clipPath: "inset(0px 0px round 0px)", ease: "none", duration: 1 }, "+=0.1")
         .to(q("[data-marquee]"), { autoAlpha: 0, duration: 0.3 }, "-=0.3")
         .to(texts[0], { autoAlpha: 1, pointerEvents: "auto", duration: 0.25 })
         .to(
@@ -175,7 +184,7 @@ export default function ExploreStack() {
         <div className="absolute inset-0 flex items-center justify-center">
           <div
             data-frame
-            className="relative h-full w-full overflow-hidden bg-ink [clip-path:inset(19%_calc((100%-min(46vw,520px))/2)_round_12px)]"
+            className="relative h-full w-full overflow-hidden bg-ink [clip-path:inset(50%_50%_round_12px)]"
           >
             {WAYS.map((w, i) => (
               <div
