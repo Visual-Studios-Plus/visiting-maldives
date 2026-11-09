@@ -71,25 +71,10 @@ export default function SkyHero() {
           <p data-fade className="mt-5 max-w-xl text-[17px] leading-snug text-white/90 sm:text-[19px]">
             The independent guide to local islands, reefs and atolls, with checked facts and honest advice.
           </p>
-          <div data-fade className="mt-8 flex w-[72%] max-w-xs flex-col gap-3 sm:w-auto sm:max-w-none sm:flex-row">
+          <div data-fade className="mt-8 flex w-[72%] max-w-xs justify-center sm:w-auto sm:max-w-none">
             <Link href="/things-to-do" className="rounded-control bg-red px-6 py-3.5 text-center font-semibold text-white transition-colors hover:bg-red-deep">
               Start exploring
             </Link>
-            <Link href="/atolls" className="rounded-control border border-white/70 px-6 py-3.5 text-center font-semibold transition-colors hover:bg-white hover:text-ink">
-              Browse atolls
-            </Link>
-          </div>
-          <div data-fade className="mt-12 hidden flex-wrap items-center justify-center gap-2 sm:flex">
-            <span className="eyebrow mr-1 text-white/80">Popular now</span>
-            {[
-              ["Manta season · Baa", "/guides/manta-season-hanifaru-bay"],
-              ["Malé in a day", "/guides/male-on-foot"],
-              ["Local islands", "/guides/local-islands-by-ferry"],
-            ].map(([label, href]) => (
-              <Link key={href} href={href} className="inline-flex min-h-11 items-center rounded-control bg-ink/55 px-3.5 text-[14px] font-medium transition-colors hover:bg-white hover:text-ink">
-                {label}
-              </Link>
-            ))}
           </div>
         </div>
       </section>

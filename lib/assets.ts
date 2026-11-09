@@ -7,18 +7,21 @@ export const MAX_WAIT = 12000; // never keep people on the loader longer than th
  */
 export function assetsReady(maxWait = MAX_WAIT) {
   const imgs = Array.from(document.querySelectorAll<HTMLImageElement>("img"));
-  // start the lazy ones now, so scrolling never meets an empty photo
-  imgs.forEach((img) => {
-    if (img.loading === "lazy") img.loading = "eager";
+  // Fetch the lazy ones now, so scrolling never meets an empty photo. A detached copy with the
+  // same srcset/sizes picks the same file and fills the cache; the page's own <img> is left
+  // untouched, because changing its attributes before React hydrates it is a hydration mismatch.
+  const each = imgs.map((img) => {
+    if (img.complete) return Promise.resolve();
+    const probe = new Image();
+    if (img.sizes) probe.sizes = img.sizes;
+    if (img.srcset) probe.srcset = img.srcset;
+    // load/error events, not decode(): decode() waits for a rendered frame and can hang
+    return new Promise<void>((done) => {
+      probe.onload = () => done();
+      probe.onerror = () => done(); // a broken image still counts as settled
+      probe.src = img.currentSrc || img.src;
+    });
   });
-  const each = imgs.map((img) =>
-    img.complete
-      ? Promise.resolve()
-      : new Promise<void>((done) => {
-          img.addEventListener("load", () => done(), { once: true });
-          img.addEventListener("error", () => done(), { once: true }); // a broken image still counts as settled
-        }),
-  );
   const page =
     document.readyState === "complete"
       ? Promise.resolve()

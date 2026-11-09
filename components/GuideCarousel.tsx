@@ -180,7 +180,10 @@ export default function GuideCarousel() {
               aria-hidden={i >= guides.length}
               className="absolute top-0 left-0 w-[320px] will-change-transform lg:w-[360px]"
             >
-              <div data-loop-inner className="[backface-visibility:hidden] [transform:translateZ(0)]">
+              {/* one GPU layer per card (the outer div), not three: each extra layer inside the 3D arc is
+                  resampled on its own and showed as thin lines across the cards. The transparent
+                  outline makes the browser smooth the edges of the rotated card. */}
+              <div data-loop-inner className="[outline:1px_solid_transparent]">
                 <GuideCard guide={g} tall sizes="360px" />
               </div>
             </div>
