@@ -11,15 +11,17 @@ import { Label } from "@/components/ui/label";
 export default function LoginForm({ next, configured }: { next: string; configured: boolean }) {
   const [state, action, pending] = useActionState<LoginState, FormData>(login, {});
   const [show, setShow] = useState(false);
+  const [capsLock, setCapsLock] = useState(false);
+  const checkCaps = (e: React.KeyboardEvent<HTMLInputElement>) => setCapsLock(e.getModifierState?.("CapsLock") ?? false);
 
   return (
-    <Card className="mt-8">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-xl">
-          <LockKeyhole className="size-5 text-primary" aria-hidden />
-          Staff sign in
-        </CardTitle>
-        <CardDescription>For the Visiting Maldives team: admins and writers.</CardDescription>
+    <Card className="admin-material mt-6 gap-5 rounded-2xl border-white/70 py-7 shadow-[0_24px_60px_-28px_rgb(20_18_26/0.35)]">
+      <CardHeader className="gap-1.5">
+        <span className="mb-2 grid size-10 place-items-center rounded-xl bg-primary/10 text-primary">
+          <LockKeyhole className="size-5" aria-hidden />
+        </span>
+        <CardTitle className="text-[26px] leading-tight font-semibold tracking-[-0.025em]">Staff sign in</CardTitle>
+        <CardDescription className="text-[15px] leading-snug">For the Visiting Maldives team: admins and writers.</CardDescription>
       </CardHeader>
       <CardContent>
         {!configured ? (
@@ -47,20 +49,28 @@ export default function LoginForm({ next, configured }: { next: string; configur
                   required
                   maxLength={200}
                   aria-invalid={Boolean(state.error)}
-                  aria-describedby={state.error ? "login-error" : undefined}
+                  aria-describedby={[state.error && "login-error", capsLock && "caps-lock"].filter(Boolean).join(" ") || undefined}
+                  onKeyDown={checkCaps}
+                  onKeyUp={checkCaps}
+                  onBlur={() => setCapsLock(false)}
                   className="h-11 pr-11"
                 />
                 <Button type="button" variant="ghost" size="icon" onClick={() => setShow((s) => !s)} aria-label={show ? "Hide password" : "Show password"} className="absolute top-1/2 right-1 -translate-y-1/2">
                   {show ? <EyeOff /> : <Eye />}
                 </Button>
               </div>
+              {capsLock && (
+                <p id="caps-lock" role="status" className="text-[13px] text-muted-foreground">
+                  Caps Lock is on.
+                </p>
+              )}
             </div>
             {state.error && (
               <Alert variant="destructive" id="login-error">
                 <AlertDescription>{state.error}</AlertDescription>
               </Alert>
             )}
-            <Button type="submit" size="lg" disabled={pending} className="h-11">
+            <Button type="submit" size="lg" disabled={pending} className="mt-1 h-11 text-[15px]">
               {pending && <Loader2 className="animate-spin" aria-hidden />}
               {pending ? "Signing in…" : "Sign in"}
             </Button>

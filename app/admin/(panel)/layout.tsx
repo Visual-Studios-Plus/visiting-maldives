@@ -44,7 +44,8 @@ async function UserNav({ horizontal = false }: { horizontal?: boolean }) {
 export default function PanelLayout({ children }: LayoutProps<"/admin">) {
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[248px_1fr]">
-      <aside className="sticky top-0 z-30 border-b bg-background lg:h-screen lg:border-r lg:border-b-0">
+      {/* frosted chrome: content scrolls softly beneath it (solid when transparency is reduced) */}
+      <aside className="admin-material sticky top-0 z-30 border-b lg:h-screen lg:border-r lg:border-b-0">
         <div className="flex h-14 items-center justify-between gap-3 px-4 lg:h-full lg:flex-col lg:items-stretch lg:gap-0 lg:py-5">
           <Link href="/admin" className="flex items-center gap-2 px-1 font-semibold">
             <BrandMark />
@@ -68,7 +69,7 @@ export default function PanelLayout({ children }: LayoutProps<"/admin">) {
           </Suspense>
         </div>
       </aside>
-      <main className="min-w-0 px-4 py-6 sm:px-8 lg:px-10 lg:py-10">{children}</main>
+      <main className="min-w-0 px-4 py-6 sm:px-8 lg:px-12 lg:py-12">{children}</main>
     </div>
   );
 }

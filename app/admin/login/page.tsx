@@ -14,17 +14,22 @@ async function Form({ searchParams }: { searchParams: PageProps<"/admin/login">[
 
 export default function LoginPage(props: PageProps<"/admin/login">) {
   return (
-    <main className="grid min-h-screen place-items-center px-4 py-16">
-      <div className="w-full max-w-sm">
-        <Link href="/" className="inline-flex items-center gap-2.5 font-semibold">
+    <main className="relative grid min-h-dvh place-items-center overflow-hidden px-4 py-16">
+      {/* soft brand glow behind the frosted card (Maldives red, lagoon teal) */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(55%_45%_at_18%_12%,rgb(210_16_52/0.14),transparent_70%),radial-gradient(50%_45%_at_88%_88%,rgb(11_143_140/0.16),transparent_70%)]"
+      />
+      <div className="admin-enter relative w-full max-w-[400px]">
+        <Link href="/" className="inline-flex items-center gap-2.5 rounded-md text-[15px] font-semibold tracking-[-0.01em]">
           <BrandMark className="size-7" />
           Visiting Maldives
         </Link>
-        <Suspense fallback={<Skeleton className="mt-8 h-64 rounded-xl" />}>
+        <Suspense fallback={<Skeleton className="mt-8 h-72 rounded-2xl" />}>
           <Form searchParams={props.searchParams} />
         </Suspense>
         <p className="mt-6 text-center text-sm text-muted-foreground">
-          <Link href="/" className="hover:text-foreground">
+          <Link href="/" className="rounded-sm underline-offset-4 hover:text-foreground hover:underline">
             ← Back to the site
           </Link>
         </p>

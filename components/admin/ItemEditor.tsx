@@ -500,7 +500,7 @@ export default function ItemEditor({
         </Card>
 
         {/* Save bar: stays in view while editing long entries */}
-        <div className="sticky bottom-0 z-20 -mx-4 mt-6 border-t bg-background/95 px-4 py-3 backdrop-blur sm:mx-0 sm:rounded-xl sm:border sm:shadow-sm">
+        <div className="sticky bottom-0 z-20 -mx-4 mt-6 admin-material border-t px-4 py-3 sm:mx-0 sm:rounded-xl sm:border sm:shadow-[0_8px_30px_-12px_rgb(20_18_26/0.25)]">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p
               role="status"
