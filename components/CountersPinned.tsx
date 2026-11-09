@@ -55,8 +55,9 @@ export default function CountersPinned() {
       tl.from(q("[data-eyebrow], [data-intro] > *"), { y: 30, autoAlpha: 0, duration: 0.2, stagger: 0.04 }, 0.02);
 
       // Each stat: the number rises in, its divider draws, its label decodes
-      q("[data-stat]").forEach((stat, i) => {
-        const at = 0.08 + i * 0.12;
+      // all four appear together, rather than one after another
+      q("[data-stat]").forEach((stat) => {
+        const at = 0.08;
         const s = stat as HTMLElement;
         tl.from(s.querySelector("[data-num]"), { yPercent: 40, autoAlpha: 0, duration: 0.25, ease: "power2.out" }, at);
         tl.fromTo(s.querySelector("[data-rule]"), { scaleX: 0 }, { scaleX: 1, duration: 0.45, ease: "power2.inOut" }, at);
