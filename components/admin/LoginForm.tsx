@@ -1,6 +1,7 @@
 "use client";
 import { useActionState, useState } from "react";
-import { Eye, EyeOff, Loader2, LockKeyhole } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
+import BrandMark from "@/components/admin/BrandMark";
 import { login, type LoginState } from "@/app/admin/actions";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -15,13 +16,14 @@ export default function LoginForm({ next, configured }: { next: string; configur
   const checkCaps = (e: React.KeyboardEvent<HTMLInputElement>) => setCapsLock(e.getModifierState?.("CapsLock") ?? false);
 
   return (
-    <Card className="admin-material mt-6 gap-5 rounded-2xl border-white/70 py-7 shadow-[0_24px_60px_-28px_rgb(20_18_26/0.35)]">
+    <Card className="admin-material gap-5 rounded-2xl border-white/70 py-7 shadow-[0_24px_60px_-28px_rgb(20_18_26/0.35)]">
       <CardHeader className="gap-1.5">
-        <span className="mb-2 grid size-10 place-items-center rounded-xl bg-primary/10 text-primary">
-          <LockKeyhole className="size-5" aria-hidden />
+        <span className="mb-2 flex items-center justify-center gap-2.5 text-[15px] font-semibold tracking-[-0.01em]">
+          <BrandMark className="size-9" />
+          Visiting Maldives
         </span>
         <CardTitle className="text-[26px] leading-tight font-semibold tracking-[-0.025em]">Staff sign in</CardTitle>
-        <CardDescription className="text-[15px] leading-snug">For the Visiting Maldives team: admins and writers.</CardDescription>
+        <CardDescription className="text-[15px] leading-snug">Admin panel</CardDescription>
       </CardHeader>
       <CardContent>
         {!configured ? (
