@@ -43,6 +43,20 @@ export const P = {
   sandbankDrone: "/photos/sandbank-drone.jpg",
   sandbankSunset: "/photos/sandbank-sunset.jpg", // Unsplash 1639994281271
   birdsEye: "1564966866111-cde2c82da4ed", // Unsplash: a sandbank from straight above, one person on it
+  // Food (Unsplash, checked by eye)
+  fishCurry: "1761314036779-84078bec535c", // fish curry in a pot, rice and lime beside it
+  fishCurryVeg: "1761314036698-a7a6e8514905", // fish curry with vegetables and rice
+  tunaCatch: "1766998112558-c8632e66cc49", // a pile of fresh-caught tuna
+  fishUnloading: "1766998112397-94199ae7eb10", // fishermen unloading fish at a market
+  fishMarket: "1746964245994-b1d15d7df515", // fresh reef fish laid out at a market
+  samosas: "1601050690597-df0568f70950", // golden fried pastries on a wooden tray
+  shortEats: "1772457677641-394bbc0c20f6", // a plate of fried snacks and dates
+  teaAndShortEats: "1732519970445-8f2d6998961f", // fried pastries with a glass of milk tea
+  flatbread: "1640625314547-aee9a7696589", // a pile of charred flatbread
+  grilledFish: "1729951545638-391548c98fb9", // fish grilling over smoke
+  coconut: "1761576881090-a3253f7e53dc", // young coconut with a straw, sea behind
+  floatingBreakfast: "1586861635167-e5223aadc9fe", // breakfast trays floating in a pool by the sea
+  restaurantNight: "1746139414290-d981c8c8cb7d", // people eating in a lit-up restaurant
 } as const;
 
 export type Category = "Marine life" | "Heritage" | "Islands" | "Food" | "Adventure";
@@ -90,7 +104,47 @@ export type Stay = {
   gallery?: GalleryPhoto[];
 };
 
-export type Eat = { name: string; kind: string; area: string; price: string; dish: string; image: string };
+export type Eat = {
+  /** page address, /eat-drink/<slug> (older entries without one fall back to the name) */
+  slug?: string;
+  name: string;
+  kind: string;
+  area: string;
+  price: string;
+  /** the one dish to order (shown first) */
+  dish: string;
+  image: string;
+  about?: string;
+  hours?: string;
+  /** "What to order": dishes worth trying here, each with a short reason */
+  recommends?: { dish: string; note: string }[];
+  /** our score out of 5 */
+  rating?: number;
+  address?: string;
+  /** map position (WGS84) */
+  lat?: number;
+  lng?: number;
+  reviews?: Review[];
+};
+
+/** Page address for a place to eat: its slug, or one made from its name for older entries. */
+export const eatSlug = (e: Pick<Eat, "slug" | "name">) =>
+  e.slug || e.name.normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+
+export type DishKind = "Breakfast" | "Mains" | "Short eats" | "Sweets" | "Drinks";
+export const DISH_KINDS: DishKind[] = ["Breakfast", "Mains", "Short eats", "Sweets", "Drinks"];
+
+/** A dish to know: shown in "What to eat" on the Eat & drink page. */
+export type Dish = {
+  name: string;
+  /** name in Dhivehi script (optional) */
+  local?: string;
+  kind: DishKind;
+  text: string;
+  whereToTry?: string;
+  image: string;
+  vegetarian?: boolean;
+};
 
 export type Event = { month: string; title: string; text: string; where: string };
 

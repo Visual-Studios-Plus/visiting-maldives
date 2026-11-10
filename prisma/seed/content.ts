@@ -9,6 +9,7 @@
 import {
   P,
   type Atoll,
+  type Dish,
   type Eat,
   type Essential,
   type Event,
@@ -717,38 +718,224 @@ export const stays: Stay[] = [
   },
 ];
 
+// Places to eat. Opening hours are left out until each place is checked; add them in the dashboard.
+// Map positions are approximate and the reviews are samples: replace both with real details before launch.
 export const eats: Eat[] = [
   {
+    slug: "harbour-hotaa",
+    rating: 4.5,
+    address: "Boduthakurufaanu Magu, Malé (by the harbour)",
+    lat: 4.1757,
+    lng: 73.5086,
+    reviews: [
+      R(
+        "Sample guest",
+        "Germany",
+        "Oct 2026",
+        5,
+        "Breakfast with locals for a few dollars. Point at what looks good on the counter.",
+      ),
+      R(
+        "Sample guest",
+        "Australia",
+        "Sep 2026",
+        4,
+        "Simple, busy and friendly. The mas huni was the best we had.",
+      ),
+    ],
     name: "Harbour hotaa",
     kind: "Local café",
     area: "Malé",
     price: "MVR 60",
     dish: "Mas huni and roshi",
-    image: P.maleSea,
+    image: P.teaAndShortEats,
+    about:
+      "A locals' teashop (hotaa) near the harbour: breakfast, then short eats with tea all afternoon.",
+    recommends: [
+      { dish: "Mas huni and roshi", note: "The classic Maldivian breakfast" },
+      {
+        dish: "Hedhikaa",
+        note: "Short eats from the counter, pick a few with tea",
+      },
+      {
+        dish: "Sai (black or milk tea)",
+        note: "Sweet, strong, the way it's drunk all day",
+      },
+    ],
   },
   {
+    slug: "fish-market-grill",
+    rating: 4.4,
+    address: "Next to the fish market, Malé",
+    lat: 4.177,
+    lng: 73.5079,
+    reviews: [
+      R(
+        "Sample guest",
+        "United Kingdom",
+        "Aug 2026",
+        5,
+        "We chose our fish at the market and ate it twenty minutes later.",
+      ),
+      R(
+        "Sample guest",
+        "India",
+        "Jul 2026",
+        4,
+        "Very fresh, very simple. Go before sunset.",
+      ),
+    ],
     name: "Fish market grill",
     kind: "Seafood",
     area: "Malé",
     price: "MVR 180",
     dish: "Grilled reef fish",
-    image: P.dhoni,
+    image: P.grilledFish,
+    about:
+      "Next to the fish market: choose from the day's catch and have it grilled.",
+    recommends: [
+      { dish: "Grilled reef fish", note: "Whatever came in that morning" },
+      {
+        dish: "Garudhiya",
+        note: "Clear tuna broth with rice, lime and chilli",
+      },
+    ],
   },
   {
+    slug: "sunset-deck-baa",
+    rating: 4.7,
+    address: "Resort island, Baa Atoll",
+    lat: 5.135,
+    lng: 73.07,
+    reviews: [
+      R(
+        "Sample guest",
+        "Switzerland",
+        "Oct 2026",
+        5,
+        "Book the sunset table. The tasting menu was all local fish.",
+      ),
+      R(
+        "Sample guest",
+        "UAE",
+        "Jun 2026",
+        4,
+        "Beautiful setting, resort prices.",
+      ),
+    ],
     name: "Sunset deck",
     kind: "Resort dining",
     area: "Baa Atoll",
     price: "USD 90",
     dish: "Tasting menu",
-    image: P.sunsetVillas,
+    image: P.floatingBreakfast,
+    about: "Resort dining over the lagoon; book ahead for a table at sunset.",
+    recommends: [
+      {
+        dish: "Tasting menu",
+        note: "Local fish and island produce in small courses",
+      },
+      {
+        dish: "Mas riha",
+        note: "Ask for the Maldivian tuna curry if it isn't on the menu",
+      },
+    ],
   },
   {
+    slug: "hulhumale-beachfront",
+    rating: 4.2,
+    address: "Beach road, Hulhumalé",
+    lat: 4.2125,
+    lng: 73.5405,
+    reviews: [
+      R(
+        "Sample guest",
+        "Italy",
+        "Sep 2026",
+        4,
+        "Easy first night near the airport, sea breeze and garudhiya.",
+      ),
+      R(
+        "Sample guest",
+        "Japan",
+        "Mar 2026",
+        4,
+        "Relaxed, good coconut, slow service at busy times.",
+      ),
+    ],
     name: "Hulhumalé beachfront",
     kind: "Casual",
     area: "Hulhumalé",
     price: "MVR 250",
     dish: "Garudhiya fish soup",
-    image: P.beach,
+    image: P.restaurantNight,
+    about:
+      "Relaxed cafés along the Hulhumalé beach, 15 minutes from the airport: good for a first or last night.",
+    recommends: [
+      { dish: "Garudhiya", note: "A gentle first taste of Maldivian food" },
+      { dish: "Kurumba", note: "Fresh young coconut, chilled" },
+    ],
+  },
+];
+
+// Dishes to know ("What to eat" on the Eat & drink page)
+export const dishes: Dish[] = [
+  {
+    name: "Mas huni",
+    local: "މަސްހުނި",
+    kind: "Breakfast",
+    text: "Shredded smoked tuna mixed with grated coconut, onion, chilli and lime. Eaten with roshi (flatbread) and sweet tea.",
+    whereToTry: "Any hotaa (teashop), at breakfast",
+    image: P.flatbread,
+  },
+  {
+    name: "Garudhiya",
+    local: "ގަރުދިޔަ",
+    kind: "Mains",
+    text: "A clear broth of fresh tuna, served with rice, lime, chilli and onion. The everyday home meal.",
+    whereToTry: "Local restaurants and guesthouses",
+    image: P.tunaCatch,
+  },
+  {
+    name: "Mas riha",
+    local: "މަސްރިހަ",
+    kind: "Mains",
+    text: "Tuna curry, often with coconut milk, eaten with rice or roshi.",
+    whereToTry: "Local restaurants; ask at resorts",
+    image: P.fishCurry,
+  },
+  {
+    name: "Hedhikaa",
+    local: "ހެދިކާ",
+    kind: "Short eats",
+    text: "Afternoon short eats from the teashop counter: fried pastries and fish snacks such as bajiya, gulha and kavaabu, eaten with tea.",
+    whereToTry: "Teashops, late afternoon",
+    image: P.samosas,
+  },
+  {
+    name: "Grilled reef fish",
+    kind: "Mains",
+    text: "The day's catch, grilled whole or in pieces, with lime, chilli and rice.",
+    whereToTry: "Near Malé's fish market, and guesthouse barbecues",
+    image: P.grilledFish,
+  },
+  {
+    name: "Sai",
+    local: "ސައި",
+    kind: "Drinks",
+    text: "Tea, black or with milk, usually sweet. Drunk throughout the day, often with hedhikaa.",
+    whereToTry: "Every teashop",
+    image: P.teaAndShortEats,
+    vegetarian: true,
+  },
+  {
+    name: "Kurumba",
+    local: "ކުރުނބާ",
+    kind: "Drinks",
+    text: "Young coconut, opened in front of you; drink the water, then scoop out the soft flesh.",
+    whereToTry: "Beach cafés and resorts",
+    image: P.coconut,
+    vegetarian: true,
   },
 ];
 
@@ -822,4 +1009,4 @@ export const essentials: Essential[] = [
 ];
 
 /** Everything the seed script loads, by collection. */
-export const SEED = { guides, atolls, stays, eats, events, essentials };
+export const SEED = { guides, atolls, stays, dishes, eats, events, essentials };

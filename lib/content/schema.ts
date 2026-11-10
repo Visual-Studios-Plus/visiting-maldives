@@ -22,7 +22,7 @@ export type GroupField = {
 
 export type Field = ScalarField | GroupField;
 
-export type CollectionKey = "guides" | "atolls" | "stays" | "eats" | "events" | "essentials";
+export type CollectionKey = "guides" | "atolls" | "stays" | "dishes" | "eats" | "events" | "essentials";
 
 export type CollectionDef = {
   key: CollectionKey;
@@ -202,21 +202,74 @@ export const COLLECTIONS: CollectionDef[] = [
     ],
   },
   {
-    key: "eats",
-    label: "Eat & drink",
-    singular: "place to eat",
-    description: "Cafés and restaurants on the Eat & drink page.",
+    key: "dishes",
+    label: "Dishes",
+    singular: "dish",
+    description: "“What to eat” on the Eat & drink page: Maldivian dishes and drinks to try.",
     titleField: "name",
-    subtitleField: "area",
+    subtitleField: "kind",
     imageField: "image",
     listPath: "/eat-drink",
     fields: [
+      { name: "name", label: "Name", type: "text", required: true, placeholder: "Mas huni" },
+      { name: "local", label: "Name in Dhivehi (optional)", type: "text" },
+      { name: "kind", label: "Kind", type: "select", required: true, options: ["Breakfast", "Mains", "Short eats", "Sweets", "Drinks"] },
+      { name: "text", label: "What it is", type: "textarea", required: true, help: "One or two sentences: what's in it and how it's eaten." },
+      { name: "whereToTry", label: "Where to try it", type: "text", placeholder: "Any hotaa (teashop) in Malé, at breakfast" },
+      { name: "image", label: "Photo", type: "image", required: true, help: IMAGE_HELP },
+      { name: "vegetarian", label: "Vegetarian", type: "checkbox" },
+    ],
+  },
+  {
+    key: "eats",
+    label: "Eat & drink",
+    singular: "place to eat",
+    description: "Cafés and restaurants on the Eat & drink page, with what to order at each.",
+    titleField: "name",
+    subtitleField: "area",
+    imageField: "image",
+    slugField: "slug",
+    itemPath: "/eat-drink/{slug}",
+    listPath: "/eat-drink",
+    fields: [
       { name: "name", label: "Name", type: "text", required: true },
+      { name: "slug", label: "Page address", type: "text", required: true, help: SLUG_HELP },
       { name: "kind", label: "Kind", type: "text", required: true, placeholder: "Local café" },
       { name: "area", label: "Area", type: "text", required: true },
       { name: "price", label: "Typical price", type: "text", required: true, placeholder: "MVR 60" },
-      { name: "dish", label: "Dish to order", type: "text", required: true },
+      { name: "dish", label: "Signature dish", type: "text", required: true, help: "The one thing to order. Shown first on the card." },
+      { name: "about", label: "About (one line)", type: "text", placeholder: "Locals’ teashop by the harbour; busiest at breakfast." },
+      { name: "hours", label: "Opening hours", type: "text", placeholder: "Daily 6:00–23:00" },
+      { name: "rating", label: "Our rating (out of 5)", type: "number", min: 0, max: 5, step: 0.1 },
+      { name: "address", label: "Address", type: "text", placeholder: "Boduthakurufaanu Magu, Malé" },
+      { name: "lat", label: "Map latitude", type: "number", min: -90, max: 90, step: 0.000001, help: "Right-click the place in Google Maps and copy the first number (e.g. 4.1755)." },
+      { name: "lng", label: "Map longitude", type: "number", min: -180, max: 180, step: 0.000001, help: "The second number (e.g. 73.5093)." },
       { name: "image", label: "Photo", type: "image", required: true, help: IMAGE_HELP },
+      {
+        name: "recommends",
+        label: "What to order",
+        type: "group",
+        itemLabel: "recommendation",
+        help: "Two or three dishes worth trying here, each with a short reason.",
+        fields: [
+          { name: "dish", label: "Dish", type: "text", required: true },
+          { name: "note", label: "Why", type: "text", required: true, placeholder: "Made fresh every morning" },
+        ],
+      },
+      {
+        name: "reviews",
+        label: "Guest reviews",
+        type: "group",
+        itemLabel: "review",
+        help: "Only publish real, verified reviews.",
+        fields: [
+          { name: "author", label: "Name", type: "text", required: true },
+          { name: "from", label: "From", type: "text", required: true, placeholder: "United Kingdom" },
+          { name: "date", label: "Date", type: "text", required: true, placeholder: "Oct 2026" },
+          { name: "rating", label: "Rating", type: "number", required: true, min: 1, max: 5, step: 1 },
+          { name: "text", label: "Review", type: "textarea", required: true },
+        ],
+      },
     ],
   },
   {

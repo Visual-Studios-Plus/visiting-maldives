@@ -3,6 +3,7 @@
  *
  *   npm run db:seed              fill collections that are still empty (safe: never overwrites edits)
  *   npm run db:seed -- --reset   replace every collection with the seed content (throws away edits)
+ *   npm run db:seed -- --reset --only=eats,dishes   …only those collections
  *
  * Runs on every Vercel build after migrations (safe mode), so a new database gets its content.
  * Without DATABASE_URL (local development) it fills .data/content.json instead.
@@ -14,7 +15,11 @@ import prismaPkg from "@prisma/client";
 import { SEED } from "./seed/content.ts";
 
 const reset = process.argv.includes("--reset");
-const keys = Object.keys(SEED) as (keyof typeof SEED)[];
+const only = process.argv.find((a) => a.startsWith("--only="))?.slice(7).split(",").map((k) => k.trim()).filter(Boolean);
+const allKeys = Object.keys(SEED) as (keyof typeof SEED)[];
+const unknown = only?.filter((k) => !allKeys.includes(k as keyof typeof SEED)) ?? [];
+if (unknown.length) throw new Error(`Unknown collection(s): ${unknown.join(", ")}. Use: ${allKeys.join(", ")}`);
+const keys = only ? allKeys.filter((k) => only.includes(k)) : allKeys;
 
 async function seedDatabase() {
   const db = new prismaPkg.PrismaClient();
