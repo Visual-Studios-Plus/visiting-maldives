@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import PageHero from "@/components/PageHero";
 import Reveal from "@/components/Reveal";
 import SectionHead from "@/components/SectionHead";
 import GuideCard from "@/components/GuideCard";
 import IslandList from "@/components/IslandList";
+import ResortCarousel from "@/components/ResortCarousel";
 import ViewTracker from "@/components/ViewTracker";
 import PhotoGallery from "@/components/PhotoGallery";
+import { atollResorts, islandSlug, resortImage } from "@/lib/resorts";
 import { slugParams, getAtoll, getAtolls, getGuides } from "@/lib/content/store";
 
 // Every page is prerendered from generateStaticParams, so a blocking route is fine here
@@ -29,6 +32,13 @@ export default async function AtollPage({ params }: PageProps<"/atolls/[slug]">)
   const related = guides.filter((g) => g.atoll.includes(key) || (atoll.slug === "male" && /Malé|Kaafu|Velana/.test(g.atoll)));
   const list = related.length ? related : guides.slice(0, 3);
 
+  // Each resort island has its own page under the atoll
+  const resorts = atollResorts(atoll).map((r) => ({
+    ...r,
+    image: resortImage(r.index, 900),
+    href: `/atolls/${atoll.slug}/resorts/${islandSlug(r.island)}`,
+  }));
+
   return (
     <>
       <ViewTracker type="atoll" slug={atoll.slug} />
@@ -48,13 +58,18 @@ export default async function AtollPage({ params }: PageProps<"/atolls/[slug]">)
       {atoll.islands ? (
         <Reveal as="section" className="container-vm pb-12 lg:pb-16">
           <SectionHead eyebrow="Islands" title="Islands of" accent={atoll.name} />
-          <div className="mt-10 grid gap-4 lg:grid-cols-2">
-            {atoll.islands.resorts.length ? (
-              <div className="rounded-card bg-shell p-6 lg:col-span-2">
+          {resorts.length ? (
+            <div className="mt-10">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <p className="eyebrow text-driftwood">Resorts · one island, one resort</p>
-                <IslandList items={atoll.islands.resorts.map((r) => ({ name: r.island, detail: r.resort }))} />
+                <Link href="/stay" className="text-[14px] font-medium text-red hover:underline">
+                  All places to stay →
+                </Link>
               </div>
-            ) : null}
+              <ResortCarousel resorts={resorts} />
+            </div>
+          ) : null}
+          <div className="mt-10 grid gap-4 lg:grid-cols-2">
             {atoll.islands.halfResort?.length ? (
               <div className="rounded-card bg-shell p-6 lg:col-span-2">
                 <p className="eyebrow text-driftwood">Half resort, half local island</p>
