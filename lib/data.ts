@@ -78,6 +78,19 @@ export type Guide = {
 
 export const categories: Category[] = ["Marine life", "Heritage", "Islands", "Food", "Adventure"];
 
+/** A resort island (one island, one resort) in an atoll. */
+export type ResortIsland = { island: string; resort: string };
+
+/** An atoll's islands, grouped by how they're used. Names are English (Latin) transliterations. */
+export type Islands = {
+  inhabited: string[];
+  uninhabited: string[];
+  /** One island, one resort. */
+  resorts: ResortIsland[];
+  /** Islands that are part local community, part resort/hotel. */
+  halfResort?: ResortIsland[];
+};
+
 export type Atoll = {
   slug: string;
   name: string;
@@ -89,6 +102,7 @@ export type Atoll = {
   transfer: string;
   image: string;
   gallery?: GalleryPhoto[];
+  islands?: Islands;
 };
 
 export type Review = { author: string; from: string; date: string; rating: number; text: string };
