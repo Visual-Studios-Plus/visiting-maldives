@@ -4,6 +4,7 @@ import PageHero from "@/components/PageHero";
 import Reveal from "@/components/Reveal";
 import SectionHead from "@/components/SectionHead";
 import GuideCard from "@/components/GuideCard";
+import IslandList from "@/components/IslandList";
 import ViewTracker from "@/components/ViewTracker";
 import PhotoGallery from "@/components/PhotoGallery";
 import { slugParams, getAtoll, getAtolls, getGuides } from "@/lib/content/store";
@@ -51,52 +52,30 @@ export default async function AtollPage({ params }: PageProps<"/atolls/[slug]">)
             {atoll.islands.resorts.length ? (
               <div className="rounded-card bg-shell p-6 lg:col-span-2">
                 <p className="eyebrow text-driftwood">Resorts · one island, one resort</p>
-                <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {atoll.islands.resorts.map((r) => (
-                    <li key={r.island}>
-                      <p className="text-[17px] font-semibold">{r.island}</p>
-                      <p className="text-sm text-driftwood">{r.resort}</p>
-                    </li>
-                  ))}
-                </ul>
+                <IslandList items={atoll.islands.resorts.map((r) => ({ name: r.island, detail: r.resort }))} />
               </div>
             ) : null}
             {atoll.islands.halfResort?.length ? (
               <div className="rounded-card bg-shell p-6 lg:col-span-2">
                 <p className="eyebrow text-driftwood">Half resort, half local island</p>
-                <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {atoll.islands.halfResort.map((r) => (
-                    <li key={r.island}>
-                      <p className="text-[17px] font-semibold">{r.island}</p>
-                      <p className="text-sm text-driftwood">{r.resort}</p>
-                    </li>
-                  ))}
-                </ul>
+                <IslandList items={atoll.islands.halfResort.map((r) => ({ name: r.island, detail: r.resort }))} />
               </div>
             ) : null}
             <div className="rounded-card bg-shell p-6">
               <p className="eyebrow text-driftwood">
                 Inhabited · {atoll.islands.inhabited.length}
               </p>
-              <ul className="mt-4 flex flex-wrap gap-2">
-                {atoll.islands.inhabited.map((name) => (
-                  <li key={name} className="rounded-full bg-white px-3 py-1 text-sm font-medium">
-                    {name}
-                  </li>
-                ))}
-              </ul>
+              <IslandList variant="chips" items={atoll.islands.inhabited.map((name) => ({ name }))} />
             </div>
             <div className="rounded-card bg-shell p-6">
               <p className="eyebrow text-driftwood">
                 Uninhabited · {atoll.islands.uninhabited.length}
               </p>
-              <ul className="mt-4 flex flex-wrap gap-2">
-                {atoll.islands.uninhabited.map((name) => (
-                  <li key={name} className="rounded-full bg-white px-3 py-1 text-sm text-driftwood">
-                    {name}
-                  </li>
-                ))}
-              </ul>
+              <IslandList
+                variant="chips"
+                muted
+                items={atoll.islands.uninhabited.map((name) => ({ name }))}
+              />
             </div>
           </div>
         </Reveal>
