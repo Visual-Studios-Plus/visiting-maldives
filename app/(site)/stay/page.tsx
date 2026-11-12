@@ -6,7 +6,8 @@ import PageHero from "@/components/PageHero";
 import Reveal from "@/components/Reveal";
 import SectionHead from "@/components/SectionHead";
 import { P, photo } from "@/lib/data";
-import { getStays } from "@/lib/content/store";
+import { getAtolls, getStays } from "@/lib/content/store";
+import { atollResorts, islandSlug } from "@/lib/resorts";
 
 export const metadata: Metadata = { title: "Where to stay" };
 
@@ -18,6 +19,12 @@ const types = [
 
 export default async function Stay() {
   const stays = await getStays();
+  // every resort island, grouped by atoll (north to south), each linking to its page
+  const byAtoll = (await getAtolls())
+    .filter((a) => !a.parent)
+    .map((a) => ({ atoll: a, resorts: atollResorts(a), half: a.islands?.halfResort ?? [] }))
+    .filter((g) => g.resorts.length || g.half.length);
+  const total = byAtoll.reduce((n, g) => n + g.resorts.length + g.half.length, 0);
   return (
     <>
       <PageHero image={P.villas} eyebrow="Where to stay" title="Resort, guesthouse" accent="or boat?" intro="Three ways to stay, with honest prices and transfer times. Partner listings are always labelled." />
@@ -59,6 +66,43 @@ export default async function Stay() {
                 </p>
               </div>
             </Link>
+          ))}
+        </div>
+      </Reveal>
+      <Reveal as="section" className="container-vm border-t border-line py-12 lg:py-24">
+        <SectionHead eyebrow="Resorts" title="Every resort island," accent="atoll by atoll" />
+        <p data-reveal className="mx-auto mt-4 max-w-2xl text-center text-driftwood">
+          {total} resort islands across {byAtoll.length} atolls. Where we have not named the resort yet, the island is listed by name and marked
+          &ldquo;resort island&rdquo;.
+        </p>
+        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {byAtoll.map(({ atoll, resorts, half }) => (
+            <div key={atoll.slug} data-reveal className="rounded-card bg-shell p-6">
+              <div className="flex items-baseline justify-between gap-3">
+                <Link href={`/atolls/${atoll.slug}`} className="text-[20px] font-semibold hover:text-red">
+                  {atoll.name}
+                </Link>
+                <span className="font-mono text-[12px] text-driftwood">{resorts.length + half.length}</span>
+              </div>
+              <ul className="mt-4 space-y-2">
+                {resorts.map((r) => (
+                  <li key={r.island}>
+                    <Link href={`/atolls/${atoll.slug}/resorts/${islandSlug(r.island)}`} className="group flex items-baseline justify-between gap-3">
+                      <span className="font-medium group-hover:text-red">{r.resort}</span>
+                      <span className="shrink-0 text-[13px] text-driftwood">{r.named ? r.island : "resort island"}</span>
+                    </Link>
+                  </li>
+                ))}
+                {half.map((h) => (
+                  <li key={h.island}>
+                    <Link href={`/atolls/${atoll.slug}`} className="group flex items-baseline justify-between gap-3">
+                      <span className="font-medium group-hover:text-red">{h.resort}</span>
+                      <span className="shrink-0 text-[13px] text-driftwood">{h.island} · local island</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
           ))}
         </div>
       </Reveal>

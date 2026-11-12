@@ -25,8 +25,8 @@ export async function generateMetadata({ params }: PageProps<"/atolls/[slug]/res
   const resort = atoll && findResort(atoll, island);
   if (!atoll || !resort) return { title: "Resort" };
   return {
-    title: `${resort.resort} · ${resort.island}`,
-    description: `${resort.resort} on ${resort.island}, ${atoll.name}.`,
+    title: resort.named ? `${resort.resort} · ${resort.island}` : `${resort.island} (resort island)`,
+    description: resort.named ? `${resort.resort} on ${resort.island}, ${atoll.name}.` : `${resort.island}, a resort island in ${atoll.name}.`,
   };
 }
 
@@ -43,7 +43,7 @@ export default async function ResortPage({ params }: PageProps<"/atolls/[slug]/r
   const stays = await getStays();
   const pool = stays.flatMap((s) => s.reviews);
   const start = [...resort.island].reduce((n, c) => n + c.charCodeAt(0), 0) % Math.max(1, pool.length);
-  const reviews = pool.length ? [0, 1, 2].map((n) => pool[(start + n) % pool.length]) : [];
+  const reviews = resort.named && pool.length ? [0, 1, 2].map((n) => pool[(start + n) % pool.length]) : [];
   const rating = reviews.length ? reviews.reduce((n, r) => n + r.rating, 0) / reviews.length : null;
 
   const gallery = [
@@ -57,7 +57,11 @@ export default async function ResortPage({ params }: PageProps<"/atolls/[slug]/r
         image={resortImage(resort.index, 2400)}
         eyebrow={`${atoll.name} · Resort island`}
         title={resort.resort}
-        intro={`One island, one resort: ${resort.island} is given over entirely to ${resort.resort}, in ${atoll.name}, ${atoll.region} Maldives.`}
+        intro={
+          resort.named
+            ? `One island, one resort: ${resort.island} is given over entirely to ${resort.resort}, in ${atoll.name}, ${atoll.region} Maldives.`
+            : `${resort.island} is listed by the government as a resort island in ${atoll.name}, ${atoll.region} Maldives.`
+        }
       />
 
       <Reveal as="section" className="container-vm grid gap-4 py-12 sm:grid-cols-2 lg:grid-cols-4 lg:py-16">
@@ -80,8 +84,10 @@ export default async function ResortPage({ params }: PageProps<"/atolls/[slug]/r
             About this island
           </h2>
           <p data-reveal className="mt-3 max-w-2xl text-[17px] leading-relaxed">
-            {resort.resort} occupies {resort.island} on its own, the classic one-island-one-resort set-up
-            that {atoll.name} is known for. {atoll.intro}
+            {resort.named
+              ? `${resort.resort} occupies ${resort.island} on its own, the classic one-island-one-resort set-up that ${atoll.name} is known for.`
+              : `${resort.island} is leased or planned for a resort, under the one-island-one-resort rule. We have not listed the resort yet: it may be open, being built or still planned.`}{" "}
+            {atoll.intro}
           </p>
 
           {gallery.length ? <PhotoGallery photos={gallery} title={`${atoll.name} in photos`} /> : null}

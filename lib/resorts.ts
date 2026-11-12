@@ -20,13 +20,26 @@ export const islandSlug = (island: string) =>
 /** Deterministic placeholder photo for a resort, by its position in the atoll list. */
 export const resortImage = (index: number, width = 1400) => photo(RESORT_PHOTOS[index % RESORT_PHOTOS.length], width);
 
-/** A resort island plus the index that picks its photo and page address. */
-export type ResortEntry = ResortIsland & { index: number };
+/**
+ * A resort island plus the index that picks its photo and page address.
+ * `named` is false for islands the government lists as resort islands but whose resort we have
+ * not named yet; their `resort` is then the island name, and pages say the name isn't listed.
+ */
+export type ResortEntry = ResortIsland & { index: number; named: boolean };
 
-export const atollResorts = (atoll: Atoll): ResortEntry[] =>
-  (atoll.islands?.resorts ?? []).map((resort, index) => ({ ...resort, index }));
-
-export const findResort = (atoll: Atoll, island: string): ResortEntry | null => {
-  const index = (atoll.islands?.resorts ?? []).findIndex((r) => islandSlug(r.island) === island);
-  return index === -1 ? null : { ...atoll.islands!.resorts[index], index };
+export const atollResorts = (atoll: Atoll): ResortEntry[] => {
+  const named = (atoll.islands?.resorts ?? []).map((r) => ({ ...r, named: true }));
+  const unnamed = (atoll.islands?.resortIslands ?? []).map((island) => ({ island, resort: island, named: false }));
+  const seen = new Set<string>();
+  return [...named, ...unnamed]
+    .filter((r) => {
+      const s = islandSlug(r.island);
+      if (!s || seen.has(s)) return false; // one page per island address
+      seen.add(s);
+      return true;
+    })
+    .map((r, index) => ({ ...r, index }));
 };
+
+export const findResort = (atoll: Atoll, island: string): ResortEntry | null =>
+  atollResorts(atoll).find((r) => islandSlug(r.island) === island) ?? null;

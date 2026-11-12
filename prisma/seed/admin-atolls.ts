@@ -100,7 +100,11 @@ export const newAtolls: Atoll[] = [
     transfer: "Flight to Hanimaadhoo",
     image: IMG.hanimaadhooBeach,
     gallery: [{ src: IMG.hanimaadhooBeach, alt: "A white-sand beach on Hanimaadhoo" }],
-    islands: registerIslands("haa-dhaalu", [{ island: "Hondaafushi", resort: "Hondaafushi Island Resort" }]),
+    islands: {
+      ...registerIslands("haa-dhaalu", [{ island: "Hondaafushi", resort: "Hondaafushi Island Resort" }]),
+      // a hotel on an inhabited island, next to Hanimaadhoo International Airport
+      halfResort: [{ island: "Hanimaadhoo", resort: "The Barefoot Eco Hotel" }],
+    },
   },
   {
     slug: "shaviyani",

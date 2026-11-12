@@ -15,6 +15,8 @@ export type ResortCard = {
   resort: string;
   image: string;
   href: string;
+  /** false: a resort island whose resort we have not named yet */
+  named?: boolean;
 };
 
 export default function ResortCarousel({ resorts }: { resorts: ResortCard[] }) {
@@ -192,10 +194,10 @@ export default function ResortCarousel({ resorts }: { resorts: ResortCard[] }) {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-ink/95 via-ink/45 via-45% to-ink/5" />
                 <div className="absolute inset-x-0 bottom-0 p-5">
-                  <p className="font-mono text-[11px] tracking-wide text-white/75 uppercase">{r.island}</p>
+                  <p className="font-mono text-[11px] tracking-wide text-white/75 uppercase">{r.named === false ? "Resort island" : r.island}</p>
                   <h3 className="mt-1 line-clamp-2 text-[21px] leading-[25px] font-semibold tracking-tight">{r.resort}</h3>
                   <span className="mt-3 inline-flex items-center gap-2 text-[14px] font-medium text-white/90">
-                    View resort
+                    {r.named === false ? "View island" : "View resort"}
                     <span aria-hidden data-arrow className="inline-block transition-transform duration-300 group-hover:translate-x-1">
                       →
                     </span>

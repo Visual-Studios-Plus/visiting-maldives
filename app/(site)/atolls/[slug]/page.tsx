@@ -166,15 +166,6 @@ export default async function AtollPage({ params }: PageProps<"/atolls/[slug]">)
                 items={atoll.islands.uninhabited.map((name) => ({ name }))}
               />
             </div>
-            {atoll.islands.resortIslands?.length ? (
-              <div className="rounded-card bg-shell p-6 lg:col-span-2">
-                <p className="eyebrow text-driftwood">Resort islands · {atoll.islands.resortIslands.length}</p>
-                <p className="mt-2 max-w-2xl text-sm text-driftwood">
-                  Islands leased or planned for resorts in the government register. Some are open, others still being built.
-                </p>
-                <IslandList variant="chips" items={atoll.islands.resortIslands.map((name) => ({ name }))} />
-              </div>
-            ) : null}
           </div>
         </Reveal>
       ) : null}
