@@ -7,14 +7,15 @@ import { getAtolls } from "@/lib/content/store";
 export const metadata: Metadata = { title: "Islands & atolls" };
 
 export default async function Atolls() {
-  const atolls = await getAtolls();
+  // the administrative atolls only; single-island entries live under their atoll
+  const atolls = (await getAtolls()).filter((a) => !a.parent);
   return (
     <>
       <PageHero
         image={P.baaAerial}
         title="26 atolls,"
         accent="one country."
-        intro="From the capital's lagoons to Addu south of the equator. Pick an atoll by what you want to do and how far you want to travel."
+        intro="From Haa Alif in the far north to Addu south of the equator, here are the 20 administrative atolls and their islands. Pick one by what you want to do and how far you want to travel."
       />
       <section className="container-vm py-12 lg:py-24">
         <AtollFilter atolls={atolls} />

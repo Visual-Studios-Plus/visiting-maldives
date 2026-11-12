@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
 import { gsap, useGSAP, reduced } from "@/lib/gsap";
-import { P, photo } from "@/lib/data";
+import { P, photo, isCommons } from "@/lib/data";
 
 /*
  * Pinned "ways to see the Maldives" (after columbus-travel.com's services):
@@ -194,7 +194,7 @@ export default function ExploreStack() {
                 style={{ zIndex: i }}
               >
                 <Image
-                  src={photo(w.image, 2000)}
+                  src={photo(w.image, 2000)} unoptimized={isCommons(w.image)}
                   alt={w.title}
                   fill
                   sizes="100vw"

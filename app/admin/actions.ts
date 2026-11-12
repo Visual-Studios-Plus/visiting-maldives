@@ -25,6 +25,12 @@ function collectionOrThrow(key: string) {
   return def;
 }
 
+/** The parts of a stored entry that the dashboard form has no field for (and `_author`, set separately). */
+function keepUnmanaged(def: NonNullable<ReturnType<typeof getCollectionDef>>, stored: Record<string, unknown>) {
+  const managed = new Set([...def.fields.map((f) => f.name), "_author"]);
+  return Object.fromEntries(Object.entries(stored ?? {}).filter(([k]) => !managed.has(k)));
+}
+
 /** Only same-site dashboard paths, so the login can't be used to send people elsewhere. */
 const safeNext = (next: unknown) => (typeof next === "string" && /^\/admin(\/[\w\-/?=&%]*)?$/.test(next) && !next.includes("..") ? next : "/admin");
 
@@ -86,7 +92,8 @@ export async function saveItem(key: CollectionKey, index: number, _prev: SaveSta
   const author = isNew ? user.id : (list[index]._author as string | undefined);
   if (author) item._author = author;
   if (isNew) list.push(item);
-  else list[index] = item;
+  // keep data the form doesn't edit (e.g. an atoll's island pages), so a save never wipes it
+  else list[index] = { ...keepUnmanaged(def, list[index]), ...item };
 
   try {
     await saveCollection(key, list as unknown as Collections[typeof key], user.id);

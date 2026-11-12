@@ -17,6 +17,8 @@ import {
   type Review,
   type Stay,
 } from "../../lib/data.ts";
+import { HA, haaAlifIslandAtolls } from "./haa-alif-islands.ts";
+import { newAtolls, sortAtolls, splitAri } from "./admin-atolls.ts";
 
 export const guides: Guide[] = [
   {
@@ -310,7 +312,7 @@ export const guides: Guide[] = [
   },
 ];
 
-export const atolls: Atoll[] = [
+export const atolls: Atoll[] = sortAtolls([
   {
     slug: "male",
     name: "Malé & Kaafu",
@@ -509,7 +511,7 @@ export const atolls: Atoll[] = [
       ],
     },
   },
-  {
+  ...splitAri({
     slug: "ari",
     name: "Ari Atoll",
     dhivehi: "އަރި",
@@ -612,7 +614,7 @@ export const atolls: Atoll[] = [
         { island: "Vakarufalhi", resort: "Vakarufalhi Maldives" },
       ],
     },
-  },
+  }),
   {
     slug: "raa",
     name: "Raa Atoll",
@@ -728,11 +730,12 @@ export const atolls: Atoll[] = [
       "The northernmost administrative atoll (Thiladhunmathi Uthuruburi), with 14 inhabited islands, long reefs and only a handful of resorts. Utheemu is the birthplace of Sultan Mohamed Thakurufaanu, a national hero.",
     bestFor: ["Local islands", "History", "Quiet reefs"],
     transfer: "Flight to Hanimaadhoo + speedboat",
-    image: P.atollFromAbove,
+    image: HA.hoarafushiAerial,
     gallery: [
-      { src: P.beach, alt: "A white-sand beach with turquoise water" },
-      { src: P.reef, alt: "A coral reef in clear blue water" },
-      { src: P.dhoni, alt: "A traditional Maldivian dhoni boat" },
+      { src: HA.haSandbank, alt: "A sandbank in Haa Alif Atoll" },
+      { src: HA.utheemuGanduvaru, alt: "Utheemu Ganduvaru, the wooden palace of Mohamed Thakurufaanu" },
+      { src: HA.kelaaLagoon, alt: "Water sports in Kelaa's turquoise lagoon" },
+      { src: HA.haJetty, alt: "A wooden jetty over the lagoon in Haa Alif Atoll" },
     ],
     islands: {
       inhabited: [
@@ -783,10 +786,10 @@ export const atolls: Atoll[] = [
       resorts: [
         { island: "Dhonakulhi", resort: "Island Hideaway Beach Resort & Spa" },
         { island: "Manafaru", resort: "JA Manafaru Maldives" },
-        { island: "Hondaafushi", resort: "Hondaafushi Island Resort" },
       ],
     },
   },
+  ...haaAlifIslandAtolls,
   {
     slug: "vaavu",
     name: "Vaavu Atoll",
@@ -893,7 +896,8 @@ export const atolls: Atoll[] = [
       ],
     },
   },
-];
+  ...newAtolls,
+]);
 
 const R = (
   author: string,

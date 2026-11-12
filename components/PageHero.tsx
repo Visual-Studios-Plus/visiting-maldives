@@ -2,7 +2,7 @@
 import Image from "next/image";
 import { useRef, type ReactNode } from "react";
 import { gsap, useGSAP, reduced, afterLoader } from "@/lib/gsap";
-import { photo } from "@/lib/data";
+import { photo, isCommons } from "@/lib/data";
 
 /** Splits a headline into words so GSAP can rise them in one by one. */
 export function Words({ text, className = "" }: { text: string; className?: string }) {
@@ -74,7 +74,7 @@ export default function PageHero({
     <section ref={ref} className={`relative isolate flex items-center justify-center overflow-hidden bg-ink text-white ${full ? "min-h-[calc(100svh/var(--z))]" : "min-h-[calc(72svh/var(--z))]"}`}>
       <div data-hero-parallax className="absolute inset-0 -z-10">
         <div data-hero-img className="absolute inset-0">
-          <Image src={photo(image, 2400)} alt="" fill priority sizes="100vw" className="object-cover" />
+          <Image src={photo(image, 2400)} unoptimized={isCommons(image)} alt="" fill priority sizes="100vw" className="object-cover" />
         </div>
       </div>
       <div className="absolute inset-0 -z-10 bg-gradient-to-b from-ink/50 via-ink/30 to-ink/70" />

@@ -22,11 +22,18 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "4.4mb",
     },
   },
+  // "Ari Atoll" was split into its two administrative atolls; old links land on the atolls list
+  async redirects() {
+    return [{ source: "/atolls/ari", destination: "/atolls", permanent: true }];
+  },
   cacheComponents: true,
   partialPrefetching: true,
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },
+      // Wikimedia Commons photos (credited on /credits), e.g. the Haa Alif island pages
+      { protocol: "https", hostname: "upload.wikimedia.org", pathname: "/wikipedia/commons/**" },
+      { protocol: "https", hostname: "thumb.wikimedia.org", pathname: "/wikipedia/commons/**" },
       ...(storage ? [{ protocol: "https" as const, hostname: storage.hostname, pathname: "/site-photos/**" }] : []),
     ],
   },

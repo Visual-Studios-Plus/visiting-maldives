@@ -89,6 +89,8 @@ export type Islands = {
   resorts: ResortIsland[];
   /** Islands that are part local community, part resort/hotel. */
   halfResort?: ResortIsland[];
+  /** Islands leased or planned for resorts, per the government register (resort names not listed) */
+  resortIslands?: string[];
 };
 
 export type Atoll = {
@@ -103,7 +105,36 @@ export type Atoll = {
   image: string;
   gallery?: GalleryPhoto[];
   islands?: Islands;
+  /** longer write-up, shown as numbered sections (used by single-island entries) */
+  body?: { heading: string; text: string }[];
+  /** key facts, shown "at a glance" */
+  facts?: { label: string; value: string }[];
+  /** set on a single-island entry: the slug of the atoll it belongs to (kept off the atolls list) */
+  parent?: string;
 };
+
+/** Other names a stay's free-text `atoll` may use for an atoll (besides the atoll's own name). */
+const ATOLL_ALIASES: Record<string, string[]> = {
+  male: ["kaafu", "male", "north male", "south male"],
+  "alif-alif": ["alif alif", "north ari", "rasdhoo"],
+  "alif-dhaal": ["alif dhaal", "south ari"],
+  fuvahmulah: ["fuvahmulah", "gnaviyani"],
+  addu: ["addu", "seenu"],
+  faafu: ["faafu", "north nilandhe"],
+  dhaalu: ["dhaalu", "south nilandhe"],
+};
+const plain = (s: string) => s.normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z ]+/g, " ").replace(/\s+/g, " ").trim();
+
+/** Whether a place to stay (by its `atoll` text) is in this atoll. */
+export const stayInAtoll = (stay: Pick<Stay, "atoll">, atoll: Pick<Atoll, "slug" | "name">) => {
+  const names = ATOLL_ALIASES[atoll.slug] ?? [plain(atoll.name).replace(/ atoll$/, "")];
+  // each comma-separated part must *start* with the name, so "Haa Dhaalu" never counts as "Dhaalu"
+  const parts = stay.atoll.split(",").map((p) => `${plain(p)} `);
+  return parts.some((p) => names.some((n) => p.startsWith(`${n} `)));
+};
+
+/** Commons photos load straight from Wikimedia in the browser: its servers rate-limit our image optimizer. */
+export const isCommons = (src: string) => src.includes("wikimedia.org/");
 
 export type Review = { author: string; from: string; date: string; rating: number; text: string };
 export type Stay = {

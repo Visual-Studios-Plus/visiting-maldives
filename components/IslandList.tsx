@@ -1,7 +1,9 @@
 "use client";
+import Link from "next/link";
 import { useState } from "react";
 
-type IslandItem = { name: string; detail?: string };
+/** `href`: the island's own page, when it has one */
+type IslandItem = { name: string; detail?: string; href?: string };
 
 /**
  * Atoll island lists: show a short preview first, then let people expand the rest.
@@ -46,11 +48,17 @@ export default function IslandList({
     return (
       <ul className="mt-4 flex flex-wrap gap-2">
         {visible.map((item) => (
-          <li
-            key={item.name}
-            className={`rounded-full bg-white px-3 py-1 text-sm ${muted ? "text-driftwood" : "font-medium"}`}
-          >
-            {item.name}
+          <li key={item.name}>
+            {item.href ? (
+              <Link
+                href={item.href}
+                className={`block rounded-full bg-white px-3 py-1 text-sm transition-colors hover:bg-red hover:text-white ${muted ? "text-driftwood" : "font-medium"}`}
+              >
+                {item.name}
+              </Link>
+            ) : (
+              <span className={`block rounded-full bg-white px-3 py-1 text-sm ${muted ? "text-driftwood" : "font-medium"}`}>{item.name}</span>
+            )}
           </li>
         ))}
         {collapsible ? <li>{toggle}</li> : null}

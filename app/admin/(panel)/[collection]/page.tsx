@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ArrowDown, ArrowUp, ExternalLink, Plus, RotateCcw } from "lucide-react";
-import { photo } from "@/lib/data";
+import { photo, isCommons } from "@/lib/data";
 import { fillPath, getCollectionDef, type CollectionDef } from "@/lib/content/schema";
 import { getCollection, isCustomised, storageMode } from "@/lib/content/store";
 import { moveItem, restoreBuiltIn } from "../../actions";
@@ -62,7 +62,7 @@ async function List({ def }: { def: CollectionDef }) {
                     <Link href={`/admin/${def.key}/${i}`} className="flex items-center gap-3 rounded-md outline-offset-2">
                       {def.imageField && (
                         <span className="relative size-11 shrink-0 overflow-hidden rounded-md bg-muted">
-                          {img && <Image src={photo(img, 120)} alt="" fill sizes="44px" className="object-cover" />}
+                          {img && <Image src={photo(img, 120)} unoptimized={isCommons(img)} alt="" fill sizes="44px" className="object-cover" />}
                         </span>
                       )}
                       <span className="min-w-0">

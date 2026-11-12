@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
-import { photo, type Atoll } from "@/lib/data";
+import { photo, isCommons, type Atoll } from "@/lib/data";
 
 const regions = ["All", "North", "Central", "South"] as const;
 
@@ -54,7 +54,7 @@ function AtollCard({ atoll: a, n }: { atoll: Atoll; n: number }) {
       href={`/atolls/${a.slug}`}
       className="group relative block aspect-[4/5] overflow-hidden rounded-card bg-ink text-white transition-[translate,box-shadow] duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:-translate-y-1.5 motion-reduce:hover:translate-y-0 hover:shadow-[0_32px_56px_-20px_rgba(20,18,26,0.55)] shadow-[0_24px_48px_-20px_rgba(20,18,26,0.45)]"
     >
-      <Image src={photo(a.image, 900)} alt={a.name} fill sizes="(min-width:1024px) 33vw, (min-width:600px) 50vw, 100vw" className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)] group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100" />
+      <Image src={photo(a.image, 900)} unoptimized={isCommons(a.image)} alt={a.name} fill sizes="(min-width:1024px) 33vw, (min-width:600px) 50vw, 100vw" className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)] group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100" />
       <div className="absolute inset-0 bg-gradient-to-t from-ink/95 via-ink/60 via-50% to-ink/10" />
       <span className="absolute top-4 left-5 font-mono text-[12px] text-white/85">
         {String(n).padStart(2, "0")} · {a.region}

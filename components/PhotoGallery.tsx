@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { photo, type GalleryPhoto } from "@/lib/data";
+import { photo, isCommons, type GalleryPhoto } from "@/lib/data";
 
 /*
  * Photo gallery for guide, atoll and stay pages (cards show only the cover photo).
@@ -59,7 +59,7 @@ export default function PhotoGallery({ photos, title = "Photos" }: { photos: Gal
         {photos.map((p, i) => (
           <li key={p.src + i} className="w-[82%] shrink-0 snap-start">
             <button type="button" onClick={() => show(i)} className="group relative block aspect-[4/3] w-full overflow-hidden rounded-card bg-shell" aria-label={`Open photo ${i + 1} of ${n}: ${p.alt}`}>
-              <Image src={photo(p.src, 900)} alt={p.alt} fill sizes="82vw" className="object-cover" />
+              <Image src={photo(p.src, 900)} unoptimized={isCommons(p.src)} alt={p.alt} fill sizes="82vw" className="object-cover" />
             </button>
             {p.caption && <p className="mt-2 text-[13px] leading-snug text-driftwood">{p.caption}</p>}
           </li>
@@ -81,7 +81,7 @@ export default function PhotoGallery({ photos, title = "Photos" }: { photos: Gal
                 aria-label={last ? `Open gallery, ${n} photos` : `Open photo ${i + 1} of ${n}: ${p.alt}`}
               >
                 <Image
-                  src={photo(p.src, big ? 1600 : 900)}
+                  src={photo(p.src, big ? 1600 : 900)} unoptimized={isCommons(p.src)}
                   alt={p.alt}
                   fill
                   sizes={big ? "(min-width:1024px) 50vw, 60vw" : "(min-width:1024px) 25vw, 40vw"}
@@ -127,7 +127,7 @@ export default function PhotoGallery({ photos, title = "Photos" }: { photos: Gal
               </button>
             </div>
             <div className="relative min-h-0 flex-1">
-              <Image key={current.src} src={photo(current.src, 2400)} alt={current.alt} fill sizes="100vw" className="animate-in fade-in object-contain duration-300" priority />
+              <Image key={current.src} src={photo(current.src, 2400)} unoptimized={isCommons(current.src)} alt={current.alt} fill sizes="100vw" className="animate-in fade-in object-contain duration-300" priority />
               {n > 1 && (
                 <>
                   <button type="button" onClick={() => go(-1)} aria-label="Previous photo" className="absolute top-1/2 left-2 grid size-12 -translate-y-1/2 place-items-center rounded-full bg-black/40 text-2xl backdrop-blur hover:bg-black/60 sm:left-6">
