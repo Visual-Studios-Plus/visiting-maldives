@@ -46,7 +46,7 @@ export default async function Stay() {
   ]);
   return (
     <>
-      <PageHero image={P.villas} eyebrow="Where to stay" title="Resort, guesthouse" accent="or boat?" intro="Three ways to stay, with honest prices and transfer times. Partner listings are always labelled." />
+      <PageHero image={P.villas} eyebrow="Where to stay" title="Where" accent="to stay." intro="Resorts, guesthouses and liveaboards, with honest prices and transfer times. Partner listings are always labelled." />
       <Reveal as="section" className="container-vm py-12 lg:py-24">
         <SectionHead eyebrow="Places to stay" title="Our picks," accent="island by island" />
         <div className="mt-10 grid gap-x-4 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">

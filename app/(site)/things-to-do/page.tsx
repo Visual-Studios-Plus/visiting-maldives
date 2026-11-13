@@ -14,9 +14,9 @@ export default async function ThingsToDo() {
       <PageHero
         image={P.coral}
         eyebrow="Things to do"
-        title="Reefs, streets"
-        accent="and sandbanks."
-        intro="Every guide shows the best season, the atoll and how long it takes to read, before you click."
+        title="Things to"
+        accent="see and do."
+        intro="Reefs, mantas, heritage walks and local islands, each with the best season and the atoll to go to."
       />
       <section className="container-vm py-12 lg:py-24">
         <Suspense fallback={<div className="h-96" />}>

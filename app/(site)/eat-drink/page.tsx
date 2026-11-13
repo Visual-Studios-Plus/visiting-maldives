@@ -30,7 +30,7 @@ export default async function EatDrink() {
 
   return (
     <>
-      <PageHero image={P.fishCurry} eyebrow="Eat & drink" title="Tuna, coconut" accent="and chilli." intro="What to eat, where to eat it and what to know before you order: from a MVR 60 teashop breakfast in Malé to a sunset tasting menu." />
+      <PageHero image={P.fishCurry} eyebrow="Eat & drink" title="Where to" accent="eat and drink." intro="Local dishes, teashops and restaurants, from a MVR 60 breakfast in Malé to a sunset dinner." />
 
       {/* What to eat */}
       {sortedDishes.length > 0 && (

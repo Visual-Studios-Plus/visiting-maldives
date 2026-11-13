@@ -13,9 +13,9 @@ export default async function Atolls() {
     <>
       <PageHero
         image={P.baaAerial}
-        title="26 atolls,"
-        accent="one country."
-        intro="From Haa Alif in the far north to Addu south of the equator, here are the 20 administrative atolls and their islands. Pick one by what you want to do and how far you want to travel."
+        title="Atolls"
+        accent="to visit."
+        intro="All 20 atolls, from Haa Alif in the north to Addu in the south, with what each is best for and how to get there."
       />
       <section className="container-vm py-12 lg:py-24">
         <AtollFilter atolls={atolls} />
