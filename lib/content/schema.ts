@@ -7,6 +7,10 @@ export type ScalarField =
   | { name: string; label: string; type: "text" | "textarea" | "image" | "link"; required?: boolean; help?: string; placeholder?: string }
   | { name: string; label: string; type: "number"; required?: boolean; help?: string; min?: number; max?: number; step?: number }
   | { name: string; label: string; type: "select"; required?: boolean; help?: string; options: string[] }
+  /** A dropdown of the atolls, filled from the Atolls collection at edit time. */
+  | { name: string; label: string; type: "atoll"; required?: boolean; help?: string }
+  /** Stored but not shown in the form (e.g. an atoll's page address kept alongside its name). */
+  | { name: string; type: "hidden"; label?: string; help?: string; placeholder?: string; required?: boolean }
   | { name: string; label: string; type: "checkbox"; help?: string }
   | { name: string; label: string; type: "tags"; help?: string; placeholder?: string };
 
@@ -138,13 +142,17 @@ export const COLLECTIONS: CollectionDef[] = [
           { name: "caption", label: "Caption (optional)", type: "text" },
         ],
       },
+      // Resorts are not edited here: every resort island is a "place to stay" (see the stays
+      // collection), where its atoll is selected. The atoll keeps only its name lists.
+      { name: "islands.inhabited", label: "Inhabited islands", type: "tags", help: "Press Enter or comma after each.", placeholder: "Island name" },
+      { name: "islands.uninhabited", label: "Uninhabited islands", type: "tags", help: "Press Enter or comma after each.", placeholder: "Island name" },
     ],
   },
   {
     key: "stays",
     label: "Places to stay",
     singular: "place to stay",
-    description: "Hotels, guesthouses and liveaboards on the Stay page, each with its own page.",
+    description: "Every resort, resort island, hotel, guesthouse and liveaboard. Each is published at /stay and appears under the atoll picked in its entry.",
     titleField: "name",
     subtitleField: "atoll",
     imageField: "image",
@@ -154,10 +162,13 @@ export const COLLECTIONS: CollectionDef[] = [
     fields: [
       { name: "name", label: "Name", type: "text", required: true },
       { name: "slug", label: "Page address", type: "text", required: true, help: SLUG_HELP },
-      { name: "type", label: "Type", type: "select", required: true, options: ["Resort", "Guesthouse", "Liveaboard"] },
-      { name: "atoll", label: "Atoll", type: "text", required: true },
+      { name: "type", label: "Type", type: "select", required: true, options: ["Resort", "Resort island", "Hotel", "Guesthouse", "Liveaboard"] },
+      { name: "atoll", label: "Atoll", type: "atoll", required: true, help: "Choose the atoll this place is in; it then appears on that atoll's page." },
+      // kept in step with `atoll` by the editor, so atoll listings never depend on free text
+      { name: "atollSlug", type: "hidden" },
+      { name: "island", label: "Island", type: "text", help: "For a resort island: the island's name. Shown on its page and used on atoll listings." },
       { name: "price", label: "Price", type: "text", required: true, placeholder: "From USD 650" },
-      { name: "rating", label: "Our rating (out of 5)", type: "number", required: true, min: 0, max: 5, step: 0.1 },
+      { name: "rating", label: "Our rating (out of 5)", type: "number", min: 0, max: 5, step: 0.1, help: "Leave empty for a resort island we have not rated yet." },
       { name: "note", label: "Short note", type: "text", required: true, help: "One line on the card." },
       { name: "about", label: "About", type: "textarea", required: true },
       { name: "image", label: "Cover photo", type: "image", required: true, help: IMAGE_HELP },

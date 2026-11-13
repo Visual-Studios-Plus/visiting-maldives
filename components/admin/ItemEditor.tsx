@@ -1,5 +1,6 @@
 "use client";
 import { useActionState, useEffect, useId, useRef, useState } from "react";
+import { getPath, setPath } from "@/lib/content/path";
 import { ArrowDown, ArrowUp, Loader2, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import type {
@@ -145,12 +146,14 @@ function ScalarInput({
   onChange,
   error,
   path,
+  atolls,
 }: {
   f: ScalarField;
   value: unknown;
   onChange: (v: unknown) => void;
   error?: string;
   path: string;
+  atolls: { slug: string; name: string }[];
 }) {
   const id = useId() + path;
   const required = "required" in f && f.required;
@@ -226,6 +229,24 @@ function ScalarInput({
         </SelectContent>
       </Select>
     );
+  } else if (f.type === "atoll") {
+    // older entries may hold free text ("Central atolls"); keep it visible until it's changed
+    const current = String(value ?? "");
+    const options = !current || atolls.some((a) => a.name === current) ? atolls : [{ slug: "current", name: current }, ...atolls];
+    control = (
+      <Select value={current} onValueChange={onChange}>
+        <SelectTrigger id={id} {...aria} className="w-full max-w-72">
+          <SelectValue placeholder="Choose an atoll…" />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((a) => (
+            <SelectItem key={a.slug} value={a.name}>
+              {a.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    );
   } else if (f.type === "tags") {
     control = (
       <TagsInput
@@ -285,11 +306,13 @@ function GroupInput({
   value,
   onChange,
   errors,
+  atolls,
 }: {
   f: GroupField;
   value: unknown;
   onChange: (v: Row[]) => void;
   errors: Record<string, string>;
+  atolls: { slug: string; name: string }[];
 }) {
   const rows = Array.isArray(value) ? (value as Row[]) : [];
   const set = (i: number, name: string, v: unknown) =>
@@ -356,7 +379,8 @@ function GroupInput({
             </div>
           </div>
           <CardContent className="grid gap-4 px-4 sm:grid-cols-2">
-            {f.fields.map((sf) => (
+            {f.fields.map((sf) =>
+              sf.type === "hidden" ? null : (
               <div
                 key={sf.name}
                 className={sf.type === "textarea" ? "sm:col-span-2" : ""}
@@ -367,6 +391,7 @@ function GroupInput({
                   onChange={(v) => set(i, sf.name, v)}
                   error={errors[`${f.name}.${i}.${sf.name}`]}
                   path={`${f.name}.${i}.${sf.name}`}
+                  atolls={atolls}
                 />
               </div>
             ))}
@@ -400,11 +425,14 @@ export default function ItemEditor({
   index,
   initial,
   justCreated,
+  atolls = [],
 }: {
   def: CollectionDef;
   index: number;
   initial: Item;
   justCreated?: boolean;
+  /** the atolls, for "atoll" fields; filled in from the Atolls collection */
+  atolls?: { slug: string; name: string }[];
 }) {
   const [item, setItem] = useState<Item>(initial);
   const [dirty, setDirty] = useState(false);
@@ -460,10 +488,14 @@ export default function ItemEditor({
   const update = (name: string, v: unknown) => {
     setDirty(true);
     setItem((cur) => {
-      const next = { ...cur, [name]: v };
+      // dotted names (e.g. "islands.resorts") update inside the entry
+      const next = setPath(cur, name, v);
       // new entries: the page address follows the title until it's edited by hand
       if (def.slugField && !slugTouched && name === def.titleField)
         next[def.slugField] = slugify(String(v));
+      // storing the atoll's page address alongside its name keeps listings exact
+      if (name === "atoll")
+        next.atollSlug = atolls.find((a) => a.name === String(v))?.slug;
       return next;
     });
     if (name === def.slugField) setSlugTouched(true);
@@ -477,22 +509,24 @@ export default function ItemEditor({
         <Card>
           <CardContent className="grid gap-6">
             {def.fields.map((f: Field) =>
-              f.type === "group" ? (
+              f.type === "hidden" ? null : f.type === "group" ? (
                 <GroupInput
                   key={f.name}
                   f={f}
-                  value={item[f.name]}
+                  value={getPath(item, f.name)}
                   onChange={(v) => update(f.name, v)}
                   errors={errors}
+                  atolls={atolls}
                 />
               ) : (
                 <ScalarInput
                   key={f.name}
                   f={f}
-                  value={item[f.name]}
+                  value={getPath(item, f.name)}
                   onChange={(v) => update(f.name, v)}
                   error={errors[f.name]}
                   path={f.name}
+                  atolls={atolls}
                 />
               ),
             )}

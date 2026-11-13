@@ -3,7 +3,8 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ExternalLink, Trash2 } from "lucide-react";
 import { fillPath, getCollectionDef } from "@/lib/content/schema";
-import { getCollection, storageMode } from "@/lib/content/store";
+import { getAtolls, getCollection, storageMode } from "@/lib/content/store";
+import type { Atoll } from "@/lib/data";
 import { emptyItem } from "@/lib/content/validate";
 import { deleteItem } from "../../../actions";
 import { canDelete } from "@/lib/permissions";
@@ -25,6 +26,8 @@ async function Editor({ params, searchParams }: { params: PageProps<"/admin/[col
   const isNew = itemParam === "new";
   const index = isNew ? -1 : Number(itemParam);
   const items = (await getCollection(def.key)) as unknown as Item[];
+  // the atoll dropdown on a place to stay comes from the Atolls collection
+  const atolls = ((await getAtolls()) as unknown as Atoll[]).filter((a) => !a.parent);
   if (!isNew && (!Number.isInteger(index) || index < 0 || index >= items.length)) notFound();
   const item = isNew ? emptyItem(def) : items[index];
   const title = isNew ? `New ${def.singular}` : String(item[def.titleField] ?? "Untitled");
@@ -51,7 +54,13 @@ async function Editor({ params, searchParams }: { params: PageProps<"/admin/[col
       </div>
       <StorageNotice mode={storageMode()} />
 
-      <ItemEditor def={def} index={index} initial={item} justCreated={justCreated} />
+      <ItemEditor
+        def={def}
+        index={index}
+        initial={item}
+        justCreated={justCreated}
+        atolls={atolls.map((a) => ({ slug: a.slug, name: a.name }))}
+      />
 
       {mayDelete && (
         <Card className="mt-12 border-destructive/30">

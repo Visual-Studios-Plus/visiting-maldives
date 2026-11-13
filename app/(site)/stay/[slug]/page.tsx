@@ -26,21 +26,31 @@ export default async function StayPage({ params }: PageProps<"/stay/[slug]">) {
   const stay = await getStay((await params).slug);
   if (!stay) notFound();
 
-  const avg = stay.reviews.reduce((n, r) => n + r.rating, 0) / stay.reviews.length;
-  const dist = [5, 4, 3, 2, 1].map((n) => ({ n, c: stay.reviews.filter((r) => Math.round(r.rating) === n).length }));
+  const reviews = stay.reviews ?? [];
+  const avg = reviews.length ? reviews.reduce((n, r) => n + r.rating, 0) / reviews.length : null;
+  const dist = [5, 4, 3, 2, 1].map((n) => ({ n, c: reviews.filter((r) => Math.round(r.rating) === n).length }));
   const more = (await getStays()).filter((s) => s.slug !== stay.slug).slice(0, 3);
+  const location = stay.island ? `${stay.island} · ${stay.atoll}` : stay.atoll;
 
   return (
     <>
       <ViewTracker type="stay" slug={stay.slug} />
-      <PageHero image={stay.image} eyebrow={`${stay.type} · ${stay.atoll}`} title={stay.name} intro={stay.note} />
+      <PageHero image={stay.image} eyebrow={`${stay.type} · ${location}`} title={stay.name} intro={stay.note} />
 
       <Reveal as="section" className="container-vm grid gap-10 py-12 lg:grid-cols-[1fr_340px] lg:py-20">
         <div>
           <div data-reveal className="flex flex-wrap items-center gap-3">
-            <Stars value={stay.rating} size={22} />
-            <span className="text-[20px] leading-none font-semibold tabular-nums">{stay.rating.toFixed(1)}</span>
-            <span className="text-driftwood">Our rating · {stay.reviews.length} guest reviews</span>
+            {stay.rating ? (
+              <>
+                <Stars value={stay.rating} size={22} />
+                <span className="text-[20px] leading-none font-semibold tabular-nums">{stay.rating.toFixed(1)}</span>
+                <span className="text-driftwood">
+                  Our rating{reviews.length ? ` · ${reviews.length} guest ${reviews.length === 1 ? "review" : "reviews"}` : ""}
+                </span>
+              </>
+            ) : (
+              <span className="text-driftwood">Not rated yet · {reviews.length ? `${reviews.length} guest reviews` : "no guest reviews yet"}</span>
+            )}
             {stay.partner && <span className="rounded-control bg-ink px-2.5 py-1 text-[12px] text-white">Partner</span>}
           </div>
 
@@ -56,20 +66,21 @@ export default async function StayPage({ params }: PageProps<"/stay/[slug]">) {
 
           {stay.gallery?.length ? <PhotoGallery photos={stay.gallery} /> : null}
 
+          {reviews.length ? (
           <section id="reviews" className="mt-14">
             <h2 data-reveal className="text-[28px] font-semibold tracking-tight">Reviews</h2>
             <div data-reveal className="mt-6 grid gap-6 rounded-card bg-shell p-6 sm:grid-cols-[auto_1fr] sm:items-center">
               <div className="text-center sm:pr-6">
-                <p className="text-[48px] leading-none font-semibold tracking-tight tabular-nums">{avg.toFixed(1)}</p>
-                <Stars value={avg} size={18} className="mt-2" />
-                <p className="mt-1 text-[13px] text-driftwood">{stay.reviews.length} reviews</p>
+                <p className="text-[48px] leading-none font-semibold tracking-tight tabular-nums">{(avg ?? 0).toFixed(1)}</p>
+                <Stars value={avg ?? 0} size={18} className="mt-2" />
+                <p className="mt-1 text-[13px] text-driftwood">{reviews.length} reviews</p>
               </div>
               <div className="space-y-1.5">
                 {dist.map((d) => (
                   <div key={d.n} className="flex items-center gap-3 text-[13px]">
                     <span className="w-10 shrink-0 font-mono">{d.n} ★</span>
                     <span className="h-2 flex-1 overflow-hidden rounded-full bg-black/10">
-                      <span className="block h-full rounded-full bg-[#f5a623]" style={{ width: `${(d.c / stay.reviews.length) * 100}%` }} />
+                      <span className="block h-full rounded-full bg-[#f5a623]" style={{ width: `${(d.c / reviews.length) * 100}%` }} />
                     </span>
                     <span className="w-4 text-right tabular-nums text-driftwood">{d.c}</span>
                   </div>
@@ -77,7 +88,7 @@ export default async function StayPage({ params }: PageProps<"/stay/[slug]">) {
               </div>
             </div>
             <ul className="mt-8 divide-y divide-black/10">
-              {stay.reviews.map((r, i) => (
+              {reviews.map((r, i) => (
                 <li key={i} data-reveal className="py-6">
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
                     <p className="font-semibold">
@@ -91,6 +102,7 @@ export default async function StayPage({ params }: PageProps<"/stay/[slug]">) {
               ))}
             </ul>
           </section>
+          ) : null}
         </div>
 
         <aside className="lg:sticky lg:top-28 lg:self-start">
@@ -100,7 +112,7 @@ export default async function StayPage({ params }: PageProps<"/stay/[slug]">) {
             <dl className="mt-6 space-y-4 border-t border-white/15 pt-6">
               <div>
                 <dt className="eyebrow text-white/70">Location</dt>
-                <dd className="mt-1 font-mono text-[14px]">{stay.atoll}</dd>
+                <dd className="mt-1 font-mono text-[14px]">{location}</dd>
               </div>
               {stay.facts.map((f) => (
                 <div key={f.label}>
@@ -129,7 +141,12 @@ export default async function StayPage({ params }: PageProps<"/stay/[slug]">) {
               </div>
               <p className="mt-3 font-semibold group-hover:underline">{s.name}</p>
               <div className="mt-1 flex items-center gap-2 text-[13px] leading-none text-driftwood">
-                <Stars value={s.rating} size={13} /> {s.rating.toFixed(1)} · {s.atoll}
+                {s.rating ? (
+                  <>
+                    <Stars value={s.rating} size={13} /> {s.rating.toFixed(1)} ·{" "}
+                  </>
+                ) : null}
+                {s.atoll}
               </div>
             </Link>
           ))}

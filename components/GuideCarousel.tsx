@@ -26,6 +26,8 @@ export default function GuideCarousel({ guides }: { guides: Guide[] }) {
       splitReveal(wrap.current);
       const el = stage.current!;
       const cards = gsap.utils.toArray<HTMLElement>("[data-loop-card]", el);
+      // no guides (e.g. the content store returned nothing): nothing to loop
+      if (!el || !cards.length) return;
       const still = reduced();
 
       // Geometry, measured once and on resize

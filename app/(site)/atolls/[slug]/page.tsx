@@ -8,10 +8,8 @@ import Reveal from "@/components/Reveal";
 import SectionHead from "@/components/SectionHead";
 import GuideCard from "@/components/GuideCard";
 import IslandList from "@/components/IslandList";
-import ResortCarousel from "@/components/ResortCarousel";
 import ViewTracker from "@/components/ViewTracker";
 import PhotoGallery from "@/components/PhotoGallery";
-import { atollResorts, islandSlug, resortImage } from "@/lib/resorts";
 import { slugParams, getAtoll, getAtolls, getGuides, getStays } from "@/lib/content/store";
 
 // Every page is prerendered from generateStaticParams, so a blocking route is fine here
@@ -36,15 +34,8 @@ export default async function AtollPage({ params }: PageProps<"/atolls/[slug]">)
   // Inhabited islands that have their own entry in the Atolls section
   const profiles = (await getAtolls()).filter((a) => a.parent === atoll.slug);
   const parent = atoll.parent ? await getAtoll(atoll.parent) : undefined;
-  // places to stay listed on the site that are in this atoll (island entries use their parent atoll)
+  // every place to stay (resorts, resort islands, hotels) in this atoll, all published at /stay
   const stays = (await getStays()).filter((s) => stayInAtoll(s, parent ?? atoll));
-
-  // Each resort island has its own page under the atoll
-  const resorts = atollResorts(atoll).map((r) => ({
-    ...r,
-    image: resortImage(r.index, 900),
-    href: `/atolls/${atoll.slug}/resorts/${islandSlug(r.island)}`,
-  }));
 
   return (
     <>
@@ -103,17 +94,6 @@ export default async function AtollPage({ params }: PageProps<"/atolls/[slug]">)
       {atoll.islands ? (
         <Reveal as="section" className="container-vm pb-12 lg:pb-16">
           <SectionHead eyebrow="Islands" title="Islands of" accent={atoll.name} />
-          {resorts.length ? (
-            <div className="mt-10">
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <p className="eyebrow text-driftwood">Resorts · one island, one resort</p>
-                <Link href="/stay" className="text-[14px] font-medium text-red hover:underline">
-                  All places to stay →
-                </Link>
-              </div>
-              <ResortCarousel resorts={resorts} />
-            </div>
-          ) : null}
           {profiles.length ? (
             <div className="mt-10">
               <p className="eyebrow text-driftwood">Local islands · {profiles.length}</p>
@@ -138,12 +118,6 @@ export default async function AtollPage({ params }: PageProps<"/atolls/[slug]">)
             </div>
           ) : null}
           <div className="mt-10 grid gap-4 lg:grid-cols-2">
-            {atoll.islands.halfResort?.length ? (
-              <div className="rounded-card bg-shell p-6 lg:col-span-2">
-                <p className="eyebrow text-driftwood">Half resort, half local island</p>
-                <IslandList items={atoll.islands.halfResort.map((r) => ({ name: r.island, detail: r.resort }))} />
-              </div>
-            ) : null}
             <div className="rounded-card bg-shell p-6">
               <p className="eyebrow text-driftwood">
                 Inhabited · {atoll.islands.inhabited.length}

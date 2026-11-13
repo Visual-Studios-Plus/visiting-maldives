@@ -18,6 +18,7 @@ import {
   type Stay,
 } from "../../lib/data.ts";
 import { HA, haaAlifIslandAtolls } from "./haa-alif-islands.ts";
+import { resortStays, withAtollSlugs } from "./resort-stays.ts";
 import { newAtolls, sortAtolls, splitAri } from "./admin-atolls.ts";
 
 export const guides: Guide[] = [
@@ -1489,4 +1490,10 @@ export const essentials: Essential[] = [
 ];
 
 /** Everything the seed script loads, by collection. */
-export const SEED = { guides, atolls, stays, dishes, eats, events, essentials };
+// Every resort island is also a place to stay, published at /stay/<slug> like the picks above.
+export const placesToStay: Stay[] = [
+  ...withAtollSlugs(atolls, stays),
+  ...resortStays(atolls, stays.map((s) => s.slug)),
+];
+
+export const SEED = { guides, atolls, stays: placesToStay, dishes, eats, events, essentials };

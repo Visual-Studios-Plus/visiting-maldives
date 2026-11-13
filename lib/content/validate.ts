@@ -1,5 +1,6 @@
 import { storageEndpoint } from "../storage-endpoint.ts";
 import type { CollectionDef, Field, ScalarField } from "./schema";
+import { getPath, setPath } from "./path";
 
 /*
  * Server-side cleaning and validation of one dashboard entry against its collection's fields.
@@ -54,7 +55,8 @@ function cleanScalar(f: ScalarField, raw: unknown, path: string, errors: Errors)
     }
     case "tags": {
       const list = Array.isArray(raw) ? raw : typeof raw === "string" ? raw.split(",") : [];
-      return list.map((t) => String(t).trim()).filter(Boolean).slice(0, 30);
+      // generous cap: an atoll can list well over a hundred islands
+      return list.map((t) => String(t).trim()).filter(Boolean).slice(0, 400);
     }
     default: {
       const s = typeof raw === "string" ? raw.trim() : raw == null ? "" : String(raw).trim();
@@ -74,7 +76,7 @@ function cleanScalar(f: ScalarField, raw: unknown, path: string, errors: Errors)
 function cleanField(f: Field, raw: unknown, path: string, errors: Errors): unknown {
   if (f.type !== "group") return cleanScalar(f, raw, path, errors);
   const rows = Array.isArray(raw) ? raw : [];
-  return rows.slice(0, 100).map((row, i) => {
+  return rows.slice(0, 400).map((row, i) => {
     const out: Item = {};
     for (const sub of f.fields) {
       const v = cleanScalar(sub, (row as Item | null)?.[sub.name], `${path}.${i}.${sub.name}`, errors);
@@ -91,10 +93,11 @@ function cleanField(f: Field, raw: unknown, path: string, errors: Errors): unkno
 export function validateItem(def: CollectionDef, input: unknown, others: Item[]): { item: Item; errors: Errors } {
   const errors: Errors = {};
   const src = (input && typeof input === "object" ? input : {}) as Item;
-  const item: Item = {};
+  let item: Item = {};
   for (const f of def.fields) {
-    const v = cleanField(f, src[f.name], f.name, errors);
-    if (v !== undefined) item[f.name] = v;
+    // dotted names (e.g. "islands.resorts") read and write inside the entry
+    const v = cleanField(f, getPath(src, f.name), f.name, errors);
+    if (v !== undefined) item = setPath(item, f.name, v);
   }
   if (def.slugField) {
     const slug = String(item[def.slugField] ?? "");
@@ -106,13 +109,10 @@ export function validateItem(def: CollectionDef, input: unknown, others: Item[])
 
 /** A blank entry with sensible defaults, for "Add new". */
 export function emptyItem(def: CollectionDef): Item {
-  const item: Item = {};
+  let item: Item = {};
   for (const f of def.fields) {
-    if (f.type === "group" || f.type === "tags") item[f.name] = [];
-    else if (f.type === "checkbox") item[f.name] = false;
-    else if (f.type === "select") item[f.name] = f.options[0];
-    else if (f.type === "number") item[f.name] = f.min ?? 0;
-    else item[f.name] = "";
+    const v = f.type === "group" || f.type === "tags" ? [] : f.type === "checkbox" ? false : f.type === "select" ? f.options[0] : f.type === "number" ? (f.min ?? 0) : "";
+    item = setPath(item, f.name, v);
   }
   return item;
 }

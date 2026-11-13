@@ -13,6 +13,8 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import prismaPkg from "@prisma/client";
 import { SEED } from "./seed/content.ts";
+import { mergeResortStays, withAtollSlugs } from "./seed/resort-stays.ts";
+import type { Atoll, Stay } from "../lib/data.ts";
 
 const reset = process.argv.includes("--reset");
 const only = process.argv.find((a) => a.startsWith("--only="))?.slice(7).split(",").map((k) => k.trim()).filter(Boolean);
@@ -38,6 +40,26 @@ async function seedDatabase() {
       await db.siteContent.upsert({ where: { key }, create: { key, data, updatedBy: "seed" }, update: { data, updatedBy: "seed" } });
       console.log(`  ${exists ? "reset " : "seeded"}  ${key} (${SEED[key].length} entries)`);
     }
+
+    // Existing databases: turn the atolls' resort islands into place-to-stay entries once, so
+    // every resort is published and edited under /stay. Existing entries and edits are kept.
+    const [atollsRow, staysRow] = await Promise.all(
+      ["atolls", "stays"].map((key) => db.siteContent.findUnique({ where: { key }, select: { data: true } })),
+    );
+    if (atollsRow && staysRow) {
+      const atolls = atollsRow.data as unknown as Atoll[];
+      const before = staysRow.data as unknown as Stay[];
+      // run once: after this, resort entries are ordinary places to stay and are never re-derived
+      const merged = before.some((s) => s.island) ? { stays: before, added: 0 } : mergeResortStays(atolls, before);
+      const stays = withAtollSlugs(atolls, merged.stays);
+      if (merged.added || before.some((s) => !s.atollSlug)) {
+        await db.siteContent.update({
+          where: { key: "stays" },
+          data: { data: stays as unknown as prismaPkg.Prisma.InputJsonValue, updatedBy: "seed" },
+        });
+        if (merged.added) console.log(`  moved   ${merged.added} resort islands into stays`);
+      }
+    }
   } finally {
     await db.$disconnect();
   }
@@ -61,6 +83,18 @@ async function seedLocalFile() {
   }
   await fs.mkdir(path.dirname(file), { recursive: true });
   await fs.writeFile(file, JSON.stringify(all, null, 2));
+
+  // same one-time move as above: resort islands become place-to-stay entries
+  if (all.atolls && all.stays) {
+    const atolls = all.atolls as Atoll[];
+    const before = all.stays as Stay[];
+    const merged = before.some((s) => s.island) ? { stays: before, added: 0 } : mergeResortStays(atolls, before);
+    if (merged.added || before.some((s) => !s.atollSlug)) {
+      all.stays = withAtollSlugs(atolls, merged.stays);
+      await fs.writeFile(file, JSON.stringify(all, null, 2));
+      if (merged.added) console.log(`  moved   ${merged.added} resort islands into stays`);
+    }
+  }
 }
 
 const where = process.env.DATABASE_URL ? `database${process.env.NEON_BRANCH ? ` (branch ${process.env.NEON_BRANCH})` : ""}` : ".data/content.json";

@@ -11,6 +11,10 @@ export type ResortItem = {
   named: boolean;
   /** a hotel on an inhabited island rather than a resort island */
   half?: boolean;
+  /** the label on the card, e.g. "Resort", "Resort island", "Guesthouse" */
+  label: string;
+  /** whether the "Resorts only" filter keeps this entry */
+  isResort?: boolean;
   atollSlug: string;
   atollName: string;
   region: "North" | "Central" | "South";
@@ -28,7 +32,7 @@ export default function ResortFinder({ resorts, atolls }: { resorts: ResortItem[
   const [query, setQuery] = useState("");
   const [region, setRegion] = useState<(typeof REGIONS)[number]>("All");
   const [atoll, setAtoll] = useState("all");
-  const [namedOnly, setNamedOnly] = useState(false);
+  const [resortsOnly, setResortsOnly] = useState(false);
   const [shown, setShown] = useState(PAGE);
   const q = plain(useDeferredValue(query).trim());
 
@@ -38,10 +42,10 @@ export default function ResortFinder({ resorts, atolls }: { resorts: ResortItem[
         (r) =>
           (region === "All" || r.region === region) &&
           (atoll === "all" || r.atollSlug === atoll) &&
-          (!namedOnly || r.named) &&
+          (!resortsOnly || r.isResort) &&
           (!q || plain(`${r.resort} ${r.island} ${r.atollName}`).includes(q)),
       ),
-    [resorts, region, atoll, namedOnly, q],
+    [resorts, region, atoll, resortsOnly, q],
   );
 
   // reset paging whenever the filters change
@@ -98,14 +102,14 @@ export default function ResortFinder({ resorts, atolls }: { resorts: ResortItem[
             </button>
           ))}
           <label className="ml-auto inline-flex min-h-10 shrink-0 cursor-pointer items-center gap-2 pl-2 text-[14px]">
-            <input type="checkbox" checked={namedOnly} onChange={(e) => reset(setNamedOnly)(e.target.checked)} className="size-4 accent-[#D21034]" />
-            Named resorts only
+            <input type="checkbox" checked={resortsOnly} onChange={(e) => reset(setResortsOnly)(e.target.checked)} className="size-4 accent-[#D21034]" />
+            Resorts only
           </label>
         </div>
       </div>
 
       <p className="mt-6 font-mono text-[13px] text-driftwood" aria-live="polite">
-        {list.length} {list.length === 1 ? "resort" : "resorts"}
+        {list.length} {list.length === 1 ? "place to stay" : "places to stay"}
         {atoll !== "all" ? ` in ${atolls.find((a) => a.slug === atoll)?.name}` : region !== "All" ? ` in the ${region.toLowerCase()}` : ""}
       </p>
 
@@ -122,9 +126,7 @@ export default function ResortFinder({ resorts, atolls }: { resorts: ResortItem[
                   sizes="(min-width:1024px) 25vw, (min-width:640px) 50vw, 100vw"
                   className="object-cover transition-transform duration-700 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
                 />
-                <span className="absolute top-3 left-3 rounded-control bg-white px-2.5 py-1 text-[12px] font-medium">
-                  {r.half ? "Local island hotel" : r.named ? "Resort" : "Resort island"}
-                </span>
+                <span className="absolute top-3 left-3 rounded-control bg-white px-2.5 py-1 text-[12px] font-medium">{r.label}</span>
               </div>
               <h3 className="mt-3 line-clamp-2 text-[18px] leading-6 font-semibold group-hover:underline">{r.resort}</h3>
               <p className="mt-1 text-[14px] text-driftwood">
@@ -143,7 +145,7 @@ export default function ResortFinder({ resorts, atolls }: { resorts: ResortItem[
               setQuery("");
               setRegion("All");
               setAtoll("all");
-              setNamedOnly(false);
+              setResortsOnly(false);
               setShown(PAGE);
             }}
             className="mt-3 text-[15px] font-medium text-red hover:underline"

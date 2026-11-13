@@ -125,8 +125,9 @@ const ATOLL_ALIASES: Record<string, string[]> = {
 };
 const plain = (s: string) => s.normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z ]+/g, " ").replace(/\s+/g, " ").trim();
 
-/** Whether a place to stay (by its `atoll` text) is in this atoll. */
-export const stayInAtoll = (stay: Pick<Stay, "atoll">, atoll: Pick<Atoll, "slug" | "name">) => {
+/** Whether a place to stay is in this atoll (exact `atollSlug` when set, else its `atoll` text). */
+export const stayInAtoll = (stay: Pick<Stay, "atoll" | "atollSlug">, atoll: Pick<Atoll, "slug" | "name">) => {
+  if (stay.atollSlug) return stay.atollSlug === atoll.slug;
   const names = ATOLL_ALIASES[atoll.slug] ?? [plain(atoll.name).replace(/ atoll$/, "")];
   // each comma-separated part must *start* with the name, so "Haa Dhaalu" never counts as "Dhaalu"
   const parts = stay.atoll.split(",").map((p) => `${plain(p)} `);
@@ -137,10 +138,17 @@ export const stayInAtoll = (stay: Pick<Stay, "atoll">, atoll: Pick<Atoll, "slug"
 export const isCommons = (src: string) => src.includes("wikimedia.org/");
 
 export type Review = { author: string; from: string; date: string; rating: number; text: string };
+/** Everything published under /stay: resorts, resort islands, hotels, guesthouses and liveaboards. */
+export type StayType = "Resort" | "Resort island" | "Hotel" | "Guesthouse" | "Liveaboard";
+
 export type Stay = {
-  slug: string; name: string; type: "Resort" | "Guesthouse" | "Liveaboard"; atoll: string; price: string; note: string; image: string; partner?: boolean;
-  /** Our editorial score out of 5 */
-  rating: number;
+  slug: string; name: string; type: StayType; atoll: string; price: string; note: string; image: string; partner?: boolean;
+  /** the atoll's page address, so an atoll can be picked in the dashboard and matched exactly */
+  atollSlug?: string;
+  /** the island, for resort entries (one island, one resort) */
+  island?: string;
+  /** Our editorial score out of 5; unrated entries leave it out */
+  rating?: number;
   about: string;
   amenities: string[];
   facts: { label: string; value: string }[];

@@ -25,7 +25,9 @@ export function splitReveal(scope: Element | null) {
       type: "lines",
       mask: "lines",
       autoSplit: true,
+      // autoSplit re-splits on resize / font load, possibly after the section has left the page
       onSplit: (self) =>
+        el.isConnected &&
         gsap.from(self.lines, {
           yPercent: 110,
           duration: 1.1,

@@ -8,6 +8,7 @@ import { authenticate, requireAdmin, requireUser } from "@/lib/session";
 import { getCollectionDef, type CollectionKey } from "@/lib/content/schema";
 import { contentTag, getCollection, resetCollection, saveCollection, type Collections } from "@/lib/content/store";
 import { validateItem, type Errors } from "@/lib/content/validate";
+import { getPath, setPath } from "@/lib/content/path";
 import { canDelete } from "@/lib/permissions";
 import { clearFailedLogins, loginBlockedFor, recordFailedLogin } from "@/lib/rate-limit";
 
@@ -25,10 +26,17 @@ function collectionOrThrow(key: string) {
   return def;
 }
 
-/** The parts of a stored entry that the dashboard form has no field for (and `_author`, set separately). */
-function keepUnmanaged(def: NonNullable<ReturnType<typeof getCollectionDef>>, stored: Record<string, unknown>) {
-  const managed = new Set([...def.fields.map((f) => f.name), "_author"]);
-  return Object.fromEntries(Object.entries(stored ?? {}).filter(([k]) => !managed.has(k)));
+/**
+ * Applies the form's fields to a stored entry, keeping everything the form has no field for.
+ * Dotted fields (e.g. "islands.resorts") are written inside the stored object, so the rest of it
+ * (e.g. the atoll's inhabited and uninhabited island lists) is never wiped by a save.
+ */
+function mergeEntry(def: NonNullable<ReturnType<typeof getCollectionDef>>, stored: Record<string, unknown>, item: Record<string, unknown>) {
+  let out: Record<string, unknown> = { ...(stored ?? {}) };
+  delete out._author;
+  for (const f of def.fields) out = setPath(out, f.name, getPath(item, f.name));
+  if (item._author) out._author = item._author;
+  return out;
 }
 
 /** Only same-site dashboard paths, so the login can't be used to send people elsewhere. */
@@ -93,7 +101,7 @@ export async function saveItem(key: CollectionKey, index: number, _prev: SaveSta
   if (author) item._author = author;
   if (isNew) list.push(item);
   // keep data the form doesn't edit (e.g. an atoll's island pages), so a save never wipes it
-  else list[index] = { ...keepUnmanaged(def, list[index]), ...item };
+  else list[index] = mergeEntry(def, list[index], item);
 
   try {
     await saveCollection(key, list as unknown as Collections[typeof key], user.id);
