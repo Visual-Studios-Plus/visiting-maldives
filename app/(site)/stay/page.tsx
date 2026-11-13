@@ -43,8 +43,8 @@ export default async function Stay() {
       <Reveal as="section" className="container-vm py-12 lg:py-24">
         <SectionHead eyebrow="Places to stay" title="Every place to stay," accent="atoll by atoll" />
         <p data-reveal className="mx-auto mt-4 max-w-2xl text-center text-driftwood">
-          {items.length} places to stay across {new Set(items.map((i) => i.atollSlug)).size} atolls, from named resorts to islands whose
-          resort we can only list by name for now. Search by resort, island or atoll, then filter by region.
+          Where you stay shapes the whole trip. These are the resorts, resort islands, hotels, guesthouses and liveaboards we list, arranged
+          atoll by atoll — from well-known names to islands whose resort we can only list by name for now.
         </p>
         <div className="mt-10">
           <ResortFinder resorts={items} atolls={atolls.map((a) => ({ slug: a.slug, name: a.name }))} />
