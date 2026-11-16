@@ -16,8 +16,12 @@ export const METRIC_TYPES = { guide: ["view", "save", "unsave"], stay: ["view"],
 export type MetricType = keyof typeof METRIC_TYPES;
 export type MetricEvent = "view" | "save" | "unsave";
 
+// Object.hasOwn, not `in`: `in` walks the prototype chain, so "constructor" / "toString" /
+// "__proto__" passed the check and then threw (a 500 from /api/metrics).
 export const isValidMetric = (type: unknown, event: unknown): type is MetricType =>
-  typeof type === "string" && type in METRIC_TYPES && (METRIC_TYPES[type as MetricType] as readonly string[]).includes(String(event));
+  typeof type === "string" &&
+  Object.hasOwn(METRIC_TYPES, type) &&
+  (METRIC_TYPES[type as MetricType] as readonly string[]).includes(String(event));
 
 const LOCAL_FILE = path.join(process.cwd(), ".data", "metrics.json");
 type Row = { type: string; slug: string; event: string; day: string; count: number };

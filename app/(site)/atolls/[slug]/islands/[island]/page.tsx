@@ -8,7 +8,8 @@ import IslandCarousel from "@/components/IslandCarousel";
 import PlaceCarousels from "@/components/PlaceCarousels";
 import { type Atoll, type IslandEntry, placeInAtoll, placeOnIsland, salonInAtoll, salonOnIsland, stayInAtoll, stayOnIsland } from "@/lib/data";
 import { getAtoll, getAtolls, getEats, getIslands, getSalons, getStays } from "@/lib/content/store";
-import { atollEntries, describeIsland, findEntry, inhabitedNames, islandCards, islandFactRows, islandPhoto } from "@/lib/islands";
+import { atollEntries, describeIsland, findEntry, inhabitedNames, islandCards, islandCoords, islandFactRows, islandPhoto, mapPlaces, nearby } from "@/lib/islands";
+import IslandMap from "@/components/IslandMap";
 import PhotoGallery from "@/components/PhotoGallery";
 import { islandSlug } from "@/lib/resorts";
 
@@ -71,6 +72,12 @@ export default async function IslandPage({ params }: PageProps<"/atolls/[slug]/i
   const salons = atollSalons.filter((s) => salonOnIsland(s, name));
   const listed = stays.length + eats.length + salons.length;
 
+  // map and "nearby": the island's position, its places with a position, the closest islands and resorts
+  const coords = islandCoords(atoll.slug, name, entry);
+  const { placed, unplaced } = mapPlaces(stays, eats, salons);
+  const close = coords ? nearby(coords, name, all, entries, allStays) : { islands: [], resorts: [] };
+  const km = (n: number) => (n < 10 ? n.toFixed(1) : Math.round(n).toString());
+
   const cards = islandCards(atoll, profiles, atollStays, atollEats, atollSalons, entries);
   const here = cards.findIndex((c) => c.name === name);
   // the atoll's other islands, starting with the next one and wrapping round
@@ -112,10 +119,39 @@ export default async function IslandPage({ params }: PageProps<"/atolls/[slug]/i
         <div data-reveal className="max-w-2xl">
           <h2 className="text-[26px] leading-8 font-semibold tracking-tight lg:text-[28px]">About {name}</h2>
           <p className="mt-3 text-[17px] leading-[28px]">{describeIsland(atoll, name, entry)}</p>
-          <p className="mt-4 text-[17px] leading-[28px]">{atoll.intro}</p>
-          <p className="mt-4 text-[15px] leading-[24px] text-driftwood">
-            Local islands are home to Maldivian communities: dress modestly away from marked bikini beaches, and alcohol is not served.
-          </p>
+          {entry?.highlights?.length ? (
+            <ul className="mt-5 flex flex-wrap gap-2">
+              {entry.highlights.map((h) => (
+                <li key={h} className="rounded-full bg-shell px-3.5 py-1.5 text-[14px] font-medium">
+                  {h}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          {(entry?.sections ?? []).map((sec, i) => (
+            <div key={sec.heading} className="mt-10">
+              <p className="font-mono text-[12px] text-red">{String(i + 1).padStart(2, "0")}</p>
+              <h3 className="mt-1 text-[22px] leading-7 font-semibold tracking-tight">{sec.heading}</h3>
+              <p className="mt-2 text-[17px] leading-[28px] whitespace-pre-line">{sec.text}</p>
+            </div>
+          ))}
+          <div className="mt-10">
+            <h3 className="text-[22px] leading-7 font-semibold tracking-tight">Getting there</h3>
+            <p className="mt-2 text-[17px] leading-[28px] whitespace-pre-line">
+              {entry?.gettingThere ||
+                `From Malé, the usual way into ${atoll.name} is: ${atoll.transfer}. Your guesthouse or hotel can arrange the last leg by speedboat or public ferry.`}
+            </p>
+          </div>
+          <div className="mt-10">
+            <h3 className="text-[22px] leading-7 font-semibold tracking-tight">Good to know</h3>
+            <ul className="mt-3 list-disc space-y-1.5 pl-5 text-[16px] leading-[26px]">
+              <li>{name} is home to a Maldivian community: dress modestly away from marked bikini beaches.</li>
+              <li>Alcohol isn&rsquo;t served on local islands; resorts and liveaboards are the exception.</li>
+              <li>Shops and cafés close briefly for prayer times, and for longer around Friday midday prayers.</li>
+              <li>Small islands may not have a cash machine, so bring some cash (US dollars and Maldivian rufiyaa).</li>
+            </ul>
+          </div>
+          <p className="mt-10 text-[17px] leading-[28px] text-driftwood">{atoll.intro}</p>
           {entry?.source ? (
             <p className="mt-4 text-[13px] text-driftwood">
               <a href={entry.source} target="_blank" rel="noopener noreferrer" className="underline hover:text-ink">
@@ -131,6 +167,7 @@ export default async function IslandPage({ params }: PageProps<"/atolls/[slug]/i
             {[
               ...islandFactRows(atoll, name, entry),
               { label: "Getting there", value: atoll.transfer },
+              ...(close.islands[0] ? [{ label: "Nearest island", value: `${close.islands[0].name} · ${km(close.islands[0].km)} km` }] : []),
               { label: "Listed here", value: `${stays.length} stay · ${eats.length} eat · ${salons.length} salons` },
             ].map((f) => (
               <div key={f.label} className="flex justify-between gap-4 py-3">
@@ -141,6 +178,15 @@ export default async function IslandPage({ params }: PageProps<"/atolls/[slug]/i
           </dl>
         </aside>
       </Reveal>
+
+      {coords ? (
+        <Reveal as="section" className="container-vm pb-12 lg:pb-16">
+          <SectionHead eyebrow="Map" title="Where things are on" accent={name} />
+          <div data-reveal className="mx-auto mt-8 max-w-4xl">
+            <IslandMap name={name} center={coords} places={placed} unplaced={unplaced} />
+          </div>
+        </Reveal>
+      ) : null}
 
       <PlaceCarousels place={name} stays={stays} eats={eats} salons={salons} fallbackHref={`/atolls/${atoll.slug}`} />
 
@@ -161,6 +207,34 @@ export default async function IslandPage({ params }: PageProps<"/atolls/[slug]/i
             </div>
           </div>
         </section>
+      ) : null}
+
+      {close.islands.length || close.resorts.length ? (
+        <Reveal as="section" className="container-vm grid gap-6 pb-12 sm:grid-cols-2 lg:pb-16">
+          {[
+            { title: "Nearest local islands", items: close.islands.map((x) => ({ ...x, sub: x.atoll })) },
+            { title: "Nearest resorts", items: close.resorts.map((x) => ({ ...x, name: x.resort ?? x.name, sub: x.resort ? `${x.name} · ${x.atoll}` : x.atoll })) },
+          ]
+            .filter((g) => g.items.length)
+            .map((g) => (
+              <div key={g.title} data-reveal className="rounded-card bg-shell p-6">
+                <p className="eyebrow text-driftwood">{g.title}</p>
+                <ul className="mt-3 divide-y divide-line">
+                  {g.items.map((x) => (
+                    <li key={x.href}>
+                      <Link href={x.href} className="group flex items-baseline justify-between gap-3 py-2.5">
+                        <span className="min-w-0">
+                          <span className="block truncate font-semibold group-hover:text-red">{x.name}</span>
+                          <span className="block truncate text-[13px] text-driftwood">{x.sub}</span>
+                        </span>
+                        <span className="shrink-0 font-mono text-[13px] text-driftwood">{km(x.km)} km</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+        </Reveal>
       ) : null}
 
       {more.length ? (

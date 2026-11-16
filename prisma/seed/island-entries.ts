@@ -37,6 +37,10 @@ export function islandEntries(atolls: Atoll[]): IslandEntry[] {
         imageCredit: page ? undefined : f?.photo ? `${f.photo.credit}, ${f.photo.licence}` : undefined,
         imageSource: page ? undefined : f?.photo?.source,
         gallery: page?.gallery ?? [],
+        // a written-up island guide brings its sections; its "Getting there" becomes its own field
+        sections: (page?.body ?? []).filter((b) => b.heading !== "Getting there"),
+        gettingThere: page?.body?.find((b) => b.heading === "Getting there")?.text,
+        highlights: [],
         source: f ? `https://en.wikipedia.org/wiki/${encodeURIComponent(f.title.replace(/ /g, "_"))}` : undefined,
       };
     }),

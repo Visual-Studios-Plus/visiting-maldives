@@ -48,18 +48,18 @@ export async function login(_prev: LoginState, formData: FormData): Promise<Logi
   const email = String(formData.get("email") ?? "").slice(0, 200);
   if (!authConfigured()) return { email, error: "Sign-in isn't set up yet: add SESSION_SECRET (a random value of 32+ characters) to the environment variables and redeploy." };
 
-  const wait = await loginBlockedFor();
+  const wait = await loginBlockedFor(email);
   if (wait) return { email, error: `Too many failed attempts. Try again in ${wait} minute${wait === 1 ? "" : "s"}.` };
 
   const password = String(formData.get("password") ?? "").slice(0, 200);
   const user = email && password ? await authenticate(email, password) : null;
   if (!user) {
-    await recordFailedLogin();
+    await recordFailedLogin(email);
     await new Promise((r) => setTimeout(r, 500)); // slows down guessing
     // the same message whether the email exists or not, so accounts can't be discovered
     return { email, error: "That email and password don't match an active account." };
   }
-  await clearFailedLogins();
+  await clearFailedLogins(email);
 
   (await cookies()).set(SESSION_COOKIE, await createSessionToken({ uid: user.id, role: user.role, ver: user.ver }), {
     httpOnly: true, // not readable from page scripts
@@ -82,6 +82,9 @@ export type SaveState = { ok?: boolean; message?: string; errors?: Errors };
 export async function saveItem(key: CollectionKey, index: number, _prev: SaveState, formData: FormData): Promise<SaveState> {
   const user = await requireUser();
   const def = collectionOrThrow(key);
+  // -1 means "new"; anything else must be a real position. A client can call this action with
+  // any arguments, so don't let a fractional or absurd index reach the list.
+  if (!Number.isInteger(index) || index < -1) return { message: "That entry's position is invalid. Reload the page and try again." };
   let input: unknown;
   try {
     input = JSON.parse(String(formData.get("json") ?? "{}"));
@@ -118,7 +121,7 @@ export async function deleteItem(key: CollectionKey, index: number) {
   const user = await requireUser();
   collectionOrThrow(key);
   const list = [...(await getCollection(key))];
-  if (index < 0 || index >= list.length) redirect(`/admin/${key}`);
+  if (!Number.isInteger(index) || index < 0 || index >= list.length) redirect(`/admin/${key}`);
   if (!canDelete(user, key, list[index] as unknown as Record<string, unknown>)) throw new Error("Writers can only delete guides they created.");
   list.splice(index, 1);
   await saveCollection(key, list as Collections[typeof key], user.id);
@@ -132,6 +135,7 @@ export async function moveItem(key: CollectionKey, index: number, dir: -1 | 1) {
   collectionOrThrow(key);
   const list = [...(await getCollection(key))];
   const to = index + dir;
+  if (!Number.isInteger(index) || (dir !== -1 && dir !== 1)) return;
   if (index < 0 || to < 0 || index >= list.length || to >= list.length) return;
   [list[index], list[to]] = [list[to], list[index]];
   await saveCollection(key, list as Collections[typeof key], user.id);

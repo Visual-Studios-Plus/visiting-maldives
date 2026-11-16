@@ -19,6 +19,7 @@ const LOCAL_FILE = /^\/(?!\/)[A-Za-z0-9._\-/]+\.(?:jpe?g|png|webp|avif|gif|svg)$
 // Links: a page on this site, or an https address. Blocks javascript:, data: and the like.
 const SITE_PATH = /^\/(?!\/)[A-Za-z0-9._~\-/?#=&%]*$/;
 const MAX_TEXT = 5000;
+const MAX_TAG = 120;
 
 /** Photos uploaded to this site's Neon bucket: https://<storage host>/site-photos/<key> only. */
 function isOwnUpload(s: string): boolean {
@@ -56,7 +57,11 @@ function cleanScalar(f: ScalarField, raw: unknown, path: string, errors: Errors)
     case "tags": {
       const list = Array.isArray(raw) ? raw : typeof raw === "string" ? raw.split(",") : [];
       // generous cap: an atoll can list well over a hundred islands
-      return list.map((t) => String(t).trim()).filter(Boolean).slice(0, 400);
+      const values = list.map((t) => String(t).trim()).filter(Boolean);
+      // A single tag can't be an essay: without this, one request could store hundreds of
+      // megabytes (up to the 400-item cap) and every page read would carry them.
+      if (values.some((t) => t.length > MAX_TAG)) errors[path] = `${f.label} entries must be at most ${MAX_TAG} characters.`;
+      return values.slice(0, 400);
     }
     default: {
       const s = typeof raw === "string" ? raw.trim() : raw == null ? "" : String(raw).trim();

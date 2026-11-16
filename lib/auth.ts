@@ -46,7 +46,10 @@ export async function readSessionToken(token: string | undefined | null): Promis
   if (!body || !sig || !safeEqual(sig, await hmac(body))) return null;
   try {
     const c = JSON.parse(unb64(body)) as SessionClaims;
-    if (typeof c.uid !== "string" || (c.role !== "ADMIN" && c.role !== "WRITER") || typeof c.exp !== "number" || c.exp < Date.now()) return null;
+    // Reject a token whose expiry is beyond the lifetime we ever issue, so a leaked signing
+    // key can't be used to mint a token that never expires.
+    if (!Number.isFinite(c.exp) || c.exp < Date.now() || c.exp > Date.now() + (SESSION_DAYS + 1) * 864e5) return null;
+    if (typeof c.uid !== "string" || !c.uid || (c.role !== "ADMIN" && c.role !== "WRITER")) return null;
     return c;
   } catch {
     return null;

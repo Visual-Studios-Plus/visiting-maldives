@@ -62,7 +62,13 @@ async function sessionCookie(): Promise<string | undefined> {
   const raw = (await headers()).get("cookie") ?? "";
   for (const part of raw.split(";")) {
     const [name, ...rest] = part.trim().split("=");
-    if (name === SESSION_COOKIE) return decodeURIComponent(rest.join("="));
+    if (name !== SESSION_COOKIE) continue;
+    try {
+      return decodeURIComponent(rest.join("="));
+    } catch {
+      // A malformed percent-escape is just an invalid cookie, not an error to surface.
+      return undefined;
+    }
   }
   return undefined;
 }

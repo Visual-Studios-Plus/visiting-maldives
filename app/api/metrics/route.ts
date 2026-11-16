@@ -1,4 +1,5 @@
 import { isValidMetric, recordMetric, type MetricEvent } from "@/lib/analytics";
+import { allowLocal } from "@/lib/rate-limit";
 import { getAtolls, getGuides, getStays } from "@/lib/content/store";
 
 /*
@@ -29,6 +30,13 @@ export async function POST(request: Request) {
   }
   if (!sameSite) return new Response(null, { status: 403 });
   if (BOT.test(request.headers.get("user-agent") ?? "")) return new Response(null, { status: 204 });
+
+  // Read at most a small body: reject on the declared length before buffering it, and throttle
+  // each address so one client can't turn this into a database-write loop.
+  const declared = Number(request.headers.get("content-length") ?? "");
+  if (Number.isFinite(declared) && declared > 1024) return new Response(null, { status: 413 });
+  const ip = (request.headers.get("x-forwarded-for")?.split(",")[0] ?? request.headers.get("x-real-ip") ?? "unknown").trim().slice(0, 64);
+  if (!allowLocal(`metrics:${ip}`, 120, 60_000)) return new Response(null, { status: 429 });
 
   const body = await request.text();
   if (body.length > 300) return new Response(null, { status: 413 });

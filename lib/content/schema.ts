@@ -187,6 +187,21 @@ export const COLLECTIONS: CollectionDef[] = [
         ],
       },
       { name: "source", label: "Facts source", type: "link", help: "Where the population and other facts come from, e.g. a Wikipedia article." },
+      { name: "highlights", label: "Highlights", type: "tags", placeholder: "Bikini beach", help: "Short things worth knowing, shown as chips: \"Bikini beach\", \"Dive centre\", \"ATM\", \"Hospital\". Press Enter after each." },
+      { name: "gettingThere", label: "Getting there", type: "textarea", help: "How to reach the island. Leave empty to use the atoll's usual transfer." },
+      {
+        name: "sections",
+        label: "Guide sections",
+        type: "group",
+        itemLabel: "section",
+        help: "Longer write-ups shown on the island's page, e.g. \"Things to do\", \"Where to swim\", \"Food\".",
+        fields: [
+          { name: "heading", label: "Heading", type: "text", required: true, placeholder: "Things to do" },
+          { name: "text", label: "Text", type: "textarea", required: true },
+        ],
+      },
+      { name: "lat", label: "Map latitude", type: "number", min: -90, max: 90, step: 0.000001, help: "Leave empty to use the government register's position. In Google Maps, right-click the island and copy the first number." },
+      { name: "lng", label: "Map longitude", type: "number", min: -180, max: 180, step: 0.000001, help: "The second number." },
     ],
   },
   {
@@ -208,6 +223,8 @@ export const COLLECTIONS: CollectionDef[] = [
       // kept in step with `atoll` by the editor, so atoll listings never depend on free text
       { name: "atollSlug", type: "hidden" },
       { name: "island", label: "Island", type: "island", help: "Choose the island (pick the atoll first). The place then appears on that island's page." },
+      { name: "lat", label: "Map latitude", type: "number", min: -90, max: 90, step: 0.000001, help: "Puts the place on its island's map. In Google Maps, right-click it and copy the first number." },
+      { name: "lng", label: "Map longitude", type: "number", min: -180, max: 180, step: 0.000001, help: "The second number." },
       { name: "price", label: "Price", type: "text", required: true, placeholder: "From USD 650" },
       { name: "rating", label: "Our rating (out of 5)", type: "number", min: 0, max: 5, step: 0.1, help: "Leave empty for a resort island we have not rated yet." },
       { name: "note", label: "Short note", type: "text", required: true, help: "One line on the card." },

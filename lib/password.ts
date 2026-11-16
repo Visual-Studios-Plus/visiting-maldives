@@ -16,11 +16,27 @@ export async function hashPassword(password: string): Promise<string> {
 }
 
 export async function verifyPassword(password: string, stored: string): Promise<boolean> {
-  const [alg, n, r, p, saltB64, hashB64] = stored.split("$");
-  if (alg !== "scrypt" || !saltB64 || !hashB64) return false;
+  const [alg, n, r, p, saltB64, hashB64] = String(stored).split("$");
+  if (alg !== "scrypt" || !n || !r || !p || !saltB64 || !hashB64) return false;
+  // The stored cost parameters are read from the database, so keep them within sane bounds:
+  // a corrupt or tampered hash must not make scrypt allocate gigabytes or throw a 500.
+  const cost = (v: string, min: number, max: number) => {
+    if (!/^\d{1,7}$/.test(v)) return null;
+    const num = Number(v);
+    return Number.isInteger(num) && num >= min && num <= max ? num : null;
+  };
+  const N = cost(n, 2 ** 14, 2 ** 20);
+  const R = cost(r, 1, 32);
+  const P = cost(p, 1, 16);
+  if (N === null || R === null || P === null || (N & (N - 1)) !== 0) return false;
   const expected = Buffer.from(hashB64, "base64");
-  const actual = await scrypt(password, Buffer.from(saltB64, "base64"), expected.length, { N: Number(n), r: Number(r), p: Number(p), maxmem: 128 * Number(n) * Number(r) * 2 });
-  return actual.length === expected.length && timingSafeEqual(actual, expected);
+  if (expected.length < 16 || expected.length > 128) return false;
+  try {
+    const actual = await scrypt(password, Buffer.from(saltB64, "base64"), expected.length, { N, r: R, p: P, maxmem: 128 * N * R * 2 });
+    return actual.length === expected.length && timingSafeEqual(actual, expected);
+  } catch {
+    return false;
+  }
 }
 
 /** Rules for new passwords. Returns a problem to show, or null if it's fine. */

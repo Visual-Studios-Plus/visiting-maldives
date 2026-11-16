@@ -14,6 +14,17 @@ function read(): string {
   return cache;
 }
 
+/** localStorage is user-writable: treat its contents as untrusted and never let them throw. */
+function parse(raw: string): string[] {
+  try {
+    const value: unknown = JSON.parse(raw);
+    if (!Array.isArray(value)) return [];
+    return [...new Set(value.filter((s): s is string => typeof s === "string" && s.length > 0 && s.length <= 120))].slice(0, 500);
+  } catch {
+    return [];
+  }
+}
+
 function subscribe(cb: () => void) {
   listeners.add(cb);
   window.addEventListener("storage", cb);
@@ -25,7 +36,7 @@ function subscribe(cb: () => void) {
 
 export function useSaved() {
   const raw = useSyncExternalStore(subscribe, read, () => "[]");
-  const list: string[] = JSON.parse(raw);
+  const list = parse(raw);
   const toggle = (slug: string) => {
     const next = list.includes(slug) ? list.filter((s) => s !== slug) : [...list, slug];
     try {

@@ -1,4 +1,5 @@
-import { placeOnIsland, salonOnIsland, stayOnIsland, type Atoll, type Eat, type IslandEntry, type Salon, type Stay } from "@/lib/data";
+import { eatSlug, placeOnIsland, salonOnIsland, salonSlug, stayOnIsland, type Atoll, type Eat, type IslandEntry, type Salon, type Stay } from "@/lib/data";
+import { ISLAND_COORDS } from "@/prisma/seed/island-coords";
 import { islandSlug } from "@/lib/resorts";
 import type { IslandCardData } from "@/components/IslandCard";
 import { ISLAND_FACTS, type IslandFacts } from "@/prisma/seed/island-info";
@@ -67,6 +68,67 @@ export const islandPhoto = (atoll: Atoll, name: string, entry?: IslandEntry) => 
   const p = islandFacts(atoll.slug, name)?.photo;
   return p ? { src: p.src, credit: `${p.credit}, ${p.licence}`, source: p.source } : undefined;
 };
+
+/** Where an island is: its dashboard entry's map position, else the government register's. */
+export const islandCoords = (atollSlug: string, name: string, entry?: IslandEntry): [number, number] | undefined =>
+  typeof entry?.lat === "number" && typeof entry?.lng === "number"
+    ? [entry.lat, entry.lng]
+    : (ISLAND_COORDS[atollSlug]?.[name] ?? Object.entries(ISLAND_COORDS[atollSlug] ?? {}).find(([n]) => k(n) === k(name))?.[1]);
+
+/** Distance in km between two points (haversine). */
+export const kmBetween = (a: [number, number], b: [number, number]) => {
+  const r = (d: number) => (d * Math.PI) / 180;
+  const h = Math.sin(r(b[0] - a[0]) / 2) ** 2 + Math.cos(r(a[0])) * Math.cos(r(b[0])) * Math.sin(r(b[1] - a[1]) / 2) ** 2;
+  return 6371 * 2 * Math.asin(Math.sqrt(h));
+};
+
+export type NearbyIsland = { name: string; atoll: string; km: number; href: string };
+
+/**
+ * The closest other local islands and resort islands to a point, across all atolls, for "nearby"
+ * lists. Resort islands link to their place-to-stay page when one exists.
+ */
+export function nearby(
+  from: [number, number],
+  self: string,
+  atolls: Atoll[],
+  entries: IslandEntry[],
+  stays: Stay[],
+  limit = 4,
+): { islands: NearbyIsland[]; resorts: (NearbyIsland & { resort?: string })[] } {
+  const top = atolls.filter((a) => !a.parent);
+  const islands: NearbyIsland[] = [];
+  const resorts: (NearbyIsland & { resort?: string })[] = [];
+  for (const a of top) {
+    const profiles = atolls.filter((p) => p.parent === a.slug);
+    for (const name of inhabitedNames(a, entries)) {
+      if (k(name) === k(self)) continue;
+      const c = islandCoords(a.slug, name, findEntry(a, name, entries));
+      if (c) islands.push({ name, atoll: a.name, km: kmBetween(from, c), href: islandHref(a, name, profiles, entries) });
+    }
+    const resortNames = [...(a.islands?.resorts ?? []).map((r) => r.island), ...(a.islands?.resortIslands ?? [])];
+    for (const name of new Set(resortNames)) {
+      const c = islandCoords(a.slug, name);
+      if (!c) continue;
+      const stay = stays.find((s) => s.island && k(s.island) === k(name) && (!s.atollSlug || s.atollSlug === a.slug));
+      if (!stay) continue; // only resorts with a page to send people to
+      resorts.push({ name, atoll: a.name, km: kmBetween(from, c), href: `/stay/${stay.slug}`, resort: stay.type === "Resort" ? stay.name : undefined });
+    }
+  }
+  const byKm = <T extends { km: number }>(xs: T[]) => xs.sort((x, y) => x.km - y.km).slice(0, limit);
+  return { islands: byKm(islands), resorts: byKm(resorts) };
+}
+
+/** Places on an island for its map: those with a map position, and those still without one. */
+export function mapPlaces(stays: Stay[], eats: Eat[], salons: Salon[]) {
+  const all = [
+    ...stays.map((s) => ({ lat: s.lat, lng: s.lng, name: s.name, kind: "Stay" as const, href: `/stay/${s.slug}` })),
+    ...eats.map((e) => ({ lat: e.lat, lng: e.lng, name: e.name, kind: "Eat" as const, href: `/eat-drink/${eatSlug(e)}` })),
+    ...salons.map((s) => ({ lat: s.lat, lng: s.lng, name: s.name, kind: "Salon" as const, href: `/salons/${salonSlug(s)}` })),
+  ];
+  const has = (p: (typeof all)[number]): p is (typeof all)[number] & { lat: number; lng: number } => typeof p.lat === "number" && typeof p.lng === "number";
+  return { placed: all.filter(has), unplaced: all.filter((p) => !has(p)).map((p) => ({ name: p.name, href: p.href })) };
+}
 
 /** Each atoll's official (natural-atoll) name and capital island. */
 const ATOLL_INFO: Record<string, { official: string; capital: string }> = {

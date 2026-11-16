@@ -31,6 +31,7 @@ export const photoUrlPrefix = () => (endpoint ? `${endpoint}/${PHOTO_BUCKET}/` :
 
 /** Identifies the image type from the file's first bytes (never trusts the name or the browser's type). */
 function sniff(bytes: Uint8Array): { ext: string; type: string } | null {
+  if (bytes.length < 12) return null;
   const b = (i: number) => bytes[i];
   if (b(0) === 0xff && b(1) === 0xd8 && b(2) === 0xff) return { ext: "jpg", type: "image/jpeg" };
   if (b(0) === 0x89 && b(1) === 0x50 && b(2) === 0x4e && b(3) === 0x47) return { ext: "png", type: "image/png" };

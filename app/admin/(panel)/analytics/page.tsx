@@ -6,6 +6,7 @@ import { ExternalLink, ShieldCheck } from "lucide-react";
 import { photo } from "@/lib/data";
 import { getAnalytics, type ItemStats, type TypeReport } from "@/lib/analytics";
 import { getAtolls, getGuides, getStays } from "@/lib/content/store";
+import { requireUser } from "@/lib/session";
 import ViewsChart from "@/components/admin/ViewsChart";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -132,6 +133,10 @@ function Section({ report, entries, collection, withSaves, noun }: { report: Typ
 }
 
 async function Report() {
+  // Re-check the account here, not only in the layout: the layout runs in its own Suspense
+  // boundary, so in a streamed response its redirect can arrive after this page has already
+  // rendered. Without this, a deleted/deactivated user's still-signed cookie could read analytics.
+  await requireUser();
   await connection(); // always fresh: counts change with every visit
   const [a, guides, stays, atolls] = await Promise.all([getAnalytics(), getGuides(), getStays(), getAtolls()]);
 

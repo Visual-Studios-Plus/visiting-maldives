@@ -172,6 +172,9 @@ export type Stay = {
   atollSlug?: string;
   /** the island, for resort entries (one island, one resort) */
   island?: string;
+  /** map position (WGS84), for the island map */
+  lat?: number;
+  lng?: number;
   /** Our editorial score out of 5; unrated entries leave it out */
   rating?: number;
   about: string;
@@ -251,6 +254,15 @@ export type IslandEntry = {
   gallery?: GalleryPhoto[];
   /** where the facts came from (e.g. a Wikipedia article) */
   source?: string;
+  /** map position of the island (WGS84); falls back to the government register */
+  lat?: number;
+  lng?: number;
+  /** short tags shown as chips, e.g. "Bikini beach", "Dive centre", "ATM" */
+  highlights?: string[];
+  /** how to get there, if different from the atoll's usual transfer */
+  gettingThere?: string;
+  /** longer guide sections (e.g. "Things to do", "Where to swim") */
+  sections?: { heading: string; text: string }[];
 };
 
 /** A salon, spa or barber, with its own page at /salons/<slug>, shown on its atoll and island pages. */
