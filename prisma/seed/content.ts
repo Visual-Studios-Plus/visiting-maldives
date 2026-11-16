@@ -15,11 +15,15 @@ import {
   type Event,
   type Guide,
   type Review,
+  type Salon,
   type Stay,
 } from "../../lib/data.ts";
 import { HA, haaAlifIslandAtolls } from "./haa-alif-islands.ts";
 import { resortStays, withAtollSlugs } from "./resort-stays.ts";
 import { newAtolls, sortAtolls, splitAri } from "./admin-atolls.ts";
+import { withDescriptions } from "./atoll-descriptions.ts";
+import { sampleEats, sampleSalons, sampleStays } from "./island-listings.ts";
+import { islandEntries } from "./island-entries.ts";
 
 export const guides: Guide[] = [
   {
@@ -313,7 +317,7 @@ export const guides: Guide[] = [
   },
 ];
 
-export const atolls: Atoll[] = sortAtolls([
+export const atolls: Atoll[] = withDescriptions(sortAtolls([
   {
     slug: "male",
     name: "Malé & Kaafu",
@@ -898,7 +902,7 @@ export const atolls: Atoll[] = sortAtolls([
     },
   },
   ...newAtolls,
-]);
+]));
 
 const R = (
   author: string,
@@ -1492,8 +1496,11 @@ export const essentials: Essential[] = [
 /** Everything the seed script loads, by collection. */
 // Every resort island is also a place to stay, published at /stay/<slug> like the picks above.
 export const placesToStay: Stay[] = [
-  ...withAtollSlugs(atolls, stays),
-  ...resortStays(atolls, stays.map((s) => s.slug)),
+  ...withAtollSlugs(atolls, [...stays, ...sampleStays]),
+  ...resortStays(atolls, [...stays, ...sampleStays].map((s) => s.slug)),
 ];
 
-export const SEED = { guides, atolls, stays: placesToStay, dishes, eats, events, essentials };
+// SAMPLE salons on local islands (see island-listings.ts): replace with real ones before launch
+const salons: Salon[] = sampleSalons;
+
+export const SEED = { guides, atolls, islands: islandEntries(atolls), stays: placesToStay, dishes, eats: [...eats, ...sampleEats], salons, events, essentials };

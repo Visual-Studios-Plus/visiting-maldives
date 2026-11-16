@@ -2,7 +2,7 @@ import "server-only";
 import { cacheTag } from "next/cache";
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { eatSlug, type Atoll, type Dish, type Eat, type Essential, type Event, type Guide, type Stay } from "@/lib/data";
+import { eatSlug, salonSlug, type Atoll, type Dish, type Eat, type Essential, type Event, type Guide, type IslandEntry, type Salon, type Stay } from "@/lib/data";
 import { SEED } from "@/prisma/seed/content";
 import type { CollectionKey } from "./schema";
 import type { Prisma } from "@prisma/client";
@@ -26,6 +26,8 @@ export type Collections = {
   eats: Eat[];
   events: Event[];
   essentials: Essential[];
+  salons: Salon[];
+  islands: IslandEntry[];
 };
 
 export const contentTag = (key: CollectionKey) => `content:${key}`;
@@ -101,6 +103,9 @@ export const getDishes = () => getCollection("dishes");
 export const getEat = async (slug: string) => (await getEats()).find((e) => eatSlug(e) === slug);
 export const getEvents = () => getCollection("events");
 export const getEssentials = () => getCollection("essentials");
+export const getSalons = () => getCollection("salons");
+export const getIslands = () => getCollection("islands");
+export const getSalon = async (slug: string) => (await getSalons()).find((s) => salonSlug(s) === slug);
 export const getGuide = async (slug: string) => (await getGuides()).find((g) => g.slug === slug);
 export const getAtoll = async (slug: string) => (await getAtolls()).find((a) => a.slug === slug);
 export const getStay = async (slug: string) => (await getStays()).find((s) => s.slug === slug);

@@ -59,7 +59,20 @@ async function Editor({ params, searchParams }: { params: PageProps<"/admin/[col
         index={index}
         initial={item}
         justCreated={justCreated}
-        atolls={atolls.map((a) => ({ slug: a.slug, name: a.name }))}
+        atolls={atolls.map((a) => ({
+          slug: a.slug,
+          name: a.name,
+          // for the island dropdown: inhabited islands first, then resort islands, then the rest
+          islands: [
+            ...new Set([
+              ...(a.islands?.inhabited ?? []),
+              ...(a.islands?.resorts ?? []).map((r) => r.island),
+              ...(a.islands?.halfResort ?? []).map((r) => r.island),
+              ...(a.islands?.resortIslands ?? []),
+              ...(a.islands?.uninhabited ?? []),
+            ]),
+          ],
+        }))}
       />
 
       {mayDelete && (

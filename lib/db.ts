@@ -9,4 +9,21 @@ import { PrismaClient } from "@prisma/client";
  */
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
-export const db: PrismaClient | null = process.env.DATABASE_URL ? (globalForPrisma.prisma ??= new PrismaClient()) : null;
+/**
+ * Neon scales an idle database to zero, and the first query then waits for it to wake. Prisma's
+ * default 5 s connect timeout can run out first ("Can't reach database server"), so allow 15 s
+ * unless the URL already sets its own.
+ */
+function withConnectTimeout(url: string): string {
+  try {
+    const u = new URL(url);
+    if (!u.searchParams.has("connect_timeout")) u.searchParams.set("connect_timeout", "15");
+    return u.toString();
+  } catch {
+    return url; // not a URL we can parse: leave it to Prisma
+  }
+}
+
+export const db: PrismaClient | null = process.env.DATABASE_URL
+  ? (globalForPrisma.prisma ??= new PrismaClient({ datasourceUrl: withConnectTimeout(process.env.DATABASE_URL) }))
+  : null;

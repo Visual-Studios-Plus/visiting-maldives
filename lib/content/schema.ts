@@ -9,6 +9,8 @@ export type ScalarField =
   | { name: string; label: string; type: "select"; required?: boolean; help?: string; options: string[] }
   /** A dropdown of the atolls, filled from the Atolls collection at edit time. */
   | { name: string; label: string; type: "atoll"; required?: boolean; help?: string }
+  /** A dropdown of the islands in the atoll chosen in this entry's "atoll" field. */
+  | { name: string; label: string; type: "island"; required?: boolean; help?: string }
   /** Stored but not shown in the form (e.g. an atoll's page address kept alongside its name). */
   | { name: string; type: "hidden"; label?: string; help?: string; placeholder?: string; required?: boolean }
   | { name: string; label: string; type: "checkbox"; help?: string }
@@ -26,7 +28,7 @@ export type GroupField = {
 
 export type Field = ScalarField | GroupField;
 
-export type CollectionKey = "guides" | "atolls" | "stays" | "dishes" | "eats" | "events" | "essentials";
+export type CollectionKey = "guides" | "atolls" | "islands" | "stays" | "dishes" | "eats" | "salons" | "events" | "essentials";
 
 export type CollectionDef = {
   key: CollectionKey;
@@ -149,6 +151,45 @@ export const COLLECTIONS: CollectionDef[] = [
     ],
   },
   {
+    key: "islands",
+    label: "Islands",
+    singular: "island",
+    description: "Every island with its own page: description, population and photos. An inhabited island added here also shows on its atoll's page.",
+    titleField: "name",
+    subtitleField: "atoll",
+    imageField: "image",
+    slugField: "slug",
+    listPath: "/atolls",
+    fields: [
+      { name: "name", label: "Name", type: "text", required: true, placeholder: "Maafushi" },
+      { name: "slug", label: "Page address", type: "text", required: true, help: SLUG_HELP },
+      { name: "atoll", label: "Atoll", type: "atoll", required: true, help: "Choose the atoll; the island then shows on that atoll's page." },
+      // kept in step with `atoll` by the editor, so listings never depend on free text
+      { name: "atollSlug", type: "hidden" },
+      { name: "kind", label: "Type", type: "select", required: true, options: ["Inhabited", "Resort island", "Uninhabited"] },
+      { name: "tagline", label: "Short line", type: "text", placeholder: "Guesthouses, surf and sandbanks", help: "Shown under the name on the island's card." },
+      { name: "description", label: "Description", type: "textarea", required: true, help: "Shown at the top of the island's page." },
+      { name: "population", label: "Population", type: "number", min: 0, step: 1 },
+      { name: "populationYear", label: "Population year", type: "text", placeholder: "2022" },
+      { name: "area", label: "Area (km²)", type: "number", min: 0, step: 0.01 },
+      { name: "image", label: "Cover photo", type: "image", help: IMAGE_HELP },
+      { name: "imageCredit", label: "Photo credit", type: "text", help: "For a photo you didn't take, e.g. \"Name, CC BY-SA 4.0\"." },
+      { name: "imageSource", label: "Photo source link", type: "link" },
+      {
+        name: "gallery",
+        label: "Photo gallery",
+        type: "group",
+        itemLabel: "photo",
+        help: "Extra photos shown on the island's page.",
+        fields: [
+          { name: "src", label: "Photo", type: "image", required: true },
+          { name: "alt", label: "Description", type: "text", required: true, help: "What the photo shows, for people who can't see it." },
+        ],
+      },
+      { name: "source", label: "Facts source", type: "link", help: "Where the population and other facts come from, e.g. a Wikipedia article." },
+    ],
+  },
+  {
     key: "stays",
     label: "Places to stay",
     singular: "place to stay",
@@ -166,7 +207,7 @@ export const COLLECTIONS: CollectionDef[] = [
       { name: "atoll", label: "Atoll", type: "atoll", required: true, help: "Choose the atoll this place is in; it then appears on that atoll's page." },
       // kept in step with `atoll` by the editor, so atoll listings never depend on free text
       { name: "atollSlug", type: "hidden" },
-      { name: "island", label: "Island", type: "text", help: "For a resort island: the island's name. Shown on its page and used on atoll listings." },
+      { name: "island", label: "Island", type: "island", help: "Choose the island (pick the atoll first). The place then appears on that island's page." },
       { name: "price", label: "Price", type: "text", required: true, placeholder: "From USD 650" },
       { name: "rating", label: "Our rating (out of 5)", type: "number", min: 0, max: 5, step: 0.1, help: "Leave empty for a resort island we have not rated yet." },
       { name: "note", label: "Short note", type: "text", required: true, help: "One line on the card." },
@@ -267,6 +308,52 @@ export const COLLECTIONS: CollectionDef[] = [
           { name: "note", label: "Why", type: "text", required: true, placeholder: "Made fresh every morning" },
         ],
       },
+      {
+        name: "reviews",
+        label: "Guest reviews",
+        type: "group",
+        itemLabel: "review",
+        help: "Only publish real, verified reviews.",
+        fields: [
+          { name: "author", label: "Name", type: "text", required: true },
+          { name: "from", label: "From", type: "text", required: true, placeholder: "United Kingdom" },
+          { name: "date", label: "Date", type: "text", required: true, placeholder: "Oct 2026" },
+          { name: "rating", label: "Rating", type: "number", required: true, min: 1, max: 5, step: 1 },
+          { name: "text", label: "Review", type: "textarea", required: true },
+        ],
+      },
+    ],
+  },
+  {
+    key: "salons",
+    label: "Salons & spas",
+    singular: "salon or spa",
+    description: "Salons, spas and barbers: each has its own page, and shows on its atoll's and island's pages.",
+    titleField: "name",
+    subtitleField: "island",
+    imageField: "image",
+    slugField: "slug",
+    itemPath: "/salons/{slug}",
+    listPath: "/salons",
+    fields: [
+      { name: "name", label: "Name", type: "text", required: true },
+      { name: "slug", label: "Page address", type: "text", required: true, help: SLUG_HELP },
+      { name: "kind", label: "Kind", type: "text", required: true, placeholder: "Spa" },
+      { name: "services", label: "Services", type: "tags", help: "Press Enter or comma after each one.", placeholder: "Massage" },
+      { name: "atoll", label: "Atoll", type: "atoll", required: true, help: "Choose the atoll; the salon then appears on that atoll's page." },
+      // kept in step with `atoll` by the editor, so listings never depend on free text
+      { name: "atollSlug", type: "hidden" },
+      { name: "island", label: "Island", type: "island", required: true, help: "Choose the island (pick the atoll first). The salon then appears on that island's page." },
+      { name: "area", label: "Area (optional)", type: "text", placeholder: "Harbour side", help: "Extra detail shown on cards, e.g. a neighbourhood. Leave empty to show the island and atoll." },
+      { name: "about", label: "About (one line)", type: "text", placeholder: "Coconut-oil massages and hair braiding by the harbour." },
+      { name: "hours", label: "Opening hours", type: "text", placeholder: "Daily 9:00–21:00" },
+      { name: "phone", label: "Phone", type: "text", placeholder: "+960 ..." },
+      { name: "link", label: "Website or booking link", type: "text", placeholder: "https://" },
+      { name: "rating", label: "Our rating (out of 5)", type: "number", min: 0, max: 5, step: 0.1 },
+      { name: "address", label: "Address", type: "text", placeholder: "Harbour road, Maafushi" },
+      { name: "lat", label: "Map latitude", type: "number", min: -90, max: 90, step: 0.000001, help: "Right-click the place in Google Maps and copy the first number (e.g. 3.9434)." },
+      { name: "lng", label: "Map longitude", type: "number", min: -180, max: 180, step: 0.000001, help: "The second number (e.g. 73.4907)." },
+      { name: "image", label: "Photo", type: "image", required: true, help: IMAGE_HELP },
       {
         name: "reviews",
         label: "Guest reviews",

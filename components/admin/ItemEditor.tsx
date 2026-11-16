@@ -140,6 +140,9 @@ function TagsInput({
   );
 }
 
+/** An atoll for the dashboard dropdowns, with its islands for "island" fields. */
+export type AtollOption = { slug: string; name: string; islands?: string[] };
+
 function ScalarInput({
   f,
   value,
@@ -147,13 +150,16 @@ function ScalarInput({
   error,
   path,
   atolls,
+  atollName = "",
 }: {
   f: ScalarField;
   value: unknown;
   onChange: (v: unknown) => void;
   error?: string;
   path: string;
-  atolls: { slug: string; name: string }[];
+  atolls: AtollOption[];
+  /** the atoll chosen in this entry, for "island" fields */
+  atollName?: string;
 }) {
   const id = useId() + path;
   const required = "required" in f && f.required;
@@ -247,6 +253,26 @@ function ScalarInput({
         </SelectContent>
       </Select>
     );
+  } else if (f.type === "island") {
+    // the islands of the atoll chosen above; an older free-text value stays visible until changed
+    const atoll = atolls.find((a) => a.name === atollName);
+    const islands = atoll?.islands ?? [];
+    const current = String(value ?? "");
+    const options = !current || islands.includes(current) ? islands : [current, ...islands];
+    control = (
+      <Select value={current} onValueChange={onChange} disabled={!atoll}>
+        <SelectTrigger id={id} {...aria} className="w-full max-w-72">
+          <SelectValue placeholder={atoll ? "Choose an island…" : "Choose the atoll first"} />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((n) => (
+            <SelectItem key={n} value={n}>
+              {n}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    );
   } else if (f.type === "tags") {
     control = (
       <TagsInput
@@ -312,7 +338,7 @@ function GroupInput({
   value: unknown;
   onChange: (v: Row[]) => void;
   errors: Record<string, string>;
-  atolls: { slug: string; name: string }[];
+  atolls: AtollOption[];
 }) {
   const rows = Array.isArray(value) ? (value as Row[]) : [];
   const set = (i: number, name: string, v: unknown) =>
@@ -432,7 +458,7 @@ export default function ItemEditor({
   initial: Item;
   justCreated?: boolean;
   /** the atolls, for "atoll" fields; filled in from the Atolls collection */
-  atolls?: { slug: string; name: string }[];
+  atolls?: AtollOption[];
 }) {
   const [item, setItem] = useState<Item>(initial);
   const [dirty, setDirty] = useState(false);
@@ -494,8 +520,12 @@ export default function ItemEditor({
       if (def.slugField && !slugTouched && name === def.titleField)
         next[def.slugField] = slugify(String(v));
       // storing the atoll's page address alongside its name keeps listings exact
-      if (name === "atoll")
-        next.atollSlug = atolls.find((a) => a.name === String(v))?.slug;
+      if (name === "atoll") {
+        const chosen = atolls.find((a) => a.name === String(v));
+        next.atollSlug = chosen?.slug;
+        // an island from another atoll no longer applies
+        if (next.island && chosen?.islands && !chosen.islands.includes(String(next.island))) next.island = "";
+      }
       return next;
     });
     if (name === def.slugField) setSlugTouched(true);
@@ -527,6 +557,7 @@ export default function ItemEditor({
                   error={errors[f.name]}
                   path={f.name}
                   atolls={atolls}
+                  atollName={String(getPath(item, "atoll") ?? "")}
                 />
               ),
             )}

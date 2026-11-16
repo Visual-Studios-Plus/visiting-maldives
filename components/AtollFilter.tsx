@@ -7,8 +7,11 @@ import { photo, isCommons, type Atoll } from "@/lib/data";
 
 const regions = ["All", "North", "Central", "South"] as const;
 
+/** What an atoll has, shown on its card. */
+export type AtollCounts = { resorts: number; stays: number; restaurants: number; salons: number; inhabited: number };
+
 /** All atolls in one grid, filtered by region with the same pinned chip bar as Things to do. */
-export default function AtollFilter({ atolls }: { atolls: Atoll[] }) {
+export default function AtollFilter({ atolls, counts = {} }: { atolls: Atoll[]; counts?: Record<string, AtollCounts> }) {
   const [region, setRegion] = useState<(typeof regions)[number]>("All");
   const grid = useRef<HTMLDivElement>(null);
   const list = atolls.filter((a) => region === "All" || a.region === region);
@@ -38,16 +41,27 @@ export default function AtollFilter({ atolls }: { atolls: Atoll[] }) {
       </div>
       <div ref={grid} className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {list.map((a) => (
-          <AtollCard key={a.slug} atoll={a} n={atolls.indexOf(a) + 1} />
+          <AtollCard key={a.slug} atoll={a} n={atolls.indexOf(a) + 1} counts={counts[a.slug]} />
         ))}
       </div>
+
     </div>
   );
 }
 
 // Same family as the guide card (brand guide p.24): full photo, name over a dark fade,
 // transfer pill, best-for chips, full-width white button.
-function AtollCard({ atoll: a, n }: { atoll: Atoll; n: number }) {
+function AtollCard({ atoll: a, n, counts }: { atoll: Atoll; n: number; counts?: AtollCounts }) {
+  // the numbers worth knowing at a glance; salons only once there are some
+  const stats = counts
+    ? [
+        { n: counts.resorts, label: counts.resorts === 1 ? "resort" : "resorts" },
+        { n: counts.stays, label: counts.stays === 1 ? "stay" : "stays" },
+        { n: counts.restaurants, label: counts.restaurants === 1 ? "place to eat" : "places to eat" },
+        ...(counts.salons ? [{ n: counts.salons, label: counts.salons === 1 ? "salon" : "salons" }] : []),
+        { n: counts.inhabited, label: counts.inhabited === 1 ? "local island" : "local islands" },
+      ].filter((s) => s.n > 0)
+    : [];
   return (
     <Link
       data-card
@@ -65,6 +79,17 @@ function AtollCard({ atoll: a, n }: { atoll: Atoll; n: number }) {
           <span className="mb-1 shrink-0 rounded-control bg-white px-2.5 py-1 text-[12px] leading-4 font-semibold text-ink">{a.transfer}</span>
         </div>
         <p className="mt-1.5 leading-snug text-white/85">{a.tagline}</p>
+        {stats.length ? (
+          <dl className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[13px] leading-5 text-white/85">
+            {stats.map((s) => (
+              <div key={s.label} className="flex items-baseline gap-1">
+                <dt className="sr-only">{s.label}</dt>
+                <dd className="font-semibold text-white tabular-nums">{s.n}</dd>
+                <span aria-hidden>{s.label}</span>
+              </div>
+            ))}
+          </dl>
+        ) : null}
         <div className="mt-3 flex flex-wrap gap-1.5">
           {a.bestFor.map((b) => (
             <span key={b} className="rounded-control bg-white/25 px-2.5 py-1 text-[12px] leading-4 font-medium">

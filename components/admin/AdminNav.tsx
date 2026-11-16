@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, BedDouble, BookOpen, CalendarDays, Info, LayoutGrid, Map, Soup, UserCog, Users, UtensilsCrossed, type LucideIcon } from "lucide-react";
+import { BarChart3, BedDouble, BookOpen, CalendarDays, Info, LayoutGrid, Map, Scissors, Soup, TreePalm, UserCog, Users, UtensilsCrossed, type LucideIcon } from "lucide-react";
 import { COLLECTIONS, type CollectionKey } from "@/lib/content/schema";
 import { cn } from "@/lib/utils";
 
@@ -11,6 +11,8 @@ const ICONS: Record<CollectionKey, LucideIcon> = {
   stays: BedDouble,
   dishes: Soup,
   eats: UtensilsCrossed,
+  salons: Scissors,
+  islands: TreePalm,
   events: CalendarDays,
   essentials: Info,
 };

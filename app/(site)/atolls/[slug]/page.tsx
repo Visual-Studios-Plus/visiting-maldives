@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
-import { isCommons, photo, stayInAtoll } from "@/lib/data";
+import { placeInAtoll, placeOnIsland, salonInAtoll, salonOnIsland, stayInAtoll, stayOnIsland } from "@/lib/data";
+import { atollFactRows, findEntry, inhabitedNames, islandCards, islandFactRows, islandHref } from "@/lib/islands";
+import IslandCarousel from "@/components/IslandCarousel";
+import PlaceCarousels from "@/components/PlaceCarousels";
 import { notFound } from "next/navigation";
 import PageHero from "@/components/PageHero";
 import Reveal from "@/components/Reveal";
@@ -10,7 +12,7 @@ import GuideCard from "@/components/GuideCard";
 import IslandList from "@/components/IslandList";
 import ViewTracker from "@/components/ViewTracker";
 import PhotoGallery from "@/components/PhotoGallery";
-import { slugParams, getAtoll, getAtolls, getGuides, getStays } from "@/lib/content/store";
+import { slugParams, getAtoll, getAtolls, getEats, getGuides, getIslands, getSalons, getStays } from "@/lib/content/store";
 
 // Every page is prerendered from generateStaticParams, so a blocking route is fine here
 export const instant = false;
@@ -34,8 +36,25 @@ export default async function AtollPage({ params }: PageProps<"/atolls/[slug]">)
   // Inhabited islands that have their own entry in the Atolls section
   const profiles = (await getAtolls()).filter((a) => a.parent === atoll.slug);
   const parent = atoll.parent ? await getAtoll(atoll.parent) : undefined;
-  // every place to stay (resorts, resort islands, hotels) in this atoll, all published at /stay
-  const stays = (await getStays()).filter((s) => stayInAtoll(s, parent ?? atoll));
+  // every place to stay (resorts, resort islands, hotels) in this atoll, all published at /stay;
+  // restaurants and salons are placed by the atoll or island named in their "area".
+  // A single-island entry (parent set) lists only what is on that island.
+  const home = parent ?? atoll;
+  const atollStays = (await getStays()).filter((s) => stayInAtoll(s, home));
+  const atollEats = (await getEats()).filter((e) => placeInAtoll(e.area, home));
+  const atollSalons = (await getSalons()).filter((s) => salonInAtoll(s, home));
+  const stays = parent ? atollStays.filter((s) => stayOnIsland(s, atoll.name)) : atollStays;
+  const eats = parent ? atollEats.filter((e) => placeOnIsland(e.area, atoll.name)) : atollEats;
+  const salons = parent ? atollSalons.filter((s) => salonOnIsland(s, atoll.name)) : atollSalons;
+
+  // one card per inhabited island, with what's listed on it; every card opens the island's page
+  // "at a glance": an island entry adds its population, area and distance (from Wikipedia) to its own facts
+  const entries = await getIslands();
+  const extra = parent ? islandFactRows(parent, atoll.name, findEntry(parent, atoll.name, entries)).filter((r) => r.label !== "Atoll" && !(atoll.facts ?? []).some((x) => x.label === r.label)) : [];
+  // an atoll gets its official name, capital, population and island counts
+  const resortCount = atollStays.filter((s) => s.type === "Resort" || s.type === "Resort island").length;
+  const glance = parent ? [...extra, ...(atoll.facts ?? [])] : [...atollFactRows(atoll, resortCount, entries), ...(atoll.facts ?? [])];
+  const cards = islandCards(atoll, profiles, atollStays, atollEats, atollSalons, entries);
 
   return (
     <>
@@ -65,7 +84,7 @@ export default async function AtollPage({ params }: PageProps<"/atolls/[slug]">)
           </div>
         ))}
       </Reveal>
-      {atoll.body?.length || atoll.facts?.length ? (
+      {atoll.body?.length || glance.length ? (
         <Reveal as="section" className="container-vm grid gap-12 pb-12 lg:grid-cols-[1fr_340px] lg:pb-20">
           <article>
             {atoll.body?.map((b, i) => (
@@ -76,11 +95,11 @@ export default async function AtollPage({ params }: PageProps<"/atolls/[slug]">)
               </div>
             ))}
           </article>
-          {atoll.facts?.length ? (
+          {glance.length ? (
             <aside data-reveal className="h-max rounded-card bg-ink p-6 text-white lg:sticky lg:top-24">
               <p className="eyebrow text-white/60">At a glance</p>
               <dl className="mt-4 divide-y divide-white/10">
-                {atoll.facts.map((f) => (
+                {glance.map((f) => (
                   <div key={f.label} className="flex justify-between gap-4 py-3">
                     <dt className="text-white/60">{f.label}</dt>
                     <dd className="text-right font-mono text-[14px]">{f.value}</dd>
@@ -94,40 +113,22 @@ export default async function AtollPage({ params }: PageProps<"/atolls/[slug]">)
       {atoll.islands ? (
         <Reveal as="section" className="container-vm pb-12 lg:pb-16">
           <SectionHead eyebrow="Islands" title="Islands of" accent={atoll.name} />
-          {profiles.length ? (
+          {cards.length ? (
             <div className="mt-10">
-              <p className="eyebrow text-driftwood">Local islands · {profiles.length}</p>
-              <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-                {profiles.map((p) => (
-                  <Link key={p.slug} href={`/atolls/${p.slug}`} data-reveal className="group block">
-                    <div className="relative aspect-[4/3] overflow-hidden rounded-card bg-shell">
-                      <Image
-                        src={photo(p.image, 800)}
-                        unoptimized={isCommons(p.image)}
-                        alt={p.gallery?.[0]?.alt ?? p.name}
-                        fill
-                        sizes="(min-width:1024px) 25vw, (min-width:640px) 33vw, 50vw"
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                    </div>
-                    <p className="mt-3 text-[17px] font-semibold group-hover:text-red">{p.name}</p>
-                    <p className="text-sm leading-snug text-driftwood">{p.tagline}</p>
-                  </Link>
-                ))}
+              <p className="eyebrow text-driftwood">Local islands · {cards.length}</p>
+              <div className="mt-4">
+                <IslandCarousel islands={cards} label={`Islands of ${atoll.name}`} />
               </div>
             </div>
           ) : null}
           <div className="mt-10 grid gap-4 lg:grid-cols-2">
             <div className="rounded-card bg-shell p-6">
               <p className="eyebrow text-driftwood">
-                Inhabited · {atoll.islands.inhabited.length}
+                Inhabited · {inhabitedNames(atoll, entries).length}
               </p>
               <IslandList
                 variant="chips"
-                items={atoll.islands.inhabited.map((name) => {
-                  const page = profiles.find((p) => p.name === name);
-                  return { name, href: page ? `/atolls/${page.slug}` : undefined };
-                })}
+                items={inhabitedNames(atoll, entries).map((name) => ({ name, href: islandHref(atoll, name, profiles, entries) }))}
               />
             </div>
             <div className="rounded-card bg-shell p-6">
@@ -143,31 +144,19 @@ export default async function AtollPage({ params }: PageProps<"/atolls/[slug]">)
           </div>
         </Reveal>
       ) : null}
-      {stays.length ? (
-        <Reveal as="section" className="container-vm pb-12 lg:pb-16">
-          <SectionHead eyebrow="Places to stay" title="Where to stay in" accent={(parent ?? atoll).name} href="/stay" cta="All places to stay" />
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {stays.map((s) => (
-              <Link key={s.slug} href={`/stay/${s.slug}`} data-reveal className="group block">
-                <div className="relative aspect-[4/3] overflow-hidden rounded-card bg-shell">
-                  <Image
-                    src={photo(s.image, 900)}
-                    unoptimized={isCommons(s.image)}
-                    alt={s.name}
-                    fill
-                    sizes="(min-width:1024px) 33vw, 50vw"
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
-                  <span className="absolute top-3 left-3 rounded-control bg-white px-2.5 py-1 text-[13px] font-medium">{s.type}</span>
-                </div>
-                <h3 className="mt-3 text-[20px] leading-6 font-semibold group-hover:underline">{s.name}</h3>
-                <p className="mt-1 text-sm text-driftwood">
-                  {s.atoll} · {s.price}
-                </p>
-              </Link>
-            ))}
+      <PlaceCarousels place={atoll.name} stays={stays} eats={eats} salons={salons} fallbackHref={`/atolls/${atoll.slug}`} />
+      {parent && !stays.length && !eats.length && !salons.length ? (
+        <section className="container-vm pb-12 lg:pb-16">
+          <div className="rounded-card bg-shell p-8 text-center">
+            <p className="text-[20px] font-semibold">Nothing listed on {atoll.name} yet</p>
+            <p className="mx-auto mt-2 max-w-xl text-driftwood">
+              We have no places to stay, restaurants or salons on {atoll.name} yet. See what&rsquo;s listed elsewhere in {parent.name}.
+            </p>
+            <Link href={`/atolls/${parent.slug}`} className="mt-5 inline-flex min-h-11 items-center rounded-control bg-ink px-5 font-semibold text-white hover:bg-red">
+              Explore {parent.name}
+            </Link>
           </div>
-        </Reveal>
+        </section>
       ) : null}
       {atoll.gallery?.length ? (
         <div className="container-vm -mt-4 pb-12 lg:pb-20">

@@ -115,7 +115,7 @@ export type Atoll = {
 
 /** Other names a stay's free-text `atoll` may use for an atoll (besides the atoll's own name). */
 const ATOLL_ALIASES: Record<string, string[]> = {
-  male: ["kaafu", "male", "north male", "south male"],
+  male: ["kaafu", "male", "north male", "south male", "hulhumale", "villimale", "velana"],
   "alif-alif": ["alif alif", "north ari", "rasdhoo"],
   "alif-dhaal": ["alif dhaal", "south ari"],
   fuvahmulah: ["fuvahmulah", "gnaviyani"],
@@ -126,11 +126,36 @@ const ATOLL_ALIASES: Record<string, string[]> = {
 const plain = (s: string) => s.normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z ]+/g, " ").replace(/\s+/g, " ").trim();
 
 /** Whether a place to stay is in this atoll (exact `atollSlug` when set, else its `atoll` text). */
-export const stayInAtoll = (stay: Pick<Stay, "atoll" | "atollSlug">, atoll: Pick<Atoll, "slug" | "name">) => {
-  if (stay.atollSlug) return stay.atollSlug === atoll.slug;
+export const stayInAtoll = (stay: Pick<Stay, "atoll" | "atollSlug">, atoll: Pick<Atoll, "slug" | "name">) =>
+  stay.atollSlug ? stay.atollSlug === atoll.slug : placeInAtoll(stay.atoll, atoll);
+
+/** Whether free text naming a place (e.g. "Utheemu, Haa Alif") names this island. */
+export const placeOnIsland = (where: string | undefined, island: string) => {
+  const k = (s: string) => plain(s).replace(/ /g, "");
+  return !!where && where.split(",").some((p) => k(p) === k(island));
+};
+
+/** Whether a place to stay is on this island (its island, or the place named in its atoll text). */
+export const stayOnIsland = (stay: Pick<Stay, "atoll" | "island">, island: string) =>
+  (stay.island ? placeOnIsland(stay.island, island) : false) || placeOnIsland(stay.atoll, island);
+
+/** Whether a salon is in this atoll: the atoll chosen in the dashboard, or its area text for older entries. */
+export const salonInAtoll = (s: Pick<Salon, "area" | "atollSlug">, atoll: Pick<Atoll, "slug" | "name">) =>
+  s.atollSlug ? s.atollSlug === atoll.slug : placeInAtoll(s.area ?? "", atoll);
+
+/** Whether a salon is on this island: the island chosen in the dashboard, or its area text. */
+export const salonOnIsland = (s: Pick<Salon, "area" | "island">, island: string) =>
+  s.island ? placeOnIsland(s.island, island) : placeOnIsland(s.area, island);
+
+/** Where a salon is, for cards: its area note, else "Island, Atoll". */
+export const salonWhere = (s: Pick<Salon, "area" | "island" | "atoll">) =>
+  s.area || [s.island, s.atoll].filter(Boolean).join(", ");
+
+/** Whether free text naming a place (e.g. a restaurant's or salon's area) is in this atoll. */
+export const placeInAtoll = (where: string, atoll: Pick<Atoll, "slug" | "name">) => {
   const names = ATOLL_ALIASES[atoll.slug] ?? [plain(atoll.name).replace(/ atoll$/, "")];
   // each comma-separated part must *start* with the name, so "Haa Dhaalu" never counts as "Dhaalu"
-  const parts = stay.atoll.split(",").map((p) => `${plain(p)} `);
+  const parts = where.split(",").map((p) => `${plain(p)} `);
   return parts.some((p) => names.some((n) => p.startsWith(`${n} `)));
 };
 
@@ -184,6 +209,9 @@ export type Eat = {
 export const eatSlug = (e: Pick<Eat, "slug" | "name">) =>
   e.slug || e.name.normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 
+/** Page address for a salon: its slug, or one made from its name for older entries. */
+export const salonSlug = (s: Pick<Salon, "slug" | "name">) => eatSlug(s);
+
 export type DishKind = "Breakfast" | "Mains" | "Short eats" | "Sweets" | "Drinks";
 export const DISH_KINDS: DishKind[] = ["Breakfast", "Mains", "Short eats", "Sweets", "Drinks"];
 
@@ -200,6 +228,61 @@ export type Dish = {
 };
 
 export type Event = { month: string; title: string; text: string; where: string };
+
+/** An island, edited in the dashboard: its page at /atolls/<atoll>/islands/<slug> and its card on the atoll page. */
+export type IslandEntry = {
+  slug: string;
+  name: string;
+  /** the atoll's name and page address, chosen in the dashboard */
+  atoll: string;
+  atollSlug?: string;
+  kind: "Inhabited" | "Resort island" | "Uninhabited";
+  /** short line on the card */
+  tagline?: string;
+  description: string;
+  population?: number;
+  populationYear?: string;
+  /** in km² */
+  area?: number;
+  image?: string;
+  /** credit for a photo from Wikimedia Commons */
+  imageCredit?: string;
+  imageSource?: string;
+  gallery?: GalleryPhoto[];
+  /** where the facts came from (e.g. a Wikipedia article) */
+  source?: string;
+};
+
+/** A salon, spa or barber, with its own page at /salons/<slug>, shown on its atoll and island pages. */
+export type Salon = {
+  /** page address (older entries without one fall back to the name) */
+  slug?: string;
+  name: string;
+  /** treatments offered, e.g. "Massage", "Haircut" */
+  services?: string[];
+  address?: string;
+  /** map position (WGS84) */
+  lat?: number;
+  lng?: number;
+  /** our score out of 5 */
+  rating?: number;
+  reviews?: Review[];
+  /** e.g. "Spa", "Hair salon", "Barber" */
+  kind: string;
+  /** the atoll's name and page address, chosen in the dashboard */
+  atoll?: string;
+  atollSlug?: string;
+  /** the island, chosen in the dashboard */
+  island?: string;
+  /** free-text place; older entries used it for the atoll or island (e.g. "Maafushi, Kaafu") */
+  area: string;
+  image: string;
+  about?: string;
+  hours?: string;
+  phone?: string;
+  /** website, Instagram or booking page */
+  link?: string;
+};
 
 export type Essential = { label: string; big: string; text: string; href?: string };
 

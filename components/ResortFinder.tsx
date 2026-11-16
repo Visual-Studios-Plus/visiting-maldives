@@ -116,7 +116,7 @@ export default function ResortFinder({ resorts, atolls }: { resorts: ResortItem[
       {list.length ? (
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {list.slice(0, shown).map((r) => (
-            <Link key={`${r.atollSlug}-${r.island}`} href={r.href} className="group block">
+            <Link key={r.href} href={r.href} className="group block">
               <div className="relative aspect-[4/3] overflow-hidden rounded-card bg-shell">
                 <Image
                   src={r.image}
