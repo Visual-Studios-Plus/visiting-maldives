@@ -88,7 +88,7 @@ async function readStored<K extends CollectionKey>(key: K): Promise<Collections[
     // collection would stay cached (blank pages) until the next dashboard save. Throwing lets
     // the request fail and the next one try again.
     const kept = devMemo?.get(key);
-    if (kept && Date.now() - kept.at < DEV_MEMO_MS) return kept.data as Collections[K] | null;
+    if (kept && performance.now() - kept.at < DEV_MEMO_MS) return kept.data as Collections[K] | null;
     let read = inFlight.get(key) as Promise<Collections[K] | null> | undefined;
     if (!read) {
       read = readRow(key).finally(() => inFlight.delete(key));
@@ -96,7 +96,7 @@ async function readStored<K extends CollectionKey>(key: K): Promise<Collections[
     }
     try {
       const data = await read;
-      devMemo?.set(key, { data, at: Date.now() });
+      devMemo?.set(key, { data, at: performance.now() });
       return data;
     } catch (err) {
       console.error(`[content] reading "${key}" failed`, err);
