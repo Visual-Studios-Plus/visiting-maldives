@@ -4017,3 +4017,16 @@ export const ISLAND_COORDS: Record<string, Record<string, [number, number]>> = {
     ]
   }
 };
+
+/*
+ * Inhabited islands the register lists without coordinates (from English Wikipedia), under the
+ * register's spelling and the spelling the site uses, so either finds them.
+ */
+const MISSING: Record<string, Record<string, [number, number]>> = {
+  "haa-alif": { Dhihdhoo: [6.8875, 73.1139], Dhidhdhoo: [6.8875, 73.1139], Huvarafushi: [6.9819, 72.8964], Hoarafushi: [6.9819, 72.8964] },
+  raa: { Maduvvari: [5.4886, 72.8958] },
+  male: { Hinmafushi: [4.3086, 73.5703], Himmafushi: [4.3086, 73.5703], Vilingili: [4.1719, 73.4847], Villingili: [4.1719, 73.4847] },
+  "alif-dhaal": { Maamingili: [3.4728, 72.8364], Maamigili: [3.4728, 72.8364] },
+  thaa: { Thimarafushi: [2.205, 73.15] },
+};
+for (const [atoll, islands] of Object.entries(MISSING)) ISLAND_COORDS[atoll] = { ...islands, ...ISLAND_COORDS[atoll] };
