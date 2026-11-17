@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { placeInAtoll, placeOnIsland, salonInAtoll, salonOnIsland, stayInAtoll, stayOnIsland } from "@/lib/data";
-import { atollFactRows, findEntry, inhabitedNames, islandCards, islandCoords, islandFactRows, islandHref, mapPlaces, nearby } from "@/lib/islands";
-import IslandMap from "@/components/IslandMap";
+import { atollFactRows, findEntry, inhabitedNames, islandCards, islandCoords, islandFactRows, islandHref, mapPlaces } from "@/lib/islands";
+import GuideColumns from "@/components/GuideColumns";
+import MapPanel from "@/components/MapPanel";
 import IslandCarousel from "@/components/IslandCarousel";
 import PlaceCarousels from "@/components/PlaceCarousels";
 import { notFound } from "next/navigation";
@@ -54,8 +55,6 @@ export default async function AtollPage({ params }: PageProps<"/atolls/[slug]">)
   // an island guide (parent set) gets a map of the island and its nearest islands and resorts
   const islandAt = parent ? islandCoords(parent.slug, atoll.name, findEntry(parent, atoll.name, entries)) : undefined;
   const mapped = mapPlaces(stays, eats, salons);
-  const close = islandAt ? nearby(islandAt, atoll.name, await getAtolls(), entries, await getStays()) : { islands: [], resorts: [] };
-  const km = (n: number) => (n < 10 ? n.toFixed(1) : Math.round(n).toString());
   const extra = parent ? islandFactRows(parent, atoll.name, findEntry(parent, atoll.name, entries)).filter((r) => r.label !== "Atoll" && !(atoll.facts ?? []).some((x) => x.label === r.label)) : [];
   // an atoll gets its official name, capital, population and island counts
   const resortCount = atollStays.filter((s) => s.type === "Resort" || s.type === "Resort island").length;
@@ -90,7 +89,22 @@ export default async function AtollPage({ params }: PageProps<"/atolls/[slug]">)
           </div>
         ))}
       </Reveal>
-      {atoll.body?.length || glance.length ? (
+      {parent ? (
+        // an island guide: the shared island layout, with the map under "At a glance"
+        <GuideColumns
+          className="pb-12 lg:pb-20"
+          glance={glance}
+          side={islandAt ? <MapPanel name={atoll.name} center={islandAt} places={mapped.placed} unplaced={mapped.unplaced} /> : null}
+        >
+          {atoll.body?.map((b, i) => (
+            <div key={b.heading} data-reveal className={`max-w-2xl ${i ? "mt-10" : ""}`}>
+              <p className="font-mono text-[12px] text-red">{String(i + 1).padStart(2, "0")}</p>
+              <h2 className="mt-1 text-[26px] leading-8 font-semibold tracking-tight lg:text-[28px]">{b.heading}</h2>
+              <p className="mt-3 text-[17px] leading-[28px]">{b.text}</p>
+            </div>
+          ))}
+        </GuideColumns>
+      ) : atoll.body?.length || glance.length ? (
         <Reveal as="section" className="container-vm grid gap-12 pb-12 lg:grid-cols-[1fr_340px] lg:pb-20">
           <article>
             {atoll.body?.map((b, i) => (
@@ -148,41 +162,6 @@ export default async function AtollPage({ params }: PageProps<"/atolls/[slug]">)
               />
             </div>
           </div>
-        </Reveal>
-      ) : null}
-      {islandAt ? (
-        <Reveal as="section" className="container-vm pb-12 lg:pb-16">
-          <SectionHead eyebrow="Map" title="Where things are on" accent={atoll.name} />
-          <div data-reveal className="mx-auto mt-8 max-w-4xl">
-            <IslandMap name={atoll.name} center={islandAt} places={mapped.placed} unplaced={mapped.unplaced} />
-          </div>
-        </Reveal>
-      ) : null}
-      {close.islands.length || close.resorts.length ? (
-        <Reveal as="section" className="container-vm grid gap-6 pb-12 sm:grid-cols-2 lg:pb-16">
-          {[
-            { title: "Nearest local islands", items: close.islands.map((x) => ({ ...x, sub: x.atoll })) },
-            { title: "Nearest resorts", items: close.resorts.map((x) => ({ ...x, name: x.resort ?? x.name, sub: x.resort ? `${x.name} · ${x.atoll}` : x.atoll })) },
-          ]
-            .filter((g) => g.items.length)
-            .map((g) => (
-              <div key={g.title} data-reveal className="rounded-card bg-shell p-6">
-                <p className="eyebrow text-driftwood">{g.title}</p>
-                <ul className="mt-3 divide-y divide-line">
-                  {g.items.map((x) => (
-                    <li key={x.href}>
-                      <Link href={x.href} className="group flex items-baseline justify-between gap-3 py-2.5">
-                        <span className="min-w-0">
-                          <span className="block truncate font-semibold group-hover:text-red">{x.name}</span>
-                          <span className="block truncate text-[13px] text-driftwood">{x.sub}</span>
-                        </span>
-                        <span className="shrink-0 font-mono text-[13px] text-driftwood">{km(x.km)} km</span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
         </Reveal>
       ) : null}
       <PlaceCarousels place={atoll.name} stays={stays} eats={eats} salons={salons} fallbackHref={`/atolls/${atoll.slug}`} />
