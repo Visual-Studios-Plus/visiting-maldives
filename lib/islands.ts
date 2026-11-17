@@ -1,4 +1,4 @@
-import { eatSlug, placeOnIsland, salonOnIsland, salonSlug, stayOnIsland, type Atoll, type Eat, type IslandEntry, type Salon, type Stay } from "@/lib/data";
+import { eatOnIsland, eatSlug, salonOnIsland, salonSlug, stayOnIsland, type Atoll, type Eat, type IslandEntry, type Salon, type Stay } from "@/lib/data";
 import { ISLAND_COORDS } from "@/prisma/seed/island-coords";
 import { islandSlug } from "@/lib/resorts";
 import type { IslandCardData } from "@/components/IslandCard";
@@ -26,11 +26,13 @@ export const inhabitedNames = (atoll: Atoll, entries: IslandEntry[]) => {
   return names;
 };
 
-/** Page address for an island: a written-up island guide when there is one, else the island page. */
-export const islandHref = (atoll: Atoll, name: string, profiles: Atoll[], entries: IslandEntry[] = []) => {
-  const page = profiles.find((p) => p.name === name);
-  return page ? `/atolls/${page.slug}` : `/atolls/${atoll.slug}/islands/${findEntry(atoll, name, entries)?.slug || islandSlug(name)}`;
-};
+/**
+ * Page address for an island: every island has its page under its atoll,
+ * /atolls/<atoll>/islands/<island>. (`profiles` is kept for callers; older single-island atoll
+ * entries now redirect there.)
+ */
+export const islandHref = (atoll: Atoll, name: string, _profiles: Atoll[] = [], entries: IslandEntry[] = []) =>
+  `/atolls/${atoll.slug}/islands/${findEntry(atoll, name, entries)?.slug || islandSlug(name)}`;
 
 /** Photos for islands without their own: the atoll's cover and gallery, in turn. */
 const atollPhotos = (atoll: Atoll) => [atoll.image, ...(atoll.gallery ?? []).map((g) => g.src)];
@@ -209,7 +211,7 @@ export function islandCards(atoll: Atoll, profiles: Atoll[], stays: Stay[], eats
       // honest alt: only the island's own photo shows the island itself
       alt: page ? (page.gallery?.[0]?.alt ?? name) : own ? name : `${atoll.name} (not ${name} itself)`,
       stays: stays.filter((s) => stayOnIsland(s, name)).length,
-      eats: eats.filter((e) => placeOnIsland(e.area, name)).length,
+      eats: eats.filter((e) => eatOnIsland(e, name)).length,
       salons: salons.filter((s) => salonOnIsland(s, name)).length,
     };
   });

@@ -1,7 +1,8 @@
+import Link from "next/link";
 import Reveal from "@/components/Reveal";
 import SectionHead from "@/components/SectionHead";
 import ResortCarousel from "@/components/ResortCarousel";
-import { eatSlug, photo, salonSlug, salonWhere, type Eat, type Salon, type Stay } from "@/lib/data";
+import { eatWhere, eatSlug, photo, salonSlug, salonWhere, type Eat, type Salon, type Stay } from "@/lib/data";
 
 /**
  * Places to stay, restaurants and salons as drifting card carousels, one section each, for an
@@ -12,11 +13,14 @@ export default function PlaceCarousels({
   stays,
   eats,
   salons,
+  compact = false,
 }: {
   place: string;
   stays: Stay[];
   eats: Eat[];
   salons: Salon[];
+  /** inside a page column: left-aligned headings, carousels fit the column */
+  compact?: boolean;
   /** no longer used: every card has its own page */
   fallbackHref?: string;
 }) {
@@ -43,9 +47,9 @@ export default function PlaceCarousels({
       href: "/eat-drink",
       cta: "All places to eat",
       cards: eats.map((e) => ({
-        island: e.area,
+        island: e.island ?? eatWhere(e),
         resort: e.name,
-        label: `${e.kind} · ${e.area}`,
+        label: `${e.kind} · ${eatWhere(e)}`,
         cta: "View restaurant",
         image: photo(e.image, 900),
         href: `/eat-drink/${eatSlug(e)}`,
@@ -67,6 +71,30 @@ export default function PlaceCarousels({
       })),
     },
   ].filter((g) => g.cards.length);
+
+  if (compact)
+    return (
+      <>
+        {groups.map((g) => (
+          <section key={g.key} data-reveal className="mt-14">
+            <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-1">
+              <div>
+                <p className="eyebrow text-driftwood">
+                  {g.eyebrow} · {g.cards.length}
+                </p>
+                <h2 className="mt-1 text-[24px] leading-8 font-semibold tracking-tight">
+                  {g.title} {place}
+                </h2>
+              </div>
+              <Link href={g.href} className="inline-flex min-h-11 items-center text-[14px] font-medium text-red hover:underline">
+                {g.cta} →
+              </Link>
+            </div>
+            <ResortCarousel resorts={g.cards} inColumn />
+          </section>
+        ))}
+      </>
+    );
 
   return (
     <>

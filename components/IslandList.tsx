@@ -33,7 +33,7 @@ export default function IslandList({
       onClick={() => setOpen((v) => !v)}
       className={
         variant === "chips"
-          ? "inline-flex min-h-8 items-center rounded-full border border-line bg-white px-3 py-1 text-sm font-medium transition-colors hover:border-red hover:text-red"
+          ? "inline-flex min-h-10 items-center rounded-full border border-line bg-white px-3.5 py-1.5 text-sm font-medium transition-colors hover:border-red hover:text-red"
           : "inline-flex min-h-11 items-center gap-2 text-sm font-medium text-red transition-colors hover:underline"
       }
     >
@@ -52,12 +52,12 @@ export default function IslandList({
             {item.href ? (
               <Link
                 href={item.href}
-                className={`block rounded-full bg-white px-3 py-1 text-sm transition-colors hover:bg-red hover:text-white ${muted ? "text-driftwood" : "font-medium"}`}
+                className={`flex min-h-10 items-center rounded-full bg-white px-3.5 py-1.5 text-sm transition-colors hover:bg-red hover:text-white ${muted ? "text-driftwood" : "font-medium"}`}
               >
                 {item.name}
               </Link>
             ) : (
-              <span className={`block rounded-full bg-white px-3 py-1 text-sm ${muted ? "text-driftwood" : "font-medium"}`}>{item.name}</span>
+              <span className={`flex min-h-10 items-center rounded-full bg-white px-3.5 py-1.5 text-sm ${muted ? "text-driftwood" : "font-medium"}`}>{item.name}</span>
             )}
           </li>
         ))}

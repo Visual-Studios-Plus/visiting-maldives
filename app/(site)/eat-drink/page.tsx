@@ -5,9 +5,10 @@ import PageHero from "@/components/PageHero";
 import Reveal from "@/components/Reveal";
 import SectionHead from "@/components/SectionHead";
 import DishCard from "@/components/DishCard";
-import EatsFilter from "@/components/EatsFilter";
-import { DISH_KINDS, P, photo } from "@/lib/data";
-import { getDishes, getEats } from "@/lib/content/store";
+import ResortCarousel from "@/components/ResortCarousel";
+import { eatInAtoll, eatOnIsland, eatWhere, DISH_KINDS, P, eatSlug, photo } from "@/lib/data";
+import { getAtolls, getDishes, getEats, getIslands } from "@/lib/content/store";
+import { inhabitedNames, islandHref } from "@/lib/islands";
 
 export const metadata: Metadata = {
   title: "Eat & drink",
@@ -25,8 +26,30 @@ const tips = [
 ];
 
 export default async function EatDrink() {
-  const [eats, dishes] = await Promise.all([getEats(), getDishes()]);
+  const [eats, dishes, all, entries] = await Promise.all([getEats(), getDishes(), getAtolls(), getIslands()]);
   const sortedDishes = [...dishes].sort((a, b) => DISH_KINDS.indexOf(a.kind) - DISH_KINDS.indexOf(b.kind));
+
+  // places to eat grouped by island (or by atoll when only the atoll is known), atolls north to south
+  const atolls = all.filter((a) => !a.parent);
+  type Group = { key: string; title: string; sub: string; href: string; order: number; items: typeof eats };
+  const byKey = new Map<string, Group>();
+  for (const e of eats) {
+    const ai = atolls.findIndex((a) => eatInAtoll(e, a));
+    const atoll = atolls[ai];
+    const island = atoll ? inhabitedNames(atoll, entries).find((n) => eatOnIsland(e, n)) : undefined;
+    const key = atoll ? `${atoll.slug}|${island ?? ""}` : `other|${eatWhere(e)}`;
+    if (!byKey.has(key))
+      byKey.set(key, {
+        key,
+        title: island ?? atoll?.name ?? eatWhere(e),
+        sub: island && atoll ? atoll.name : "Around the atoll",
+        href: atoll ? (island ? islandHref(atoll, island, [], entries) : `/atolls/${atoll.slug}`) : "/atolls",
+        order: ai === -1 ? atolls.length : ai,
+        items: [],
+      });
+    byKey.get(key)!.items.push(e);
+  }
+  const groups = [...byKey.values()].sort((x, y) => x.order - y.order || x.title.localeCompare(y.title));
 
   return (
     <>
@@ -46,18 +69,40 @@ export default async function EatDrink() {
         </Reveal>
       )}
 
-      {/* Where to eat */}
-      {eats.length > 0 && (
+      {/* Where to eat: grouped by island, like the island pages */}
+      {groups.length > 0 && (
         <Reveal as="section" className="py-12 lg:py-24">
           <div className="container-vm">
-            <SectionHead eyebrow="Where to eat" title="From teashop" accent="to sunset deck" />
-            <p data-reveal className="mt-3 max-w-2xl text-[16px] leading-[1.5] text-driftwood">
-              Each place comes with what to order. Prices are a typical meal per person.
+            <SectionHead eyebrow="Where to eat" title="Island" accent="by island" />
+            <p data-reveal className="mx-auto mt-3 max-w-2xl text-center text-[16px] leading-[1.5] text-driftwood">
+              {eats.length} places to eat on {groups.length} {groups.length === 1 ? "island" : "islands"}, north to south. Each comes with what to order.
             </p>
-            <div data-reveal>
-              <EatsFilter eats={eats} />
-            </div>
           </div>
+          {groups.map((g) => (
+            <div key={g.key} data-reveal className="mt-12">
+              <div className="container-vm flex flex-wrap items-end justify-between gap-x-4 gap-y-1">
+                <div>
+                  <p className="eyebrow text-driftwood">
+                    {g.sub} · {g.items.length} {g.items.length === 1 ? "place" : "places"}
+                  </p>
+                  <h3 className="mt-1 text-[26px] leading-8 font-semibold tracking-tight">{g.title}</h3>
+                </div>
+                <Link href={g.href} className="inline-flex min-h-11 items-center text-[14px] font-medium text-red hover:underline">
+                  Explore {g.title} →
+                </Link>
+              </div>
+              <ResortCarousel
+                resorts={g.items.map((e) => ({
+                  island: eatWhere(e),
+                  resort: e.name,
+                  label: `${e.kind} · ${e.price}`,
+                  cta: `Order: ${e.dish}`,
+                  image: photo(e.image, 900),
+                  href: `/eat-drink/${eatSlug(e)}`,
+                }))}
+              />
+            </div>
+          ))}
         </Reveal>
       )}
 

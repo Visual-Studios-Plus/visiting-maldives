@@ -1,6 +1,6 @@
 import IslandMap, { type MapPlace } from "@/components/IslandMap";
 
-/** "Where things are on …": the island map with its heading, for the guide layout's right column. */
+/** The island map with a small heading, sized to sit under "At a glance" in one screen. */
 export default function MapPanel({
   name,
   center,
@@ -14,10 +14,9 @@ export default function MapPanel({
 }) {
   return (
     <div data-reveal>
-      <p className="eyebrow text-driftwood">Map</p>
-      <h2 className="mt-1 text-[22px] leading-7 font-semibold tracking-tight">Where things are on {name}</h2>
-      <div className="mt-4">
-        <IslandMap name={name} center={center} places={places} unplaced={unplaced} />
+      <p className="eyebrow text-driftwood">Map of {name}</p>
+      <div className="mt-2">
+        <IslandMap name={name} center={center} places={places} unplaced={unplaced} compact />
       </div>
     </div>
   );

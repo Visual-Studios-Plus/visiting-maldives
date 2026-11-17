@@ -23,6 +23,22 @@ export default function Loader() {
       const finish = () => setDone(true);
       const lifted = () => window.dispatchEvent(new Event(LOADED_EVENT));
 
+      // the full animation plays once per visit; after that the screen just fades straight away
+      let seen = false;
+      try {
+        seen = sessionStorage.getItem("vm-loader-seen") === "1";
+        sessionStorage.setItem("vm-loader-seen", "1");
+      } catch {
+        // storage blocked (private mode): play the animation as usual
+      }
+      if (seen) {
+        // signal on the next tick: the navbar and page intros set up their listeners after this
+        // component does, and would miss an event sent right now (and stay hidden)
+        const t = window.setTimeout(lifted, 0);
+        gsap.to(root.current, { autoAlpha: 0, duration: 0.25, onComplete: finish });
+        return () => window.clearTimeout(t);
+      }
+
       let ready = false;
       const loaded = assetsReady();
       loaded.then(() => {

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import PageHero from "@/components/PageHero";
 import AtollFilter, { type AtollCounts } from "@/components/AtollFilter";
-import { P, placeInAtoll, salonInAtoll, stayInAtoll } from "@/lib/data";
+import { eatInAtoll, P, salonInAtoll, stayInAtoll } from "@/lib/data";
 import { getAtolls, getEats, getIslands, getSalons, getStays } from "@/lib/content/store";
 import { inhabitedNames } from "@/lib/islands";
 import { allResortRecords } from "@/lib/resorts";
@@ -25,7 +25,7 @@ export default async function Atolls() {
           // resort stays once they're published at /stay; the atoll's resort list until then
           resorts: Math.max(resortStays, resortRecords.filter((r) => r.atollSlug === a.slug && !r.half).length),
           stays: here.length - resortStays,
-          restaurants: eats.filter((e) => placeInAtoll(e.area, a)).length,
+          restaurants: eats.filter((e) => eatInAtoll(e, a)).length,
           salons: salons.filter((s) => salonInAtoll(s, a)).length,
           inhabited: inhabitedNames(a, entries).length,
         },

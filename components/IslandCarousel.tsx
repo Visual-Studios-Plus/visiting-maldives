@@ -1,10 +1,24 @@
 "use client";
+import Link from "next/link";
 import { useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import IslandCard, { type IslandCardData } from "@/components/IslandCard";
 
-/** Island cards in a swipeable row that snaps card by card, with arrow buttons. */
-export default function IslandCarousel({ islands, label = "Islands" }: { islands: IslandCardData[]; label?: string }) {
+/**
+ * Island cards in a swipeable row that snaps card by card. Above it: the arrows on the left and,
+ * when `allHref` is given, a link to all the islands on the right.
+ */
+export default function IslandCarousel({
+  islands,
+  label = "Islands",
+  allHref,
+  allLabel = "All islands",
+}: {
+  islands: IslandCardData[];
+  label?: string;
+  allHref?: string;
+  allLabel?: string;
+}) {
   const row = useRef<HTMLDivElement>(null);
   const nudge = (dir: -1 | 1) => {
     const el = row.current;
@@ -15,9 +29,34 @@ export default function IslandCarousel({ islands, label = "Islands" }: { islands
   };
   const arrow =
     "grid size-11 place-items-center rounded-control border border-line bg-white text-ink transition-colors hover:border-ink hover:bg-ink hover:text-white";
+  const showArrows = islands.length > 1;
 
   return (
     <div>
+      {showArrows || allHref ? (
+        <div className="mb-4 flex items-center justify-between gap-4">
+          <div className="flex gap-2">
+            {showArrows ? (
+              <>
+                <button type="button" aria-label="Previous island" onClick={() => nudge(-1)} className={arrow}>
+                  <ChevronLeft aria-hidden className="size-5" />
+                </button>
+                <button type="button" aria-label="Next island" onClick={() => nudge(1)} className={arrow}>
+                  <ChevronRight aria-hidden className="size-5" />
+                </button>
+              </>
+            ) : null}
+          </div>
+          {allHref ? (
+            <Link
+              href={allHref}
+              className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-control border border-line px-4 text-[15px] font-medium transition-colors hover:border-red hover:bg-red hover:text-white"
+            >
+              {allLabel} <span aria-hidden>→</span>
+            </Link>
+          ) : null}
+        </div>
+      ) : null}
       <div
         ref={row}
         role="region"
@@ -31,16 +70,6 @@ export default function IslandCarousel({ islands, label = "Islands" }: { islands
           </div>
         ))}
       </div>
-      {islands.length > 1 ? (
-        <div className="flex justify-center gap-2">
-          <button type="button" aria-label="Previous island" onClick={() => nudge(-1)} className={arrow}>
-            <ChevronLeft aria-hidden className="size-5" />
-          </button>
-          <button type="button" aria-label="Next island" onClick={() => nudge(1)} className={arrow}>
-            <ChevronRight aria-hidden className="size-5" />
-          </button>
-        </div>
-      ) : null}
     </div>
   );
 }

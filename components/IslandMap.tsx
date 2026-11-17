@@ -25,13 +25,17 @@ export default function IslandMap({
   center,
   places,
   unplaced = [],
+  compact = false,
 }: {
   name: string;
   center: [number, number];
   places: MapPlace[];
   /** places on the island that don't have a map position yet */
   unplaced?: { name: string; href: string }[];
+  /** for a narrow side panel: smaller legend and links, a short list only, no "not on the map" note */
+  compact?: boolean;
 }) {
+  const showList = places.length > 0 && (!compact || places.length <= 4);
   const points = [{ lat: center[0], lng: center[1] }, ...places];
   // the closest zoom (16 down to 11) that fits every point with some margin; 15 for the island alone
   let z = places.length ? 16 : 15;
@@ -99,7 +103,7 @@ export default function IslandMap({
         </svg>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-[14px]">
+      <div className={`flex flex-wrap items-center justify-between ${compact ? "mt-1.5 gap-x-3 text-[13px]" : "mt-3 gap-3 text-[14px]"}`}>
         <div className="flex flex-wrap gap-x-4 gap-y-1">
           {kinds.map((k) => (
             <span key={k} className="inline-flex items-center gap-1.5 text-driftwood">
@@ -109,17 +113,17 @@ export default function IslandMap({
           ))}
         </div>
         <p className="flex gap-4">
-          <a href={gmaps} target="_blank" rel="noopener noreferrer" className="font-medium text-red hover:underline">
+          <a href={gmaps} target="_blank" rel="noopener noreferrer" className={`inline-flex items-center font-medium text-red hover:underline ${compact ? "min-h-9" : "min-h-11"}`}>
             Open in Google Maps ↗
           </a>
-          <a href={osm} target="_blank" rel="noopener noreferrer" className="text-driftwood hover:text-ink hover:underline">
+          <a href={osm} target="_blank" rel="noopener noreferrer" className={`inline-flex items-center text-driftwood hover:text-ink hover:underline ${compact ? "min-h-9" : "min-h-11"}`}>
             OpenStreetMap ↗
           </a>
         </p>
       </div>
 
-      {places.length ? (
-        <ol className="mt-4 grid gap-x-6 gap-y-2 sm:grid-cols-2">
+      {showList ? (
+        <ol className={`grid gap-x-6 ${compact ? "mt-0.5 gap-y-1 text-[14px]" : "mt-4 gap-y-2 sm:grid-cols-2"}`}>
           {places.map((p, i) => (
             <li key={`${p.href}-${i}`} className="flex items-center gap-2.5 text-[15px]">
               <span className="grid size-6 shrink-0 place-items-center rounded-full text-[12px] font-bold text-white" style={{ background: COLOR[p.kind] }}>
@@ -132,7 +136,7 @@ export default function IslandMap({
           ))}
         </ol>
       ) : null}
-      {unplaced.length ? (
+      {unplaced.length && !compact ? (
         <p className="mt-3 text-[13px] text-driftwood">
           Not on the map yet:{" "}
           {unplaced.map((u, i) => (

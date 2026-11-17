@@ -34,7 +34,7 @@ export default function IslandCard({ island: c, sizes = "(min-width:1024px) 30vw
   return (
     <Link
       href={c.href}
-      className="group relative block aspect-[4/5] overflow-hidden rounded-[24px] bg-ink text-white shadow-[0_24px_48px_-24px_rgba(20,18,26,0.55)] transition-[translate,box-shadow] duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:-translate-y-1 hover:shadow-[0_32px_56px_-20px_rgba(20,18,26,0.6)] motion-reduce:hover:translate-y-0"
+      className="group relative block aspect-[4/5] overflow-hidden rounded-[24px] bg-ink text-white transition-[translate] duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:-translate-y-1 motion-reduce:hover:translate-y-0"
     >
       <Image
         src={photo(c.image, 900)}
@@ -63,7 +63,7 @@ export default function IslandCard({ island: c, sizes = "(min-width:1024px) 30vw
                   <Icon aria-hidden className="size-4 text-white/80" />
                   {n}
                 </dd>
-                <dt className="mt-0.5 text-[11px] text-white/60">{label}</dt>
+                <dt className="mt-0.5 text-[12px] text-white/75">{label}</dt>
               </div>
             ))}
           </dl>

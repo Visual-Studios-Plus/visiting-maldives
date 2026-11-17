@@ -145,8 +145,6 @@ export default function Navbar({ featured }: { featured: Guide[] }) {
               { href: "/things-to-do", label: "Things to do" },
               { href: "/atolls", label: "Islands & atolls" },
               { href: "/stay", label: "Where to stay" },
-              { href: "/eat-drink", label: "Eat & drink" },
-              { href: "/whats-on", label: "What's on" },
             ].map((n) => (
               <li key={n.href} data-menu-item>
                 <Link href={n.href} className="flex items-center justify-between py-4 text-[26px] leading-8 font-semibold tracking-tight">
