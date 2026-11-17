@@ -7,7 +7,7 @@ import { PrismaClient } from "@prisma/client";
  * and created by migrations, applied on every Vercel deploy (see the "vercel-build" script).
  * One client is reused across hot reloads in development so connections don't pile up.
  */
-const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
+const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient; prismaUrl?: string };
 
 /**
  * Neon scales an idle database to zero, and the first query then waits for it to wake. Prisma's
@@ -26,6 +26,12 @@ function withConnectTimeout(url: string): string {
   }
 }
 
-export const db: PrismaClient | null = process.env.DATABASE_URL
-  ? (globalForPrisma.prisma ??= new PrismaClient({ datasourceUrl: withConnectTimeout(process.env.DATABASE_URL) }))
-  : null;
+/** The shared client, made again when its connection settings change (a hot reload kept the old one). */
+function client(url: string): PrismaClient {
+  if (globalForPrisma.prisma && globalForPrisma.prismaUrl === url) return globalForPrisma.prisma;
+  void globalForPrisma.prisma?.$disconnect();
+  globalForPrisma.prismaUrl = url;
+  return (globalForPrisma.prisma = new PrismaClient({ datasourceUrl: url }));
+}
+
+export const db: PrismaClient | null = process.env.DATABASE_URL ? client(withConnectTimeout(process.env.DATABASE_URL)) : null;

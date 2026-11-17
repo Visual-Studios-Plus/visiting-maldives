@@ -46,8 +46,24 @@ async function readLocal(): Promise<Partial<Collections>> {
   }
 }
 
-/** Reads under way, by collection: pages rendered at the same time share one query per collection. */
-const inFlight = new Map<CollectionKey, Promise<unknown>>();
+/*
+ * Kept on globalThis so they survive hot reloads in development.
+ * - inFlight: reads under way, by collection; pages rendered at the same time share one query.
+ * - devMemo (development and the production build only): collections already read. `next dev` often skips "use cache"
+ *   (every reload and every page view reads again), and each read of a big collection takes
+ *   seconds from a remote database, which used up the connection pool. Cleared for a collection
+ *   when the dashboard saves it; kept 10 minutes, so seed scripts show up without a restart.
+ *   Production relies on "use cache" (getCollection) instead, which every server instance shares.
+ */
+const memo = globalThis as unknown as {
+  contentInFlight?: Map<CollectionKey, Promise<unknown>>;
+  contentDevMemo?: Map<CollectionKey, { data: unknown; at: number }>;
+};
+const inFlight = (memo.contentInFlight ??= new Map());
+// also while `next build` prerenders: hundreds of island pages read the same collections at once
+const keepInMemory = process.env.NODE_ENV === "development" || process.env.NEXT_PHASE === "phase-production-build";
+const devMemo = keepInMemory ? (memo.contentDevMemo ??= new Map()) : undefined;
+const DEV_MEMO_MS = 10 * 60 * 1000;
 
 /** Prisma's "table does not exist": migrations not applied yet, so the collection is simply empty. */
 const isMissingTable = (err: unknown) => (err as { code?: string } | null)?.code === "P2021";
@@ -71,13 +87,17 @@ async function readStored<K extends CollectionKey>(key: K): Promise<Collections[
     // Never return "empty" for a failed read: getCollection caches its result, and an empty
     // collection would stay cached (blank pages) until the next dashboard save. Throwing lets
     // the request fail and the next one try again.
+    const kept = devMemo?.get(key);
+    if (kept && Date.now() - kept.at < DEV_MEMO_MS) return kept.data as Collections[K] | null;
     let read = inFlight.get(key) as Promise<Collections[K] | null> | undefined;
     if (!read) {
       read = readRow(key).finally(() => inFlight.delete(key));
       inFlight.set(key, read);
     }
     try {
-      return await read;
+      const data = await read;
+      devMemo?.set(key, { data, at: Date.now() });
+      return data;
     } catch (err) {
       console.error(`[content] reading "${key}" failed`, err);
       throw err;
@@ -102,6 +122,7 @@ export async function isCustomised(key: CollectionKey): Promise<boolean> {
 /** Replaces a whole collection. Call only from an authenticated server action, then updateTag. */
 export async function saveCollection<K extends CollectionKey>(key: K, data: Collections[K], updatedBy?: string): Promise<void> {
   const mode = storageMode();
+  devMemo?.delete(key);
   if (mode === "database") {
     const json = data as unknown as Prisma.InputJsonValue;
     await db!.siteContent.upsert({ where: { key }, create: { key, data: json, updatedBy }, update: { data: json, updatedBy } });
