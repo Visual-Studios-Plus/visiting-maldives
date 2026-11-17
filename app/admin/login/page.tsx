@@ -1,6 +1,8 @@
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import { authConfigured } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/session";
 import LoginForm from "@/components/admin/LoginForm";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -8,6 +10,8 @@ export const metadata = { title: "Sign in" };
 
 async function Form({ searchParams }: { searchParams: PageProps<"/admin/login">["searchParams"] }) {
   const next = (await searchParams).next;
+  // already signed in (account checked in the database, not just the cookie): go on to the dashboard
+  if (await getCurrentUser()) redirect(typeof next === "string" && /^\/admin(\/[\w\-/?=&%]*)?$/.test(next) && !next.includes("..") ? next : "/admin");
   return <LoginForm next={typeof next === "string" ? next : "/admin"} configured={authConfigured()} />;
 }
 

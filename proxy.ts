@@ -19,7 +19,10 @@ export async function proxy(request: NextRequest) {
     if (pathname !== "/admin") url.searchParams.set("next", pathname + search);
     return NextResponse.redirect(url);
   }
-  if (session && onLogin) return NextResponse.redirect(new URL("/admin", request.url));
+  // Signed-in users on the login page are sent on by the page itself, after checking the account
+  // in the database. Doing it here on the cookie alone looped forever when the cookie was validly
+  // signed but the account no longer matched (password or role changed, account turned off):
+  // /admin sent it to /admin/login and this sent it straight back.
   if (session && session.role !== "ADMIN" && ADMIN_ONLY.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
     return NextResponse.redirect(new URL("/admin?denied=1", request.url));
   }
