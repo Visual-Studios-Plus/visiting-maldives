@@ -48,18 +48,25 @@ export async function login(_prev: LoginState, formData: FormData): Promise<Logi
   const email = String(formData.get("email") ?? "").slice(0, 200);
   if (!authConfigured()) return { email, error: "Sign-in isn't set up yet: add SESSION_SECRET (a random value of 32+ characters) to the environment variables and redeploy." };
 
-  const wait = await loginBlockedFor(email);
-  if (wait) return { email, error: `Too many failed attempts. Try again in ${wait} minute${wait === 1 ? "" : "s"}.` };
-
   const password = String(formData.get("password") ?? "").slice(0, 200);
-  const user = email && password ? await authenticate(email, password) : null;
-  if (!user) {
-    await recordFailedLogin(email);
-    await new Promise((r) => setTimeout(r, 500)); // slows down guessing
-    // the same message whether the email exists or not, so accounts can't be discovered
-    return { email, error: "That email and password don't match an active account." };
+  let user: Awaited<ReturnType<typeof authenticate>>;
+  try {
+    const wait = await loginBlockedFor(email);
+    if (wait) return { email, error: `Too many failed attempts. Try again in ${wait} minute${wait === 1 ? "" : "s"}.` };
+
+    user = email && password ? await authenticate(email, password) : null;
+    if (!user) {
+      await recordFailedLogin(email);
+      await new Promise((r) => setTimeout(r, 500)); // slows down guessing
+      // the same message whether the email exists or not, so accounts can't be discovered
+      return { email, error: "That email and password don't match an active account." };
+    }
+    await clearFailedLogins(email);
+  } catch (err) {
+    // the database is slow or waking up: say so on the form instead of crashing the page
+    console.error("[login] database error", err);
+    return { email, error: "The database didn't answer in time. Wait a few seconds and sign in again." };
   }
-  await clearFailedLogins(email);
 
   (await cookies()).set(SESSION_COOKIE, await createSessionToken({ uid: user.id, role: user.role, ver: user.ver }), {
     httpOnly: true, // not readable from page scripts
