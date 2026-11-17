@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { headers } from "next/headers";
 import { connection } from "next/server";
 import { redirect } from "next/navigation";
@@ -73,8 +74,13 @@ async function sessionCookie(): Promise<string | undefined> {
   return undefined;
 }
 
-/** The signed-in user, or null. */
-export async function getCurrentUser(): Promise<CurrentUser | null> {
+/**
+ * The signed-in user, or null. Looked up once per request: the sidebar, header and page all ask,
+ * and three database round trips per page load used up the connection pool.
+ */
+export const getCurrentUser = cache(lookUpCurrentUser);
+
+async function lookUpCurrentUser(): Promise<CurrentUser | null> {
   const claims = await readSessionToken(await sessionCookie());
   if (!claims) return null;
   if (claims.uid === ENV_ADMIN_ID) {

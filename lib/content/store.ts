@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { cacheTag } from "next/cache";
 import { promises as fs } from "node:fs";
 import path from "node:path";
@@ -114,8 +115,17 @@ export async function getCollection<K extends CollectionKey>(key: K): Promise<Co
   return (await readStored(key)) ?? ([] as unknown as Collections[K]);
 }
 
+/** The collections stored in the database, read with one query per request (not one per collection). */
+const storedKeys = cache(async (): Promise<Set<string> | null> => {
+  if (!db) return null;
+  const rows = await db.siteContent.findMany({ select: { key: true } });
+  return new Set(rows.map((r) => r.key));
+});
+
 /** Whether the collection exists in the database (seeded or saved), or is still empty. */
 export async function isCustomised(key: CollectionKey): Promise<boolean> {
+  const keys = await storedKeys();
+  if (keys) return keys.has(key);
   return (await readStored(key)) !== null;
 }
 
