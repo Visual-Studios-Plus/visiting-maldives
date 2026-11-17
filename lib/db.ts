@@ -18,6 +18,8 @@ function withConnectTimeout(url: string): string {
   try {
     const u = new URL(url);
     if (!u.searchParams.has("connect_timeout")) u.searchParams.set("connect_timeout", "15");
+    // many pages render at once (each reads several collections): wait longer for a free connection
+    if (!u.searchParams.has("pool_timeout")) u.searchParams.set("pool_timeout", "30");
     return u.toString();
   } catch {
     return url; // not a URL we can parse: leave it to Prisma

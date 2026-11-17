@@ -46,15 +46,41 @@ async function readLocal(): Promise<Partial<Collections>> {
   }
 }
 
-async function readStored<K extends CollectionKey>(key: K): Promise<Collections[K] | null> {
-  if (db) {
+/** Reads under way, by collection: pages rendered at the same time share one query per collection. */
+const inFlight = new Map<CollectionKey, Promise<unknown>>();
+
+/** Prisma's "table does not exist": migrations not applied yet, so the collection is simply empty. */
+const isMissingTable = (err: unknown) => (err as { code?: string } | null)?.code === "P2021";
+
+async function readRow<K extends CollectionKey>(key: K): Promise<Collections[K] | null> {
+  for (let attempt = 1; ; attempt++) {
     try {
-      const row = await db.siteContent.findUnique({ where: { key } });
+      const row = await db!.siteContent.findUnique({ where: { key } });
       return (row?.data as Collections[K] | undefined) ?? null;
     } catch (err) {
-      // migrations not applied yet, or the database is unreachable: treat as empty
+      if (isMissingTable(err)) return null;
+      // a busy pool or a database still waking up: try once more before giving up
+      if (attempt >= 2) throw err;
+      await new Promise((r) => setTimeout(r, 500));
+    }
+  }
+}
+
+async function readStored<K extends CollectionKey>(key: K): Promise<Collections[K] | null> {
+  if (db) {
+    // Never return "empty" for a failed read: getCollection caches its result, and an empty
+    // collection would stay cached (blank pages) until the next dashboard save. Throwing lets
+    // the request fail and the next one try again.
+    let read = inFlight.get(key) as Promise<Collections[K] | null> | undefined;
+    if (!read) {
+      read = readRow(key).finally(() => inFlight.delete(key));
+      inFlight.set(key, read);
+    }
+    try {
+      return await read;
+    } catch (err) {
       console.error(`[content] reading "${key}" failed`, err);
-      return null;
+      throw err;
     }
   }
   if (storageMode() === "local-file") return ((await readLocal())[key] as Collections[K] | undefined) ?? null;
