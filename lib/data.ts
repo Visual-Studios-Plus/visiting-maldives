@@ -365,6 +365,5 @@ export type Essential = { label: string; big: string; text: string; href?: strin
 export const navItems = [
   { href: "/things-to-do", label: "Explore" },
   { href: "/atolls", label: "Atolls" },
-  { href: "/stay", label: "Stay" },
 ];
 

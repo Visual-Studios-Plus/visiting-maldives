@@ -66,9 +66,9 @@ export default function Navbar({ featured }: { featured: Guide[] }) {
           open ? "bg-red text-white" : onPhoto ? "bg-transparent text-white" : "bg-white text-ink shadow-[0_1px_0_#E8E2E3]"
         }`}
       >
-        <nav className="container-vm grid h-[68px] grid-cols-[1fr_auto_1fr] items-center" aria-label="Main">
-          {/* left */}
-          <div className="flex items-center">
+        <nav className="container-vm flex h-[68px] items-center justify-between gap-4" aria-label="Main">
+          {/* left: menu button (phones), logo, then the links */}
+          <div className="flex items-center gap-2 lg:gap-6">
             <button
               type="button"
               onClick={() => setOpen((o) => !o)}
@@ -81,6 +81,9 @@ export default function Navbar({ featured }: { featured: Guide[] }) {
                 <span className={`absolute left-0 h-0.5 w-6 bg-current transition-transform duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] motion-reduce:transition-none ${open ? "top-1.5 -rotate-45" : "top-3"}`} />
               </span>
             </button>
+            <Link href="/" aria-label="Visiting Maldives home" className="shrink-0">
+              <Mark className="size-9" tone={onPhoto || open ? "white" : "red"} />
+            </Link>
             <ul className="hidden items-center lg:flex">
               {navItems.slice(0, 4).map((n) => (
                 <li key={n.href}>
@@ -91,10 +94,6 @@ export default function Navbar({ featured }: { featured: Guide[] }) {
               ))}
             </ul>
           </div>
-          {/* centre */}
-          <Link href="/" aria-label="Visiting Maldives home" className="justify-self-center">
-            <Mark className="size-9" tone={onPhoto || open ? "white" : "red"} />
-          </Link>
           {/* right */}
           <div className="flex items-center justify-end gap-2">
             <Link
@@ -144,7 +143,6 @@ export default function Navbar({ featured }: { featured: Guide[] }) {
             {[
               { href: "/things-to-do", label: "Things to do" },
               { href: "/atolls", label: "Islands & atolls" },
-              { href: "/stay", label: "Where to stay" },
             ].map((n) => (
               <li key={n.href} data-menu-item>
                 <Link href={n.href} className="flex items-center justify-between py-4 text-[26px] leading-8 font-semibold tracking-tight">
