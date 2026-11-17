@@ -139,6 +139,17 @@ export const placeOnIsland = (where: string | undefined, island: string) => {
 export const stayOnIsland = (stay: Pick<Stay, "atoll" | "island">, island: string) =>
   (stay.island ? placeOnIsland(stay.island, island) : false) || placeOnIsland(stay.atoll, island);
 
+/** Whether a place to eat is in this atoll: the atoll chosen in the dashboard, or its area text for older entries. */
+export const eatInAtoll = (e: Pick<Eat, "area" | "atollSlug">, atoll: Pick<Atoll, "slug" | "name">) =>
+  e.atollSlug ? e.atollSlug === atoll.slug : placeInAtoll(e.area ?? "", atoll);
+
+/** Whether a place to eat is on this island: the island chosen in the dashboard, or its area text. */
+export const eatOnIsland = (e: Pick<Eat, "area" | "island">, island: string) =>
+  e.island ? placeOnIsland(e.island, island) : placeOnIsland(e.area, island);
+
+/** Where a place to eat is, for cards: its area note, else "Island, Atoll". */
+export const eatWhere = (e: Pick<Eat, "area" | "island" | "atoll">) => e.area || [e.island, e.atoll].filter(Boolean).join(", ");
+
 /** Whether a salon is in this atoll: the atoll chosen in the dashboard, or its area text for older entries. */
 export const salonInAtoll = (s: Pick<Salon, "area" | "atollSlug">, atoll: Pick<Atoll, "slug" | "name">) =>
   s.atollSlug ? s.atollSlug === atoll.slug : placeInAtoll(s.area ?? "", atoll);
@@ -190,6 +201,12 @@ export type Eat = {
   slug?: string;
   name: string;
   kind: string;
+  /** the atoll's name and page address, chosen in the dashboard */
+  atoll?: string;
+  atollSlug?: string;
+  /** the island, chosen in the dashboard; the place shows on that island's page and map */
+  island?: string;
+  /** free-text place; older entries used it for the atoll or island (e.g. "Maafushi, Kaafu") */
   area: string;
   price: string;
   /** the one dish to order (shown first) */
@@ -231,6 +248,53 @@ export type Dish = {
 };
 
 export type Event = { month: string; title: string; text: string; where: string };
+
+/** Building blocks for page sections made in the dashboard. */
+export const SECTION_BLOCKS = ["Text", "Carousel", "Card grid", "Image and text", "Photo gallery", "Link list", "Button"] as const;
+export const SECTION_SOURCES = ["Places to stay", "Restaurants", "Salons", "Islands", "Guides", "Hand-picked items"] as const;
+export const SECTION_AREAS = ["This page's island or atoll", "The atoll or island chosen above", "Everywhere"] as const;
+export const SECTION_PLACEMENTS = ["Island pages", "Atoll pages", "Its own page"] as const;
+export const SECTION_SCOPES = ["Everywhere", "One atoll", "One island"] as const;
+export const SECTION_POSITIONS = ["Main column", "Full width, at the end"] as const;
+
+/**
+ * A section built in the dashboard from one building block, shown on island pages, atoll pages
+ * or a page of its own (/p/<pageSlug>, made of every section with that address). Sections only
+ * add to the built-in ones; they never replace them.
+ */
+export type CustomSection = {
+  title: string;
+  published: boolean;
+  /** lower numbers show first */
+  order?: number;
+  placement: (typeof SECTION_PLACEMENTS)[number];
+  scope: (typeof SECTION_SCOPES)[number];
+  atoll?: string;
+  atollSlug?: string;
+  island?: string;
+  /** for "Its own page": the page address and title */
+  pageSlug?: string;
+  pageTitle?: string;
+  position: (typeof SECTION_POSITIONS)[number];
+  eyebrow?: string;
+  intro?: string;
+  block: (typeof SECTION_BLOCKS)[number];
+  /** for Carousel and Card grid */
+  source?: (typeof SECTION_SOURCES)[number];
+  area?: (typeof SECTION_AREAS)[number];
+  /** only items of this kind, e.g. "Guesthouse", "Spa", "Seafood", "Marine life" (matches type/kind/category) */
+  kindFilter?: string;
+  limit?: number;
+  /** Text, Image and text */
+  body?: string;
+  image?: string;
+  imageSide?: "Left" | "Right";
+  /** Button (and a link under other blocks) */
+  buttonLabel?: string;
+  buttonLink?: string;
+  /** hand-picked cards, gallery photos or links */
+  items?: { title: string; text?: string; image?: string; link?: string }[];
+};
 
 /** An island, edited in the dashboard: its page at /atolls/<atoll>/islands/<slug> and its card on the atoll page. */
 export type IslandEntry = {
@@ -302,7 +366,5 @@ export const navItems = [
   { href: "/things-to-do", label: "Explore" },
   { href: "/atolls", label: "Atolls" },
   { href: "/stay", label: "Stay" },
-  { href: "/eat-drink", label: "Eat & drink" },
-  { href: "/whats-on", label: "What's on" },
 ];
 

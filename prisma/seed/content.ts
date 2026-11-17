@@ -16,6 +16,7 @@ import {
   type Guide,
   type Review,
   type Salon,
+  type CustomSection,
   type Stay,
 } from "../../lib/data.ts";
 import { HA, haaAlifIslandAtolls } from "./haa-alif-islands.ts";
@@ -1503,4 +1504,20 @@ export const placesToStay: Stay[] = [
 // SAMPLE salons on local islands (see island-listings.ts): replace with real ones before launch
 const salons: Salon[] = sampleSalons;
 
-export const SEED = { guides, atolls, islands: islandEntries(atolls), stays: placesToStay, dishes, eats: [...eats, ...sampleEats], salons, events, essentials };
+// Page sections built in the dashboard. One unpublished example shows how a section is filled in.
+const sections: CustomSection[] = [
+  {
+    title: "Example: welcome to the island",
+    published: false,
+    order: 1,
+    placement: "Island pages",
+    scope: "Everywhere",
+    position: "Main column",
+    eyebrow: "Example section",
+    intro: "This is an example section. Edit it, publish it, or delete it.",
+    block: "Text",
+    body: "Write anything here: tips, a short story about the island, or what to bring. Choose another block to show a carousel, a grid of cards, photos or links instead.",
+  },
+];
+
+export const SEED = { guides, atolls, islands: islandEntries(atolls), stays: placesToStay, dishes, eats: [...eats, ...sampleEats], salons, sections, events, essentials };

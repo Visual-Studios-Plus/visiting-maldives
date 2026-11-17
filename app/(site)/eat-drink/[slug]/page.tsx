@@ -5,7 +5,7 @@ import PageHero from "@/components/PageHero";
 import Reveal from "@/components/Reveal";
 import Stars from "@/components/Stars";
 import RestaurantCard from "@/components/RestaurantCard";
-import { eatSlug } from "@/lib/data";
+import { eatWhere, eatSlug } from "@/lib/data";
 import { getEat, getEats, slugParams } from "@/lib/content/store";
 
 // Every page is prerendered from generateStaticParams, so a blocking route is fine here
@@ -17,7 +17,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps<"/eat-drink/[slug]">): Promise<Metadata> {
   const e = await getEat((await params).slug);
-  return { title: e ? `${e.name} · ${e.area}` : "Eat & drink", description: e?.about ?? (e ? `${e.kind} in ${e.area}. Order: ${e.dish}.` : undefined) };
+  return { title: e ? `${e.name} · ${eatWhere(e)}` : "Eat & drink", description: e?.about ?? (e ? `${e.kind} in ${eatWhere(e)}. Order: ${e.dish}.` : undefined) };
 }
 
 /** OpenStreetMap embed around a point (no API key, no tracking cookies). */
@@ -39,11 +39,11 @@ export default async function EatPage({ params }: PageProps<"/eat-drink/[slug]">
   const more = (await getEats()).filter((e) => eatSlug(e) !== eatSlug(eat)).slice(0, 3);
   const directions = hasMap
     ? `https://www.google.com/maps/dir/?api=1&destination=${eat.lat},${eat.lng}`
-    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${eat.name}, ${eat.address ?? eat.area}, Maldives`)}`;
+    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${eat.name}, ${eat.address ?? eatWhere(eat)}, Maldives`)}`;
 
   return (
     <>
-      <PageHero image={eat.image} eyebrow={`${eat.kind} · ${eat.area}`} title={eat.name} intro={eat.about ?? `Order the ${eat.dish}.`} />
+      <PageHero image={eat.image} eyebrow={`${eat.kind} · ${eatWhere(eat)}`} title={eat.name} intro={eat.about ?? `Order the ${eat.dish}.`} />
 
       <Reveal as="section" className="container-vm grid gap-10 py-12 lg:grid-cols-[1fr_340px] lg:py-20">
         <div className="min-w-0">
@@ -167,7 +167,7 @@ export default async function EatPage({ params }: PageProps<"/eat-drink/[slug]">
             <dl className="mt-6 space-y-4 border-t border-white/15 pt-6">
               <div>
                 <dt className="eyebrow text-white/70">Area</dt>
-                <dd className="mt-1 font-mono text-[14px]">{eat.area}</dd>
+                <dd className="mt-1 font-mono text-[14px]">{eatWhere(eat)}</dd>
               </div>
               {eat.address && (
                 <div>

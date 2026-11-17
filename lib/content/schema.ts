@@ -28,7 +28,7 @@ export type GroupField = {
 
 export type Field = ScalarField | GroupField;
 
-export type CollectionKey = "guides" | "atolls" | "islands" | "stays" | "dishes" | "eats" | "salons" | "events" | "essentials";
+export type CollectionKey = "guides" | "atolls" | "islands" | "stays" | "dishes" | "eats" | "salons" | "sections" | "events" | "essentials";
 
 export type CollectionDef = {
   key: CollectionKey;
@@ -304,7 +304,11 @@ export const COLLECTIONS: CollectionDef[] = [
       { name: "name", label: "Name", type: "text", required: true },
       { name: "slug", label: "Page address", type: "text", required: true, help: SLUG_HELP },
       { name: "kind", label: "Kind", type: "text", required: true, placeholder: "Local café" },
-      { name: "area", label: "Area", type: "text", required: true },
+      { name: "atoll", label: "Atoll", type: "atoll", required: true, help: "Choose the atoll; the place then shows on that atoll's page." },
+      // kept in step with `atoll` by the editor, so listings never depend on free text
+      { name: "atollSlug", type: "hidden" },
+      { name: "island", label: "Island", type: "island", help: "Choose the island (pick the atoll first). The place then shows on that island's page and, with a map position below, on its map." },
+      { name: "area", label: "Area (optional)", type: "text", placeholder: "Harbour side", help: "Extra detail shown on cards, e.g. a street or neighbourhood. Leave empty to show the island and atoll." },
       { name: "price", label: "Typical price", type: "text", required: true, placeholder: "MVR 60" },
       { name: "dish", label: "Signature dish", type: "text", required: true, help: "The one thing to order. Shown first on the card." },
       { name: "about", label: "About (one line)", type: "text", placeholder: "Locals’ teashop by the harbour; busiest at breakfast." },
@@ -383,6 +387,55 @@ export const COLLECTIONS: CollectionDef[] = [
           { name: "date", label: "Date", type: "text", required: true, placeholder: "Oct 2026" },
           { name: "rating", label: "Rating", type: "number", required: true, min: 1, max: 5, step: 1 },
           { name: "text", label: "Review", type: "textarea", required: true },
+        ],
+      },
+    ],
+  },
+  {
+    key: "sections",
+    label: "Page sections",
+    singular: "section",
+    description:
+      "Build your own sections from blocks (text, carousels, card grids, photos, links, buttons) and add them to island pages, atoll pages or a page of their own. They add to the built-in sections, never replace them.",
+    titleField: "title",
+    subtitleField: "placement",
+    imageField: "image",
+    listPath: "/atolls",
+    fields: [
+      { name: "title", label: "Heading", type: "text", required: true, placeholder: "Things to do" },
+      { name: "published", label: "Published (show on the site)", type: "checkbox" },
+      { name: "order", label: "Order", type: "number", min: 0, step: 1, help: "Lower numbers show first when several sections are in the same place." },
+      { name: "placement", label: "Show on", type: "select", required: true, options: ["Island pages", "Atoll pages", "Its own page"] },
+      { name: "scope", label: "Which ones", type: "select", required: true, options: ["Everywhere", "One atoll", "One island"], help: "For island and atoll pages: all of them, one atoll (and its islands), or one island." },
+      { name: "atoll", label: "Atoll", type: "atoll", help: "For \"One atoll\" or \"One island\", and for blocks that show things from a chosen atoll." },
+      { name: "atollSlug", type: "hidden" },
+      { name: "island", label: "Island", type: "island", help: "For \"One island\" (pick the atoll first)." },
+      { name: "pageSlug", label: "Page address (its own page)", type: "text", placeholder: "diving-guide", help: "For \"Its own page\": the page is at /p/<address>. Sections with the same address make up one page." },
+      { name: "pageTitle", label: "Page title (its own page)", type: "text", placeholder: "Diving in the Maldives" },
+      { name: "position", label: "Position on the page", type: "select", required: true, options: ["Main column", "Full width, at the end"] },
+      { name: "eyebrow", label: "Small label above the heading", type: "text", placeholder: "Things to do" },
+      { name: "intro", label: "Intro (one or two sentences)", type: "textarea" },
+      { name: "block", label: "Block", type: "select", required: true, options: ["Text", "Carousel", "Card grid", "Image and text", "Photo gallery", "Link list", "Button"] },
+      { name: "source", label: "Content (Carousel, Card grid)", type: "select", options: ["Places to stay", "Restaurants", "Salons", "Islands", "Guides", "Hand-picked items"], help: "Live content from the site, or the items you add below." },
+      { name: "area", label: "From where (Carousel, Card grid)", type: "select", options: ["This page's island or atoll", "The atoll or island chosen above", "Everywhere"] },
+      { name: "kindFilter", label: "Only this kind (optional)", type: "text", placeholder: "Guesthouse", help: "Show only one kind: e.g. \"Guesthouse\" or \"Resort\" for stays, \"Seafood\" for restaurants, \"Spa\" for salons, \"Marine life\" for guides." },
+      { name: "limit", label: "How many to show", type: "number", min: 1, max: 60, step: 1, help: "Leave empty to show all." },
+      { name: "body", label: "Text (Text, Image and text)", type: "textarea" },
+      { name: "image", label: "Photo (Image and text)", type: "image", help: IMAGE_HELP },
+      { name: "imageSide", label: "Photo side (Image and text)", type: "select", options: ["Left", "Right"] },
+      { name: "buttonLabel", label: "Button label", type: "text", placeholder: "Plan your trip", help: "For the Button block, or a link button under any block." },
+      { name: "buttonLink", label: "Button link", type: "link", placeholder: "/plan-your-trip" },
+      {
+        name: "items",
+        label: "Hand-picked items",
+        type: "group",
+        itemLabel: "item",
+        help: "For Hand-picked carousels and grids, Photo gallery and Link list.",
+        fields: [
+          { name: "title", label: "Title", type: "text", required: true },
+          { name: "text", label: "Short text", type: "text" },
+          { name: "image", label: "Photo", type: "image" },
+          { name: "link", label: "Link", type: "link", placeholder: "/atolls/baa" },
         ],
       },
     ],

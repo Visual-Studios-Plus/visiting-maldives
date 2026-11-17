@@ -58,7 +58,8 @@ export default function ResortFinder({ resorts, atolls }: { resorts: ResortItem[
 
   return (
     <div>
-      <div className="sticky top-[68px] z-30 -mx-4 border-b border-line bg-white px-4 py-4 sm:-mx-8 sm:px-8 lg:-mx-14 lg:px-14">
+      {/* sticky from tablet up; on phones it would cover a third of the screen, so it scrolls away */}
+      <div className="relative z-30 -mx-4 border-b border-line bg-white px-4 py-4 sm:sticky sm:top-[68px] sm:-mx-8 sm:px-8 lg:-mx-14 lg:px-14">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <label className="relative flex-1">
             <span className="sr-only">Search resorts</span>

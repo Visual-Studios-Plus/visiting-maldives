@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import Stars from "@/components/Stars";
-import { eatSlug, photo, type Eat } from "@/lib/data";
+import { eatWhere, eatSlug, photo, type Eat } from "@/lib/data";
 
 /*
  * A place to eat, with what to order there.
@@ -22,7 +22,7 @@ export default function RestaurantCard({ eat }: { eat: Eat }) {
       <div className="relative aspect-[16/10] overflow-hidden bg-shell">
         <Image
           src={photo(eat.image, 900)}
-          alt={`${eat.name}, ${eat.area}`}
+          alt={`${eat.name}, ${eatWhere(eat)}`}
           fill
           sizes="(min-width:1024px) 33vw, (min-width:600px) 50vw, 100vw"
           className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)] group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
@@ -48,7 +48,7 @@ export default function RestaurantCard({ eat }: { eat: Eat }) {
             />
             <circle cx="8" cy="6.3" r="1.7" fill="currentColor" />
           </svg>
-          {eat.area}
+          {eatWhere(eat)}
         </p>
         <h3 className="mt-1.5 text-[22px] leading-[1.15] font-semibold tracking-[-0.02em] text-balance">
           {eat.name}

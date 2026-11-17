@@ -1,15 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound, permanentRedirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import PageHero from "@/components/PageHero";
 import Reveal from "@/components/Reveal";
 import SectionHead from "@/components/SectionHead";
 import IslandCarousel from "@/components/IslandCarousel";
 import PlaceCarousels from "@/components/PlaceCarousels";
-import { type Atoll, type IslandEntry, placeInAtoll, placeOnIsland, salonInAtoll, salonOnIsland, stayInAtoll, stayOnIsland } from "@/lib/data";
+import { eatInAtoll, eatOnIsland, type Atoll, type IslandEntry, salonInAtoll, salonOnIsland, stayInAtoll, stayOnIsland } from "@/lib/data";
 import { getAtoll, getAtolls, getEats, getIslands, getSalons, getStays } from "@/lib/content/store";
 import { atollEntries, describeIsland, findEntry, inhabitedNames, islandCards, islandCoords, islandFactRows, islandPhoto, mapPlaces, nearby } from "@/lib/islands";
-import IslandMap from "@/components/IslandMap";
+import GuideColumns from "@/components/GuideColumns";
+import MapPanel from "@/components/MapPanel";
+import CustomSections from "@/components/blocks/CustomSections";
 import PhotoGallery from "@/components/PhotoGallery";
 import { islandSlug } from "@/lib/resorts";
 
@@ -59,16 +61,13 @@ export default async function IslandPage({ params }: PageProps<"/atolls/[slug]/i
 
   const all = await getAtolls();
   const profiles = all.filter((a) => a.parent === atoll.slug);
-  // an island with its own written-up page lives there
-  const own = profiles.find((p) => p.name === name);
-  if (own) permanentRedirect(`/atolls/${own.slug}`);
 
   const [allStays, allEats, allSalons] = await Promise.all([getStays(), getEats(), getSalons()]);
   const atollStays = allStays.filter((s) => stayInAtoll(s, atoll));
-  const atollEats = allEats.filter((e) => placeInAtoll(e.area, atoll));
+  const atollEats = allEats.filter((e) => eatInAtoll(e, atoll));
   const atollSalons = allSalons.filter((s) => salonInAtoll(s, atoll));
   const stays = atollStays.filter((s) => stayOnIsland(s, name));
-  const eats = atollEats.filter((e) => placeOnIsland(e.area, name));
+  const eats = atollEats.filter((e) => eatOnIsland(e, name));
   const salons = atollSalons.filter((s) => salonOnIsland(s, name));
   const listed = stays.length + eats.length + salons.length;
 
@@ -92,7 +91,7 @@ export default async function IslandPage({ params }: PageProps<"/atolls/[slug]/i
         intro={entry?.tagline || describeIsland(atoll, name, entry)}
       />
       <div className="container-vm flex flex-wrap items-baseline justify-between gap-3 pt-8">
-        <Link href={`/atolls/${atoll.slug}`} className="font-mono text-[13px] text-red hover:underline">
+        <Link href={`/atolls/${atoll.slug}`} className="inline-flex min-h-11 items-center font-mono text-[13px] text-red hover:underline">
           ← All islands of {atoll.name}
         </Link>
         <p className="text-[12px] text-driftwood">
@@ -115,7 +114,15 @@ export default async function IslandPage({ params }: PageProps<"/atolls/[slug]/i
         </p>
       </div>
 
-      <Reveal as="section" className="container-vm grid gap-10 py-10 lg:grid-cols-[1fr_340px] lg:py-14">
+      <GuideColumns
+        glance={[
+          ...islandFactRows(atoll, name, entry),
+          { label: "Getting there", value: atoll.transfer },
+          ...(close.islands[0] ? [{ label: "Nearest island", value: `${close.islands[0].name} · ${km(close.islands[0].km)} km` }] : []),
+          { label: "Listed here", value: `${stays.length} stay · ${eats.length} eat · ${salons.length} salons` },
+        ]}
+        side={coords ? <MapPanel name={name} center={coords} places={placed} unplaced={unplaced} /> : null}
+      >
         <div data-reveal className="max-w-2xl">
           <h2 className="text-[26px] leading-8 font-semibold tracking-tight lg:text-[28px]">About {name}</h2>
           <p className="mt-3 text-[17px] leading-[28px]">{describeIsland(atoll, name, entry)}</p>
@@ -161,34 +168,11 @@ export default async function IslandPage({ params }: PageProps<"/atolls/[slug]/i
           ) : null}
           {entry?.gallery?.length ? <PhotoGallery photos={entry.gallery} title={`${name} in photos`} /> : null}
         </div>
-        <aside data-reveal className="h-max rounded-card bg-ink p-6 text-white lg:sticky lg:top-24">
-          <p className="eyebrow text-white/60">At a glance</p>
-          <dl className="mt-4 divide-y divide-white/10">
-            {[
-              ...islandFactRows(atoll, name, entry),
-              { label: "Getting there", value: atoll.transfer },
-              ...(close.islands[0] ? [{ label: "Nearest island", value: `${close.islands[0].name} · ${km(close.islands[0].km)} km` }] : []),
-              { label: "Listed here", value: `${stays.length} stay · ${eats.length} eat · ${salons.length} salons` },
-            ].map((f) => (
-              <div key={f.label} className="flex justify-between gap-4 py-3">
-                <dt className="text-white/60">{f.label}</dt>
-                <dd className="text-right font-mono text-[14px]">{f.value}</dd>
-              </div>
-            ))}
-          </dl>
-        </aside>
-      </Reveal>
-
-      {coords ? (
-        <Reveal as="section" className="container-vm pb-12 lg:pb-16">
-          <SectionHead eyebrow="Map" title="Where things are on" accent={name} />
-          <div data-reveal className="mx-auto mt-8 max-w-4xl">
-            <IslandMap name={name} center={coords} places={placed} unplaced={unplaced} />
-          </div>
-        </Reveal>
-      ) : null}
-
-      <PlaceCarousels place={name} stays={stays} eats={eats} salons={salons} fallbackHref={`/atolls/${atoll.slug}`} />
+        {/* places on the island, in the left column under the write-up */}
+        <PlaceCarousels place={name} stays={stays} eats={eats} salons={salons} compact />
+        {/* sections built in the dashboard (Page sections) */}
+        <CustomSections page={{ kind: "island", atoll, island: name }} position="Main column" variant="column" />
+      </GuideColumns>
 
       {listed === 0 ? (
         <section className="container-vm pb-12 lg:pb-16">
@@ -209,39 +193,13 @@ export default async function IslandPage({ params }: PageProps<"/atolls/[slug]/i
         </section>
       ) : null}
 
-      {close.islands.length || close.resorts.length ? (
-        <Reveal as="section" className="container-vm grid gap-6 pb-12 sm:grid-cols-2 lg:pb-16">
-          {[
-            { title: "Nearest local islands", items: close.islands.map((x) => ({ ...x, sub: x.atoll })) },
-            { title: "Nearest resorts", items: close.resorts.map((x) => ({ ...x, name: x.resort ?? x.name, sub: x.resort ? `${x.name} · ${x.atoll}` : x.atoll })) },
-          ]
-            .filter((g) => g.items.length)
-            .map((g) => (
-              <div key={g.title} data-reveal className="rounded-card bg-shell p-6">
-                <p className="eyebrow text-driftwood">{g.title}</p>
-                <ul className="mt-3 divide-y divide-line">
-                  {g.items.map((x) => (
-                    <li key={x.href}>
-                      <Link href={x.href} className="group flex items-baseline justify-between gap-3 py-2.5">
-                        <span className="min-w-0">
-                          <span className="block truncate font-semibold group-hover:text-red">{x.name}</span>
-                          <span className="block truncate text-[13px] text-driftwood">{x.sub}</span>
-                        </span>
-                        <span className="shrink-0 font-mono text-[13px] text-driftwood">{km(x.km)} km</span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-        </Reveal>
-      ) : null}
+      <CustomSections page={{ kind: "island", atoll, island: name }} position="Full width, at the end" variant="wide" />
 
       {more.length ? (
         <Reveal as="section" className="container-vm border-t border-line py-12 lg:py-20">
-          <SectionHead eyebrow="Nearby" title="More islands of" accent={atoll.name} href={`/atolls/${atoll.slug}`} cta="All islands" />
+          <SectionHead eyebrow="Nearby" title="More islands of" accent={atoll.name} />
           <div className="mt-10">
-            <IslandCarousel islands={more} label={`More islands of ${atoll.name}`} />
+            <IslandCarousel islands={more} label={`More islands of ${atoll.name}`} allHref={`/atolls/${atoll.slug}`} />
           </div>
         </Reveal>
       ) : null}

@@ -31,7 +31,7 @@ export default function GuideFilter({ guides }: { guides: Guide[] }) {
 
   return (
     <div className="min-h-[calc(100svh/var(--z)-68px)]">
-      <div className="sticky top-[68px] z-30 -mx-4 flex flex-col gap-4 border-b border-line bg-white px-4 py-4 sm:-mx-8 sm:px-8 lg:-mx-14 lg:flex-row lg:items-center lg:justify-between lg:px-14">
+      <div className="relative z-30 -mx-4 flex sm:sticky sm:top-[68px] flex-col gap-4 border-b border-line bg-white px-4 py-4 sm:-mx-8 sm:px-8 lg:-mx-14 lg:flex-row lg:items-center lg:justify-between lg:px-14">
         <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0" role="tablist">
           {(["All", ...categories] as const).map((c) => (
             <button key={c} type="button" role="tab" aria-selected={active === c} onClick={() => setActive(c)} className={`${chip(active === c)} shrink-0`}>
