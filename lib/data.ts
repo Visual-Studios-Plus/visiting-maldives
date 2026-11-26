@@ -78,6 +78,15 @@ export type Guide = {
 
 export const categories: Category[] = ["Marine life", "Heritage", "Islands", "Food", "Adventure"];
 
+/**
+ * What a card or a filter list needs. The article body, facts and gallery stay on the server:
+ * sending them to a client component would repeat every guide's full text in the page payload.
+ */
+export type GuideSummary = Omit<Guide, "body" | "facts" | "gallery">;
+export const guideSummary = ({ slug, title, short, summary, category, atoll, season, read, image }: Guide): GuideSummary => ({
+  slug, title, short, summary, category, atoll, season, read, image,
+});
+
 /** A resort island (one island, one resort) in an atoll. */
 export type ResortIsland = { island: string; resort: string };
 
@@ -175,7 +184,9 @@ export const isCommons = (src: string) => src.includes("wikimedia.org/");
 
 export type Review = { author: string; from: string; date: string; rating: number; text: string };
 /** Everything published under /stay: resorts, resort islands, hotels, guesthouses and liveaboards. */
-export type StayType = "Resort" | "Resort island" | "Hotel" | "Guesthouse" | "Liveaboard";
+export type StayType = "Resort" | "Resort island" | "Hotel" | "Guesthouse" | "Homestay" | "Liveaboard" | "Marina";
+/** Every kind of place to stay, in the order the filters list them. */
+export const STAY_TYPES: StayType[] = ["Resort", "Resort island", "Hotel", "Guesthouse", "Homestay", "Liveaboard", "Marina"];
 
 export type Stay = {
   slug: string; name: string; type: StayType; atoll: string; price: string; note: string; image: string; partner?: boolean;
@@ -188,6 +199,17 @@ export type Stay = {
   lng?: number;
   /** Our editorial score out of 5; unrated entries leave it out */
   rating?: number;
+  /** size, from the Ministry of Tourism register (cabins, for a liveaboard) */
+  rooms?: number;
+  beds?: number;
+  /** yacht marinas: berths for visiting yachts */
+  berths?: number;
+  /** how to reach the place directly; several phones or emails are separated by commas */
+  phone?: string;
+  email?: string;
+  website?: string;
+  /** listed in the Ministry of Tourism register of licensed tourist accommodation */
+  licensed?: boolean;
   about: string;
   amenities: string[];
   facts: { label: string; value: string }[];

@@ -3,14 +3,14 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { updateTag } from "next/cache";
-import { SESSION_COOKIE, SESSION_DAYS, authConfigured, createSessionToken } from "@/lib/auth";
-import { authenticate, requireAdmin, requireUser } from "@/lib/session";
+import { SESSION_COOKIE, SESSION_DAYS, authConfigured, createSessionToken } from "@/server/auth";
+import { authenticate, requireAdmin, requireUser } from "@/server/session";
 import { getCollectionDef, type CollectionKey } from "@/lib/content/schema";
-import { contentTag, getCollection, resetCollection, saveCollection, type Collections } from "@/lib/content/store";
-import { validateItem, type Errors } from "@/lib/content/validate";
+import { contentTag, getCollection, readCollectionForEdit, resetCollection, saveCollection, type Collections } from "@/server/content/store";
+import { validateItem, type Errors } from "@/server/content/validate";
 import { getPath, setPath } from "@/lib/content/path";
-import { canDelete } from "@/lib/permissions";
-import { clearFailedLogins, loginBlockedFor, recordFailedLogin } from "@/lib/rate-limit";
+import { canDelete } from "@/server/permissions";
+import { clearFailedLogins, loginBlockedFor, recordFailedLogin } from "@/server/rate-limit";
 
 /*
  * Every action here is reachable by anyone who can send a POST, so each one checks the account
@@ -57,7 +57,6 @@ export async function login(_prev: LoginState, formData: FormData): Promise<Logi
     user = email && password ? await authenticate(email, password) : null;
     if (!user) {
       await recordFailedLogin(email);
-      await new Promise((r) => setTimeout(r, 500)); // slows down guessing
       // the same message whether the email exists or not, so accounts can't be discovered
       return { email, error: "That email and password don't match an active account." };
     }
@@ -85,8 +84,20 @@ export async function logout() {
 
 export type SaveState = { ok?: boolean; message?: string; errors?: Errors };
 
-/** Creates (index = -1) or replaces one entry. Writers and admins. */
-export async function saveItem(key: CollectionKey, index: number, _prev: SaveState, formData: FormData): Promise<SaveState> {
+/**
+ * Creates (index = -1) or replaces one entry. Writers and admins.
+ *
+ * `expectedVersion` is the collection version the editor page rendered with. Together with the
+ * compare-and-set in saveCollection, this is what stops two open tabs from silently overwriting
+ * each other (and from editing the wrong row when one of them reordered the list).
+ */
+export async function saveItem(
+  key: CollectionKey,
+  index: number,
+  expectedVersion: string | null,
+  _prev: SaveState,
+  formData: FormData,
+): Promise<SaveState> {
   const user = await requireUser();
   const def = collectionOrThrow(key);
   // -1 means "new"; anything else must be a real position. A client can call this action with
@@ -99,11 +110,25 @@ export async function saveItem(key: CollectionKey, index: number, _prev: SaveSta
     return { message: "The form couldn't be read. Reload the page and try again." };
   }
 
-  const list = [...(await getCollection(key))] as unknown as Record<string, unknown>[];
+  // Fresh read (not the page cache), so a stale editor is detected rather than applied.
+  const { items, version } = await readCollectionForEdit(key);
+  const list = [...items] as unknown as Record<string, unknown>[];
+  if (version !== expectedVersion) {
+    return { message: "This list changed while you were editing. Reload the page to see the current version, then apply your changes again." };
+  }
   if (index >= list.length) return { message: "This entry no longer exists. It may have been deleted in another tab." };
   const others = list.filter((_, i) => i !== index);
   const { item, errors } = validateItem(def, input, others);
   if (Object.keys(errors).length) return { errors, message: "Some fields need attention." };
+
+  // Referential integrity: a place can only point at an atoll that actually exists.
+  const atollSlug = typeof item.atollSlug === "string" ? item.atollSlug : undefined;
+  if (atollSlug) {
+    const atolls = await getCollection("atolls");
+    if (!atolls.some((a) => a.slug === atollSlug)) {
+      return { errors: { atoll: "That atoll no longer exists. Choose it again." }, message: "Some fields need attention." };
+    }
+  }
 
   const isNew = index < 0;
   // who created it: set once, never taken from the form, kept on every later edit
@@ -114,7 +139,7 @@ export async function saveItem(key: CollectionKey, index: number, _prev: SaveSta
   else list[index] = mergeEntry(def, list[index], item);
 
   try {
-    await saveCollection(key, list as unknown as Collections[typeof key], user.id);
+    await saveCollection(key, list as unknown as Collections[typeof key], user.id, version);
   } catch (err) {
     return { message: err instanceof Error ? err.message : "Saving failed." };
   }
@@ -124,28 +149,40 @@ export async function saveItem(key: CollectionKey, index: number, _prev: SaveSta
 }
 
 /** Admins: anything. Writers: only guides they created. */
-export async function deleteItem(key: CollectionKey, index: number) {
+export async function deleteItem(key: CollectionKey, index: number, expectedVersion: string | null) {
   const user = await requireUser();
   collectionOrThrow(key);
-  const list = [...(await getCollection(key))];
+  const { items, version } = await readCollectionForEdit(key);
+  if (version !== expectedVersion) redirect(`/admin/${key}?stale=1`);
+  const list = [...items];
   if (!Number.isInteger(index) || index < 0 || index >= list.length) redirect(`/admin/${key}`);
   if (!canDelete(user, key, list[index] as unknown as Record<string, unknown>)) throw new Error("Writers can only delete guides they created.");
   list.splice(index, 1);
-  await saveCollection(key, list as Collections[typeof key], user.id);
+  try {
+    await saveCollection(key, list as Collections[typeof key], user.id, version);
+  } catch {
+    redirect(`/admin/${key}?stale=1`);
+  }
   updateTag(contentTag(key));
   redirect(`/admin/${key}?deleted=1`);
 }
 
 /** Admins only: order is what visitors see first. */
-export async function moveItem(key: CollectionKey, index: number, dir: -1 | 1) {
+export async function moveItem(key: CollectionKey, index: number, dir: -1 | 1, expectedVersion: string | null) {
   const user = await requireAdmin();
   collectionOrThrow(key);
-  const list = [...(await getCollection(key))];
-  const to = index + dir;
   if (!Number.isInteger(index) || (dir !== -1 && dir !== 1)) return;
+  const { items, version } = await readCollectionForEdit(key);
+  if (version !== expectedVersion) redirect(`/admin/${key}?stale=1`);
+  const list = [...items];
+  const to = index + dir;
   if (index < 0 || to < 0 || index >= list.length || to >= list.length) return;
   [list[index], list[to]] = [list[to], list[index]];
-  await saveCollection(key, list as Collections[typeof key], user.id);
+  try {
+    await saveCollection(key, list as Collections[typeof key], user.id, version);
+  } catch {
+    redirect(`/admin/${key}?stale=1`);
+  }
   updateTag(contentTag(key));
 }
 

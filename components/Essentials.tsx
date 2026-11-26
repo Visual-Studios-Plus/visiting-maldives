@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { CHECKED } from "@/lib/data";
-import { getEssentials } from "@/lib/content/store";
+import { getEssentials } from "@/server/content/store";
 
 // Essentials card (brand guide p.34): numbered label, big figure in ink, short fact,
 // green "checked" stamp, optional guide link. Red is kept for the link only.

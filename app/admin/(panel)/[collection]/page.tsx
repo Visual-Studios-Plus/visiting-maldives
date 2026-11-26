@@ -15,9 +15,9 @@ import {
   getCollectionDef,
   type CollectionDef,
 } from "@/lib/content/schema";
-import { getCollection, isCustomised, storageMode } from "@/lib/content/store";
+import { isCustomised, readCollectionForEdit, storageMode } from "@/server/content/store";
 import { moveItem, restoreBuiltIn } from "../../actions";
-import { requireUser } from "@/lib/session";
+import { requireUser } from "@/server/session";
 import StorageNotice from "@/components/admin/StorageNotice";
 import ConfirmButton from "@/components/admin/ConfirmButton";
 import Flash from "@/components/admin/Flash";
@@ -64,11 +64,12 @@ const searchText = (item: Item, title: string, sub: string) =>
     .join(" ");
 
 async function List({ def }: { def: CollectionDef }) {
-  const [items, edited, user] = await Promise.all([
-    getCollection(def.key) as Promise<Item[]>,
+  const [{ items: stored, version }, edited, user] = await Promise.all([
+    readCollectionForEdit(def.key),
     isCustomised(def.key),
     requireUser(),
   ]);
+  const items = stored as unknown as Item[];
   const isAdmin = user.role === "ADMIN"; // writers can't reorder or restore (the actions refuse too)
 
   if (items.length === 0) {
@@ -157,7 +158,7 @@ async function List({ def }: { def: CollectionDef }) {
                     {isAdmin && (
                       <TableCell className="hidden md:table-cell">
                         <div className="flex justify-center gap-1">
-                          <form action={moveItem.bind(null, def.key, i, -1)}>
+                          <form action={moveItem.bind(null, def.key, i, -1, version)}>
                             <Button
                               variant="ghost"
                               size="icon"
@@ -168,7 +169,7 @@ async function List({ def }: { def: CollectionDef }) {
                               <ArrowUp aria-hidden />
                             </Button>
                           </form>
-                          <form action={moveItem.bind(null, def.key, i, 1)}>
+                          <form action={moveItem.bind(null, def.key, i, 1, version)}>
                             <Button
                               variant="ghost"
                               size="icon"
@@ -255,7 +256,9 @@ async function Page({
     ? `${name} deleted.`
     : sp.restored
       ? "Original content restored."
-      : null;
+      : sp.stale
+        ? "This list changed in another tab, so nothing was applied. Reload to see the current version."
+        : null;
 
   return (
     <div className="mx-auto max-w-5xl">

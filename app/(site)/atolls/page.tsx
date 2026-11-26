@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import PageHero from "@/components/PageHero";
 import AtollFilter, { type AtollCounts } from "@/components/AtollFilter";
 import { eatInAtoll, P, salonInAtoll, stayInAtoll } from "@/lib/data";
-import { getAtolls, getEats, getIslands, getSalons, getStays } from "@/lib/content/store";
+import { getCollections } from "@/server/content/store";
 import { inhabitedNames } from "@/lib/islands";
 import { allResortRecords } from "@/lib/resorts";
 
@@ -10,7 +10,13 @@ export const metadata: Metadata = { title: "Islands & atolls" };
 
 export default async function Atolls() {
   // the administrative atolls only; single-island entries live under their atoll
-  const [all, stays, eats, salons, entries] = await Promise.all([getAtolls(), getStays(), getEats(), getSalons(), getIslands()]);
+  const { atolls: all, stays, eats, salons, islands: entries } = await getCollections([
+    "atolls",
+    "stays",
+    "eats",
+    "salons",
+    "islands",
+  ]);
   const atolls = all.filter((a) => !a.parent);
   const resortRecords = allResortRecords(atolls);
 

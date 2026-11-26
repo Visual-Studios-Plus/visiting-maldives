@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { SESSION_COOKIE, readSessionToken } from "@/lib/auth";
+import { SESSION_COOKIE, readSessionToken } from "@/server/auth";
 
 /*
  * Keeps the dashboard behind sign-in: any /admin page without a valid session cookie is sent to

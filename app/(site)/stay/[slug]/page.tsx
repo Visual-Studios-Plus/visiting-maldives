@@ -7,8 +7,11 @@ import Reveal from "@/components/Reveal";
 import Stars from "@/components/Stars";
 import ViewTracker from "@/components/ViewTracker";
 import PhotoGallery from "@/components/PhotoGallery";
+import StatFigures from "@/components/StatFigures";
+import StayContact from "@/components/StayContact";
+import { Anchor, BedDouble, DoorOpen } from "lucide-react";
 import { photo } from "@/lib/data";
-import { slugParams, getStay, getStays } from "@/lib/content/store";
+import { slugParams, getStay, getStays } from "@/server/content/store";
 
 // Every stay is prerendered from generateStaticParams, so a blocking route is fine here
 export const instant = false;
@@ -57,12 +60,18 @@ export default async function StayPage({ params }: PageProps<"/stay/[slug]">) {
           <h2 data-reveal className="mt-8 text-[28px] font-semibold tracking-tight">About this {stay.type.toLowerCase()}</h2>
           <p data-reveal className="mt-3 max-w-2xl text-[17px] leading-relaxed">{stay.about}</p>
 
-          <h3 data-reveal className="mt-10 text-[20px] font-semibold">What&apos;s included</h3>
-          <ul data-reveal className="mt-4 flex flex-wrap gap-2">
-            {stay.amenities.map((a) => (
-              <li key={a} className="rounded-control bg-shell px-3.5 py-2 text-[14px]">{a}</li>
-            ))}
-          </ul>
+          {stay.amenities.length ? (
+            <>
+              <h3 data-reveal className="mt-10 text-[20px] font-semibold">What&apos;s included</h3>
+              <ul data-reveal className="mt-4 flex flex-wrap gap-2">
+                {stay.amenities.map((a) => (
+                  <li key={a} className="rounded-control bg-shell px-3.5 py-2 text-[14px]">{a}</li>
+                ))}
+              </ul>
+            </>
+          ) : null}
+
+          <StayContact stay={stay} />
 
           {stay.gallery?.length ? <PhotoGallery photos={stay.gallery} /> : null}
 
@@ -109,12 +118,26 @@ export default async function StayPage({ params }: PageProps<"/stay/[slug]">) {
           <div data-reveal className="rounded-card bg-ink p-6 text-white">
             <p className="eyebrow text-white/70">Price</p>
             <p className="mt-1 text-[24px] font-semibold">{stay.price}</p>
+            <StatFigures
+              className="mt-5"
+              stats={[
+                { n: stay.rooms ?? 0, label: stay.type === "Liveaboard" ? "cabins" : "rooms", Icon: DoorOpen },
+                { n: stay.beds ?? 0, label: "beds", Icon: BedDouble },
+                { n: stay.berths ?? 0, label: "yacht berths", Icon: Anchor },
+              ]}
+            />
+            {stay.phone || stay.email || stay.website ? (
+              <a href="#contact" className="mt-5 block rounded-control border border-white/30 px-6 py-3 text-center font-semibold transition-colors hover:bg-white hover:text-ink">
+                Contact {stay.type === "Liveaboard" ? "the boat" : "them"} directly
+              </a>
+            ) : null}
             <dl className="mt-6 space-y-4 border-t border-white/15 pt-6">
               <div>
                 <dt className="eyebrow text-white/70">Location</dt>
                 <dd className="mt-1 font-mono text-[14px]">{location}</dd>
               </div>
-              {stay.facts.map((f) => (
+              {/* the island and atoll are already in Location */}
+              {stay.facts.filter((f) => f.label !== "Island" && f.label !== "Atoll").map((f) => (
                 <div key={f.label}>
                   <dt className="eyebrow text-white/70">{f.label}</dt>
                   <dd className="mt-1 font-mono text-[14px]">{f.value}</dd>

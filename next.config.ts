@@ -48,7 +48,9 @@ const nextConfig: NextConfig = {
   partialPrefetching: true,
   images: {
     remotePatterns: [
-      { protocol: "https", hostname: "images.unsplash.com" },
+      // Only Unsplash photo paths: without a pathname, anyone could use /_next/image as a free
+      // image re-encoder for any address on that host.
+      { protocol: "https", hostname: "images.unsplash.com", pathname: "/photo-**" },
       // Wikimedia Commons photos (credited on /credits), e.g. the Haa Alif island pages
       { protocol: "https", hostname: "upload.wikimedia.org", pathname: "/wikipedia/commons/**" },
       { protocol: "https", hostname: "thumb.wikimedia.org", pathname: "/wikipedia/commons/**" },

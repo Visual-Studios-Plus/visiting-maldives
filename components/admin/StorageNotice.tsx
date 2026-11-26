@@ -1,5 +1,5 @@
 import { Database, HardDrive, ShieldAlert } from "lucide-react";
-import type { StorageMode } from "@/lib/content/store";
+import type { StorageMode } from "@/server/content/store";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 /** Where saves go (and a loud warning when they can't be saved), plus any security setup problems. */

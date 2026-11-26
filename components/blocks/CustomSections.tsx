@@ -1,5 +1,5 @@
 import type { CustomSection } from "@/lib/data";
-import { getAtolls, getEats, getGuides, getIslands, getSalons, getSections, getStays } from "@/lib/content/store";
+import { getAtolls, getEats, getGuides, getIslands, getSalons, getSections, getStays } from "@/server/content/store";
 import { sectionContent, sectionsFor, type SectionData, type SectionPage } from "@/lib/sections";
 import SectionBlock from "@/components/blocks/SectionBlock";
 

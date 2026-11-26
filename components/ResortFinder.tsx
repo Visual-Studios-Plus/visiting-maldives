@@ -28,11 +28,22 @@ const PAGE = 24;
 const plain = (s: string) => s.normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
 /** Every resort island as photo cards, with search, region chips and an atoll filter. */
+/** The type filter: each option and the stay types it covers. */
+const KINDS = [
+  { label: "All types", types: [] as string[] },
+  { label: "Resorts", types: ["Resort", "Resort island"] },
+  { label: "Hotels", types: ["Hotel"] },
+  { label: "Guesthouses", types: ["Guesthouse"] },
+  { label: "Homestays", types: ["Homestay"] },
+  { label: "Liveaboards", types: ["Liveaboard"] },
+  { label: "Yacht marinas", types: ["Marina"] },
+];
+
 export default function ResortFinder({ resorts, atolls }: { resorts: ResortItem[]; atolls: { slug: string; name: string }[] }) {
   const [query, setQuery] = useState("");
   const [region, setRegion] = useState<(typeof REGIONS)[number]>("All");
   const [atoll, setAtoll] = useState("all");
-  const [resortsOnly, setResortsOnly] = useState(false);
+  const [kind, setKind] = useState("All types");
   const [shown, setShown] = useState(PAGE);
   const q = plain(useDeferredValue(query).trim());
 
@@ -42,10 +53,10 @@ export default function ResortFinder({ resorts, atolls }: { resorts: ResortItem[
         (r) =>
           (region === "All" || r.region === region) &&
           (atoll === "all" || r.atollSlug === atoll) &&
-          (!resortsOnly || r.isResort) &&
-          (!q || plain(`${r.resort} ${r.island} ${r.atollName}`).includes(q)),
+          (kind === "All types" || KINDS.find((k) => k.label === kind)!.types.includes(r.label)) &&
+          (!q || plain(`${r.resort} ${r.island} ${r.atollName} ${r.label}`).includes(q)),
       ),
-    [resorts, region, atoll, resortsOnly, q],
+    [resorts, region, atoll, kind, q],
   );
 
   // reset paging whenever the filters change
@@ -62,14 +73,28 @@ export default function ResortFinder({ resorts, atolls }: { resorts: ResortItem[
       <div className="relative z-30 -mx-4 border-b border-line bg-white px-4 py-4 sm:sticky sm:top-[68px] sm:-mx-8 sm:px-8 lg:-mx-14 lg:px-14">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <label className="relative flex-1">
-            <span className="sr-only">Search resorts</span>
+            <span className="sr-only">Search places to stay</span>
             <input
               type="search"
               value={query}
               onChange={(e) => reset(setQuery)(e.target.value)}
-              placeholder="Search a resort, island or atoll"
+              placeholder="Search a place, island or atoll"
               className="min-h-11 w-full rounded-control border border-line bg-white px-4 text-[15px] outline-none focus:border-ink"
             />
+          </label>
+          <label className="lg:w-52">
+            <span className="sr-only">Type</span>
+            <select
+              value={kind}
+              onChange={(e) => reset(setKind)(e.target.value)}
+              className="min-h-11 w-full rounded-control border border-line bg-white px-3 text-[15px] outline-none focus:border-ink"
+            >
+              {KINDS.filter((k) => !k.types.length || resorts.some((r) => k.types.includes(r.label))).map((k) => (
+                <option key={k.label} value={k.label}>
+                  {k.label}
+                </option>
+              ))}
+            </select>
           </label>
           <label className="lg:w-64">
             <span className="sr-only">Atoll</span>
@@ -84,6 +109,7 @@ export default function ResortFinder({ resorts, atolls }: { resorts: ResortItem[
                   {a.name}
                 </option>
               ))}
+              {resorts.some((r) => r.atollSlug === "other") ? <option value="other">Across the Maldives</option> : null}
             </select>
           </label>
         </div>
@@ -102,10 +128,6 @@ export default function ResortFinder({ resorts, atolls }: { resorts: ResortItem[
               {r === "All" ? "All regions" : r}
             </button>
           ))}
-          <label className="ml-auto inline-flex min-h-10 shrink-0 cursor-pointer items-center gap-2 pl-2 text-[14px]">
-            <input type="checkbox" checked={resortsOnly} onChange={(e) => reset(setResortsOnly)(e.target.checked)} className="size-4 accent-[#D21034]" />
-            Resorts only
-          </label>
         </div>
       </div>
 
@@ -139,14 +161,14 @@ export default function ResortFinder({ resorts, atolls }: { resorts: ResortItem[
         </div>
       ) : (
         <div className="mt-6 rounded-card bg-shell p-8 text-center">
-          <p className="font-semibold">No resorts match.</p>
+          <p className="font-semibold">No places match.</p>
           <button
             type="button"
             onClick={() => {
               setQuery("");
               setRegion("All");
               setAtoll("all");
-              setResortsOnly(false);
+              setKind("All types");
               setShown(PAGE);
             }}
             className="mt-3 text-[15px] font-medium text-red hover:underline"

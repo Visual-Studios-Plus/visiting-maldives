@@ -218,8 +218,8 @@ export const COLLECTIONS: CollectionDef[] = [
     fields: [
       { name: "name", label: "Name", type: "text", required: true },
       { name: "slug", label: "Page address", type: "text", required: true, help: SLUG_HELP },
-      { name: "type", label: "Type", type: "select", required: true, options: ["Resort", "Resort island", "Hotel", "Guesthouse", "Liveaboard"] },
-      { name: "atoll", label: "Atoll", type: "atoll", required: true, help: "Choose the atoll this place is in; it then appears on that atoll's page." },
+      { name: "type", label: "Type", type: "select", required: true, options: ["Resort", "Resort island", "Hotel", "Guesthouse", "Homestay", "Liveaboard", "Marina"] },
+      { name: "atoll", label: "Atoll", type: "atoll", help: "Choose the atoll this place is in; it then appears on that atoll's page. Leave empty for a liveaboard that cruises several atolls." },
       // kept in step with `atoll` by the editor, so atoll listings never depend on free text
       { name: "atollSlug", type: "hidden" },
       { name: "island", label: "Island", type: "island", help: "Choose the island (pick the atoll first). The place then appears on that island's page." },
@@ -228,6 +228,13 @@ export const COLLECTIONS: CollectionDef[] = [
       { name: "price", label: "Price", type: "text", required: true, placeholder: "From USD 650" },
       { name: "rating", label: "Our rating (out of 5)", type: "number", min: 0, max: 5, step: 0.1, help: "Leave empty for a resort island we have not rated yet." },
       { name: "note", label: "Short note", type: "text", required: true, help: "One line on the card." },
+      { name: "rooms", label: "Rooms (cabins for a liveaboard)", type: "number", min: 0, step: 1 },
+      { name: "beds", label: "Beds", type: "number", min: 0, step: 1 },
+      { name: "berths", label: "Yacht berths (marinas)", type: "number", min: 0, step: 1 },
+      { name: "phone", label: "Phone", type: "text", placeholder: "+960 333 4455", help: "Shown in the Contact section of the page. Separate several with commas." },
+      { name: "email", label: "Email", type: "text", placeholder: "reservations@example.com", help: "Separate several with commas." },
+      { name: "website", label: "Website", type: "text", placeholder: "https://example.com" },
+      { name: "licensed", label: "Licensed by the Ministry of Tourism", type: "checkbox", help: "Listed in the government register of tourist accommodation." },
       { name: "about", label: "About", type: "textarea", required: true },
       { name: "image", label: "Cover photo", type: "image", required: true, help: IMAGE_HELP },
       {

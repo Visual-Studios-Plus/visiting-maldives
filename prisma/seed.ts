@@ -5,7 +5,8 @@
  *   npm run db:seed -- --reset   replace every collection with the seed content (throws away edits)
  *   npm run db:seed -- --reset --only=eats,dishes   …only those collections
  *
- * Runs on every Vercel build after migrations (safe mode), so a new database gets its content.
+ * Run it as a separate release step after `npm run db:deploy` (not during the build), so a new
+ * database gets its content without two deploys racing the migration step.
  * Without DATABASE_URL (local development) it fills .data/content.json instead.
  * Run with Node 22.6+ (TypeScript is stripped natively); the npm script loads .env.local.
  */

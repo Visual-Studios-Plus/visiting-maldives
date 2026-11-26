@@ -1,8 +1,8 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { authConfigured } from "@/lib/auth";
-import { getCurrentUser } from "@/lib/session";
+import { authConfigured } from "@/server/auth";
+import { getCurrentUser } from "@/server/session";
 import LoginForm from "@/components/admin/LoginForm";
 import { Skeleton } from "@/components/ui/skeleton";
 

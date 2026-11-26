@@ -2,10 +2,10 @@
 
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
-import { db } from "@/lib/db";
-import { SESSION_COOKIE, SESSION_DAYS, createSessionToken } from "@/lib/auth";
-import { requireAdmin, requireUser } from "@/lib/session";
-import { hashPassword, passwordProblem, temporaryPassword, verifyPassword } from "@/lib/password";
+import { db } from "@/server/db";
+import { SESSION_COOKIE, SESSION_DAYS, createSessionToken } from "@/server/auth";
+import { requireAdmin, requireUser } from "@/server/session";
+import { hashPassword, passwordProblem, temporaryPassword, verifyPassword } from "@/server/password";
 
 /*
  * Staff accounts. Everything except changing your own password is admin-only, checked here

@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { BedDouble, Palmtree, MapPin } from "lucide-react";
+import StatFigures from "@/components/StatFigures";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { photo, isCommons, type Atoll } from "@/lib/data";
 
@@ -59,7 +60,7 @@ function AtollCard({ atoll: a, n, counts }: { atoll: Atoll; n: number; counts?: 
         { n: counts.resorts, label: counts.resorts === 1 ? "resort" : "resorts", Icon: Palmtree },
         { n: counts.stays, label: counts.stays === 1 ? "stay" : "stays", Icon: BedDouble },
         { n: counts.inhabited, label: counts.inhabited === 1 ? "local island" : "local islands", Icon: MapPin },
-      ].filter((s) => s.n > 0)
+      ]
     : [];
   return (
     <Link
@@ -78,20 +79,7 @@ function AtollCard({ atoll: a, n, counts }: { atoll: Atoll; n: number; counts?: 
           <span className="mb-1 shrink-0 rounded-control bg-white px-2.5 py-1 text-[12px] leading-4 font-semibold text-ink">{a.transfer}</span>
         </div>
         <p className="mt-1.5 leading-snug text-white/85">{a.tagline}</p>
-        {stats.length ? (
-          // each figure as a column: icon and number on top, label underneath, thin dividers between
-          <dl className="mt-4 flex divide-x divide-white/25">
-            {stats.map((s) => (
-              <div key={s.label} className="flex flex-col items-center px-4 text-center first:pl-0 last:pr-0">
-                <dd className="flex items-center gap-1.5 text-[18px] leading-6 font-semibold text-white tabular-nums">
-                  <s.Icon aria-hidden className="size-[18px] shrink-0" strokeWidth={1.75} />
-                  {s.n}
-                </dd>
-                <dt className="mt-0.5 text-[12px] leading-4 text-white/75 first-letter:uppercase">{s.label}</dt>
-              </div>
-            ))}
-          </dl>
-        ) : null}
+        <StatFigures stats={stats} className="mt-4" />
         <div className="mt-3 flex flex-wrap gap-1.5">
           {a.bestFor.map((b) => (
             <span key={b} className="rounded-control bg-white/25 px-2.5 py-1 text-[12px] leading-4 font-medium">

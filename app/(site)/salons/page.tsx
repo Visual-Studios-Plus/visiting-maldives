@@ -4,7 +4,7 @@ import Link from "next/link";
 import PageHero from "@/components/PageHero";
 import Reveal from "@/components/Reveal";
 import { P, isCommons, photo, salonSlug, salonWhere } from "@/lib/data";
-import { getSalons } from "@/lib/content/store";
+import { getSalons } from "@/server/content/store";
 
 export const metadata: Metadata = { title: "Salons & spas" };
 

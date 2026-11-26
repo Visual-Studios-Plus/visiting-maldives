@@ -8,7 +8,7 @@ import SaveButton from "@/components/SaveButton";
 import ViewTracker from "@/components/ViewTracker";
 import PhotoGallery from "@/components/PhotoGallery";
 import { CHECKED } from "@/lib/data";
-import { slugParams, getGuide, getGuides } from "@/lib/content/store";
+import { slugParams, getGuide, getGuides } from "@/server/content/store";
 
 // Every page is prerendered from generateStaticParams, so a blocking route is fine here
 export const instant = false;

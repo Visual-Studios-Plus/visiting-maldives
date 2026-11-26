@@ -7,7 +7,7 @@ import SectionHead from "@/components/SectionHead";
 import DishCard from "@/components/DishCard";
 import ResortCarousel from "@/components/ResortCarousel";
 import { eatInAtoll, eatOnIsland, eatWhere, DISH_KINDS, P, eatSlug, photo } from "@/lib/data";
-import { getAtolls, getDishes, getEats, getIslands } from "@/lib/content/store";
+import { getCollections } from "@/server/content/store";
 import { inhabitedNames, islandHref } from "@/lib/islands";
 
 export const metadata: Metadata = {
@@ -26,7 +26,7 @@ const tips = [
 ];
 
 export default async function EatDrink() {
-  const [eats, dishes, all, entries] = await Promise.all([getEats(), getDishes(), getAtolls(), getIslands()]);
+  const { eats, dishes, atolls: all, islands: entries } = await getCollections(["eats", "dishes", "atolls", "islands"]);
   const sortedDishes = [...dishes].sort((a, b) => DISH_KINDS.indexOf(a.kind) - DISH_KINDS.indexOf(b.kind));
 
   // places to eat grouped by island (or by atoll when only the atoll is known), atolls north to south

@@ -4,7 +4,7 @@ import PageHero from "@/components/PageHero";
 import CustomSections from "@/components/blocks/CustomSections";
 import { photo, P } from "@/lib/data";
 import { sectionPageSlug } from "@/lib/sections";
-import { getSections, slugParams } from "@/lib/content/store";
+import { getSections, slugParams } from "@/server/content/store";
 
 /*
  * A page made only of sections built in the dashboard (Page sections → "Its own page").

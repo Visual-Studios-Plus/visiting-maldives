@@ -5,7 +5,7 @@ import PageHero from "@/components/PageHero";
 import Reveal from "@/components/Reveal";
 import Stars from "@/components/Stars";
 import { salonSlug, salonWhere } from "@/lib/data";
-import { getSalon, getSalons, slugParams } from "@/lib/content/store";
+import { getSalon, getSalons, slugParams } from "@/server/content/store";
 
 // Every page is prerendered from generateStaticParams, so a blocking route is fine here
 export const instant = false;

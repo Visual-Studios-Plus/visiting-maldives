@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import SavedList from "@/components/SavedList";
-import { getGuides } from "@/lib/content/store";
+import { guideSummary } from "@/lib/data";
+import { getGuides } from "@/server/content/store";
 
 export const metadata: Metadata = { title: "Saved guides" };
 
@@ -12,7 +13,7 @@ export default async function Saved() {
       <h1 className="mt-4 text-[44px] leading-none font-semibold tracking-[-0.03em] sm:text-[64px]">
         Saved <span className="accent">guides</span>
       </h1>
-      <SavedList guides={guides} />
+      <SavedList guides={guides.map(guideSummary)} />
     </section>
   );
 }

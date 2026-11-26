@@ -3,12 +3,12 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ExternalLink, Trash2 } from "lucide-react";
 import { fillPath, getCollectionDef } from "@/lib/content/schema";
-import { getAtolls, getCollection, storageMode } from "@/lib/content/store";
+import { getAtolls, readCollectionForEdit, storageMode } from "@/server/content/store";
 import type { Atoll } from "@/lib/data";
-import { emptyItem } from "@/lib/content/validate";
+import { emptyItem } from "@/server/content/validate";
 import { deleteItem } from "../../../actions";
-import { canDelete } from "@/lib/permissions";
-import { requireUser } from "@/lib/session";
+import { canDelete } from "@/server/permissions";
+import { requireUser } from "@/server/session";
 import ItemEditor from "@/components/admin/ItemEditor";
 import ConfirmButton from "@/components/admin/ConfirmButton";
 import StorageNotice from "@/components/admin/StorageNotice";
@@ -25,7 +25,8 @@ async function Editor({ params, searchParams }: { params: PageProps<"/admin/[col
 
   const isNew = itemParam === "new";
   const index = isNew ? -1 : Number(itemParam);
-  const items = (await getCollection(def.key)) as unknown as Item[];
+  const { items: stored, version } = await readCollectionForEdit(def.key);
+  const items = stored as unknown as Item[];
   // the atoll dropdown on a place to stay comes from the Atolls collection
   const atolls = ((await getAtolls()) as unknown as Atoll[]).filter((a) => !a.parent);
   if (!isNew && (!Number.isInteger(index) || index < 0 || index >= items.length)) notFound();
@@ -57,6 +58,7 @@ async function Editor({ params, searchParams }: { params: PageProps<"/admin/[col
       <ItemEditor
         def={def}
         index={index}
+        version={version}
         initial={item}
         justCreated={justCreated}
         atolls={atolls.map((a) => ({
@@ -85,7 +87,7 @@ async function Editor({ params, searchParams }: { params: PageProps<"/admin/[col
           </CardHeader>
           <CardFooter>
             <ConfirmButton
-              action={deleteItem.bind(null, def.key, index)}
+              action={deleteItem.bind(null, def.key, index, version)}
               title={`Delete “${title}”?`}
               description={`It's removed from the site straight away. This can't be undone.`}
               confirmLabel={`Delete ${def.singular}`}

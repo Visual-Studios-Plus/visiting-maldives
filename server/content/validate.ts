@@ -1,6 +1,6 @@
-import { storageEndpoint } from "../storage-endpoint.ts";
-import type { CollectionDef, Field, ScalarField } from "./schema";
-import { getPath, setPath } from "./path";
+import { storageEndpoint } from "@/lib/storage-endpoint";
+import type { CollectionDef, Field, ScalarField } from "@/lib/content/schema";
+import { getPath, setPath } from "@/lib/content/path";
 
 /*
  * Server-side cleaning and validation of one dashboard entry against its collection's fields.

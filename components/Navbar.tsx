@@ -4,12 +4,15 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { afterLoader, gsap, useGSAP } from "@/lib/gsap";
 import Image from "next/image";
-import { navItems, photo, type Guide } from "@/lib/data";
+import { navItems, photo } from "@/lib/data";
 import { useSaved } from "@/lib/saved";
 import { Mark } from "./Logo";
 
+/** The first few guides, as the small projection the menu needs (no article bodies). */
+export type FeaturedGuide = { slug: string; short: string; image: string };
+
 /** `featured`: the first few guides, from the content store (passed in by the site layout). */
-export default function Navbar({ featured }: { featured: Guide[] }) {
+export default function Navbar({ featured }: { featured: FeaturedGuide[] }) {
   const pathname = usePathname();
   const router = useRouter();
   const [solid, setSolid] = useState(false);
@@ -161,7 +164,7 @@ export default function Navbar({ featured }: { featured: Guide[] }) {
                     <span className="relative size-11 shrink-0 overflow-hidden rounded-control">
                       <Image src={photo(g.image, 120)} alt="" fill sizes="44px" className="object-cover" />
                     </span>
-                    {g.title}
+                    {g.short}
                   </Link>
                 </li>
               ))}

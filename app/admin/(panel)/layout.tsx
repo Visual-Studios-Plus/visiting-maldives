@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { ExternalLink, LogOut } from "lucide-react";
 import { logout } from "../actions";
-import { requireUser } from "@/lib/session";
+import { requireUser } from "@/server/session";
 import AdminNav from "@/components/admin/AdminNav";
 import BrandMark from "@/components/admin/BrandMark";
 import { Badge } from "@/components/ui/badge";

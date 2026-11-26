@@ -21,6 +21,7 @@ import {
 } from "../../lib/data.ts";
 import { HA, haaAlifIslandAtolls } from "./haa-alif-islands.ts";
 import { resortStays, withAtollSlugs } from "./resort-stays.ts";
+import { registerStays } from "./register-stays.ts";
 import { newAtolls, sortAtolls, splitAri } from "./admin-atolls.ts";
 import { withDescriptions } from "./atoll-descriptions.ts";
 import { sampleEats, sampleSalons, sampleStays } from "./island-listings.ts";
@@ -1495,11 +1496,12 @@ export const essentials: Essential[] = [
 ];
 
 /** Everything the seed script loads, by collection. */
-// Every resort island is also a place to stay, published at /stay/<slug> like the picks above.
-export const placesToStay: Stay[] = [
+// Every resort island is also a place to stay, published at /stay/<slug> like the picks above,
+// plus every licensed place in the Ministry of Tourism register (register-stays.ts).
+export const placesToStay: Stay[] = registerStays(atolls, [
   ...withAtollSlugs(atolls, [...stays, ...sampleStays]),
   ...resortStays(atolls, [...stays, ...sampleStays].map((s) => s.slug)),
-];
+]);
 
 // SAMPLE salons on local islands (see island-listings.ts): replace with real ones before launch
 const salons: Salon[] = sampleSalons;

@@ -1,6 +1,6 @@
 import "server-only";
 import { headers } from "next/headers";
-import { db } from "@/lib/db";
+import { db } from "@/server/db";
 
 /*
  * Limits wrong dashboard passwords. Two counters are kept for every failed attempt:
@@ -40,21 +40,38 @@ const accountKey = async (email: string) => {
   return `acct:${await digest(target)}`;
 };
 
-async function timesFor(key: string, since: number): Promise<number[]> {
-  if (db) {
-    const rows = await db.adminLoginAttempt.findMany({ where: { key, at: { gt: new Date(since) } }, orderBy: { at: "asc" }, select: { at: true } });
-    return rows.map((r) => r.at.getTime());
+// Housekeeping at most once an hour per process, so the table stays small without a sweep per hit.
+let lastCleanup = 0;
+async function maybeCleanup(): Promise<void> {
+  if (!db || Date.now() - lastCleanup < 3600e3) return;
+  lastCleanup = Date.now();
+  try {
+    await db.adminLoginAttempt.deleteMany({ where: { at: { lt: new Date(Date.now() - 864e5) } } });
+  } catch (err) {
+    console.error("[rate-limit] cleanup failed", err); // never fail a request for housekeeping
   }
-  return (memory.get(key) ?? []).filter((t) => t > since);
+}
+
+/** Hits for one key in the window, as a count and the oldest timestamp. */
+async function hitsInWindow(key: string): Promise<{ count: number; oldest: number | null }> {
+  const since = new Date(Date.now() - WINDOW_MS);
+  if (db) {
+    const [count, oldest] = await Promise.all([
+      db.adminLoginAttempt.count({ where: { key, at: { gt: since } } }),
+      db.adminLoginAttempt.findFirst({ where: { key, at: { gt: since } }, orderBy: { at: "asc" }, select: { at: true } }),
+    ]);
+    return { count, oldest: oldest?.at.getTime() ?? null };
+  }
+  const times = (memory.get(key) ?? []).filter((t) => t > since.getTime());
+  return { count: times.length, oldest: times[0] ?? null };
 }
 
 /** Minutes until this address/account may try again, or 0 if it may try now. */
 export async function loginBlockedFor(email: string): Promise<number> {
-  const since = Date.now() - WINDOW_MS;
-  const [ipTimes, accountTimes] = await Promise.all([timesFor(await ipKey(), since), timesFor(await accountKey(email), since)]);
+  const [ip, account] = await Promise.all([hitsInWindow(await ipKey()), hitsInWindow(await accountKey(email))]);
   let wait = 0;
-  if (ipTimes.length >= IP_MAX_FAILS) wait = Math.max(wait, Math.ceil((ipTimes[0] + WINDOW_MS - Date.now()) / 60000));
-  if (accountTimes.length >= ACCOUNT_MAX_FAILS) wait = Math.max(wait, Math.ceil((accountTimes[0] + WINDOW_MS - Date.now()) / 60000));
+  if (ip.count >= IP_MAX_FAILS && ip.oldest) wait = Math.max(wait, Math.ceil((ip.oldest + WINDOW_MS - Date.now()) / 60000));
+  if (account.count >= ACCOUNT_MAX_FAILS && account.oldest) wait = Math.max(wait, Math.ceil((account.oldest + WINDOW_MS - Date.now()) / 60000));
   return wait > 0 ? Math.max(1, wait) : 0;
 }
 
@@ -63,7 +80,7 @@ export async function recordFailedLogin(email: string): Promise<void> {
   const keys = [await ipKey(), await accountKey(email)];
   if (db) {
     await db.adminLoginAttempt.createMany({ data: keys.map((key) => ({ key })) });
-    await db.adminLoginAttempt.deleteMany({ where: { at: { lt: new Date(Date.now() - 864e5) } } }); // keep the table small
+    await maybeCleanup();
     return;
   }
   const now = Date.now();
@@ -82,11 +99,26 @@ export async function clearFailedLogins(email: string): Promise<void> {
 }
 
 /*
- * Best-effort request throttle for unauthenticated endpoints (per server instance). Not a
- * substitute for a shared store, but it stops one client flooding a single function.
+ * Best-effort throttle for unauthenticated or cheap-to-abuse endpoints. With a database the hits
+ * live in admin_login_attempts (`rl:` keys), so the limit is shared by every server instance;
+ * without one it is per process (local development).
  */
 const buckets = new Map<string, number[]>();
-export function allowLocal(key: string, max: number, windowMs: number): boolean {
+/**
+ * `shared` (default) keeps the counter in the database so every server instance agrees — use it
+ * for account-level actions like uploads. Pass false for best-effort public endpoints where a
+ * database round trip per request would cost more than the limit is worth.
+ */
+export async function allowLocal(key: string, max: number, windowMs: number, shared = true): Promise<boolean> {
+  const scoped = `rl:${key.slice(0, 160)}`;
+  if (db && shared) {
+    const since = new Date(Date.now() - windowMs);
+    const used = await db.adminLoginAttempt.count({ where: { key: scoped, at: { gt: since } } });
+    if (used >= max) return false;
+    await db.adminLoginAttempt.create({ data: { key: scoped } });
+    await maybeCleanup();
+    return true;
+  }
   const now = Date.now();
   const hits = (buckets.get(key) ?? []).filter((t) => now - t < windowMs);
   if (hits.length >= max) {

@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { Database } from "lucide-react";
-import { db } from "@/lib/db";
-import { requireAdmin } from "@/lib/session";
+import { db } from "@/server/db";
+import { requireAdmin } from "@/server/session";
 import { CreateUserForm, UserEditor, type UserRow } from "@/components/admin/UserForms";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";

@@ -13,7 +13,7 @@ import IslandList from "@/components/IslandList";
 import ViewTracker from "@/components/ViewTracker";
 import CustomSections from "@/components/blocks/CustomSections";
 import PhotoGallery from "@/components/PhotoGallery";
-import { slugParams, getAtoll, getAtolls, getEats, getGuides, getIslands, getSalons, getStays } from "@/lib/content/store";
+import { slugParams, getAtoll, getAtolls, getCollections } from "@/server/content/store";
 
 // Every page is prerendered from generateStaticParams, so a blocking route is fine here
 export const instant = false;
@@ -28,23 +28,30 @@ export async function generateMetadata({ params }: PageProps<"/atolls/[slug]">):
 }
 
 export default async function AtollPage({ params }: PageProps<"/atolls/[slug]">) {
-  const atoll = await getAtoll((await params).slug);
+  // One database round trip for everything the page reads, rather than seven.
+  const { atolls, guides, stays: allStays, eats: allEats, salons: allSalons, islands: entries } = await getCollections([
+    "atolls",
+    "guides",
+    "stays",
+    "eats",
+    "salons",
+    "islands",
+  ]);
+  const slug = (await params).slug;
+  const atoll = atolls.find((a) => a.slug === slug);
   if (!atoll) notFound();
   // islands live at /atolls/<atoll>/islands/<island>; older single-island entries redirect there
   if (atoll.parent) permanentRedirect(`/atolls/${atoll.parent}/islands/${islandSlug(atoll.name)}`);
   const key = atoll.name.split(" ")[0].replace("&", "").trim();
-  const guides = await getGuides();
   const related = guides.filter((g) => g.atoll.includes(key) || (atoll.slug === "male" && /Malé|Kaafu|Velana/.test(g.atoll)));
   const list = related.length ? related : guides.slice(0, 3);
   // older single-island entries of this atoll (their photo and tagline still show on island cards)
-  const profiles = (await getAtolls()).filter((a) => a.parent === atoll.slug);
+  const profiles = atolls.filter((a) => a.parent === atoll.slug);
   // every place to stay (resorts, resort islands, hotels) in this atoll, all published at /stay;
   // restaurants and salons are placed by the atoll or island named in their "area"
-  const stays = (await getStays()).filter((s) => stayInAtoll(s, atoll));
-  const eats = (await getEats()).filter((e) => eatInAtoll(e, atoll));
-  const salons = (await getSalons()).filter((s) => salonInAtoll(s, atoll));
-
-  const entries = await getIslands();
+  const stays = allStays.filter((s) => stayInAtoll(s, atoll));
+  const eats = allEats.filter((e) => eatInAtoll(e, atoll));
+  const salons = allSalons.filter((s) => salonInAtoll(s, atoll));
   // "at a glance": official name, capital, population and island counts
   const resortCount = stays.filter((x) => x.type === "Resort" || x.type === "Resort island").length;
   const glance = [...atollFactRows(atoll, resortCount, entries), ...(atoll.facts ?? [])];

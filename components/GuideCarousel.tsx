@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useRef } from "react";
 import { gsap, useGSAP, reduced, splitReveal } from "@/lib/gsap";
-import type { Guide } from "@/lib/data";
+import type { GuideSummary } from "@/lib/data";
 import GuideCard from "./GuideCard";
 
 /*
@@ -16,7 +16,7 @@ import GuideCard from "./GuideCard";
  */
 const SPEED = 38; // px per second of idle drift
 
-export default function GuideCarousel({ guides }: { guides: Guide[] }) {
+export default function GuideCarousel({ guides }: { guides: GuideSummary[] }) {
   const wrap = useRef<HTMLElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   const api = useRef<{ nudge: (dir: 1 | -1) => void }>({ nudge: () => {} });

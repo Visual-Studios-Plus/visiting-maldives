@@ -1,6 +1,6 @@
-// Vercel build step: apply Prisma migrations, then seed any empty collections, when a database is
-// configured. Without DATABASE_URL the build still succeeds; the site is then empty until a
-// database is connected (content lives in the database, seeded from prisma/seed/content.ts).
+// Manual release step (no longer part of the build): apply Prisma migrations, then seed any empty
+// collections, when a database is configured. Without DATABASE_URL it does nothing; the site is
+// then empty until a database is connected (content comes from prisma/seed/content.ts).
 import { execSync } from "node:child_process";
 
 if (!process.env.DATABASE_URL) {

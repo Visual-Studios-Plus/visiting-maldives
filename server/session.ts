@@ -3,9 +3,9 @@ import { cache } from "react";
 import { headers } from "next/headers";
 import { connection } from "next/server";
 import { redirect } from "next/navigation";
-import { db } from "@/lib/db";
-import { SESSION_COOKIE, readSessionToken, safeEqual, type Role } from "@/lib/auth";
-import { hashPassword, verifyPassword } from "@/lib/password";
+import { db } from "@/server/db";
+import { SESSION_COOKIE, readSessionToken, safeEqual, type Role } from "@/server/auth";
+import { hashPassword, verifyPassword } from "@/server/password";
 
 /*
  * Who is signed in, re-checked against the database on every page and action:

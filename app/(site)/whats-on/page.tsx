@@ -4,7 +4,7 @@ import Reveal from "@/components/Reveal";
 import SectionHead from "@/components/SectionHead";
 import Seasons from "@/components/Seasons";
 import { CHECKED, P } from "@/lib/data";
-import { getEvents } from "@/lib/content/store";
+import { getEvents } from "@/server/content/store";
 
 export const metadata: Metadata = { title: "What's on" };
 

@@ -7,7 +7,7 @@ import SectionHead from "@/components/SectionHead";
 import IslandCarousel from "@/components/IslandCarousel";
 import PlaceCarousels from "@/components/PlaceCarousels";
 import { eatInAtoll, eatOnIsland, type Atoll, type IslandEntry, salonInAtoll, salonOnIsland, stayInAtoll, stayOnIsland } from "@/lib/data";
-import { getAtoll, getAtolls, getEats, getIslands, getSalons, getStays } from "@/lib/content/store";
+import { getCollections } from "@/server/content/store";
 import { atollEntries, describeIsland, findEntry, inhabitedNames, islandCards, islandCoords, islandFactRows, islandPhoto, mapPlaces, nearby } from "@/lib/islands";
 import GuideColumns from "@/components/GuideColumns";
 import MapPanel from "@/components/MapPanel";
@@ -26,16 +26,20 @@ const pagesOf = (atoll: Atoll, entries: IslandEntry[]) => {
 };
 
 /** The atoll, the island's name and its dashboard entry for a page address, or null. */
-async function find(slug: string, island: string) {
-  const atoll = await getAtoll(slug);
+function findIn(atolls: Atoll[], entries: IslandEntry[], slug: string, island: string) {
+  const atoll = atolls.find((a) => a.slug === slug);
   if (!atoll || atoll.parent) return null;
-  const entries = await getIslands();
   const hit = pagesOf(atoll, entries).find((p) => p.slug === island);
   return hit ? { atoll, name: hit.name, entry: findEntry(atoll, hit.name, entries), entries } : null;
 }
 
+async function find(slug: string, island: string) {
+  const { atolls, islands } = await getCollections(["atolls", "islands"]);
+  return findIn(atolls, islands, slug, island);
+}
+
 export async function generateStaticParams() {
-  const [atolls, entries] = await Promise.all([getAtolls(), getIslands()]);
+  const { atolls, islands: entries } = await getCollections(["atolls", "islands"]);
   const params = atolls
     .filter((a) => !a.parent)
     .flatMap((a) => pagesOf(a, entries).map((p) => ({ slug: a.slug, island: p.slug })))
@@ -53,16 +57,21 @@ export async function generateMetadata({ params }: PageProps<"/atolls/[slug]/isl
 
 export default async function IslandPage({ params }: PageProps<"/atolls/[slug]/islands/[island]">) {
   const { slug, island } = await params;
-  const found = await find(slug, island);
+  // One database round trip for all five collections the page reads.
+  const {
+    atolls: all,
+    islands: entries,
+    stays: allStays,
+    eats: allEats,
+    salons: allSalons,
+  } = await getCollections(["atolls", "islands", "stays", "eats", "salons"]);
+  const found = findIn(all, entries, slug, island);
   if (!found) notFound();
-  const { atoll, name, entry, entries } = found;
+  const { atoll, name, entry } = found;
   const photo = islandPhoto(atoll, name, entry);
   const kind = entry?.kind && entry.kind !== "Inhabited" ? entry.kind : "Local island";
 
-  const all = await getAtolls();
   const profiles = all.filter((a) => a.parent === atoll.slug);
-
-  const [allStays, allEats, allSalons] = await Promise.all([getStays(), getEats(), getSalons()]);
   const atollStays = allStays.filter((s) => stayInAtoll(s, atoll));
   const atollEats = allEats.filter((e) => eatInAtoll(e, atoll));
   const atollSalons = allSalons.filter((s) => salonInAtoll(s, atoll));

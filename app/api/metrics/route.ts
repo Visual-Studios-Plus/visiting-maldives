@@ -1,6 +1,6 @@
-import { isValidMetric, recordMetric, type MetricEvent } from "@/lib/analytics";
-import { allowLocal } from "@/lib/rate-limit";
-import { getAtolls, getGuides, getStays } from "@/lib/content/store";
+import { isValidMetric, recordMetric, type MetricEvent } from "@/server/analytics";
+import { allowLocal } from "@/server/rate-limit";
+import { getAtolls, getGuides, getStays } from "@/server/content/store";
 
 /*
  * Counts one event: { type: "guide" | "stay" | "atoll", slug, event: "view" | "save" | "unsave" }.
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
   const declared = Number(request.headers.get("content-length") ?? "");
   if (Number.isFinite(declared) && declared > 1024) return new Response(null, { status: 413 });
   const ip = (request.headers.get("x-forwarded-for")?.split(",")[0] ?? request.headers.get("x-real-ip") ?? "unknown").trim().slice(0, 64);
-  if (!allowLocal(`metrics:${ip}`, 120, 60_000)) return new Response(null, { status: 429 });
+  if (!(await allowLocal(`metrics:${ip}`, 120, 60_000, false))) return new Response(null, { status: 429 });
 
   const body = await request.text();
   if (body.length > 300) return new Response(null, { status: 413 });

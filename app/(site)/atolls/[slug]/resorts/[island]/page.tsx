@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { stayInAtoll } from "@/lib/data";
-import { getAtolls, getStays } from "@/lib/content/store";
+import { getAtolls, getStays } from "@/server/content/store";
 import { islandSlug } from "@/lib/resorts";
 
 /*

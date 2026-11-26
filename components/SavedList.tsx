@@ -1,10 +1,10 @@
 "use client";
 import Link from "next/link";
-import type { Guide } from "@/lib/data";
+import type { GuideSummary } from "@/lib/data";
 import { useSaved } from "@/lib/saved";
 import GuideCard from "./GuideCard";
 
-export default function SavedList({ guides }: { guides: Guide[] }) {
+export default function SavedList({ guides }: { guides: GuideSummary[] }) {
   const { list } = useSaved();
   const saved = guides.filter((g) => list.includes(g.slug));
   if (!saved.length)

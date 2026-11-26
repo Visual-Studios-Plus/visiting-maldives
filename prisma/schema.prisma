@@ -58,6 +58,7 @@ model Metric {
 
   @@id([type, slug, event, day])
   @@index([type, day])
+  @@index([day])
   @@map("metrics")
 }
 
@@ -68,5 +69,6 @@ model AdminLoginAttempt {
   at  DateTime @default(now())
 
   @@index([key, at])
+  @@index([at])
   @@map("admin_login_attempts")
 }

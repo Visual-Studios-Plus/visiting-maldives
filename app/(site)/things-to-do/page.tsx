@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import PageHero from "@/components/PageHero";
 import GuideFilter from "@/components/GuideFilter";
-import { P } from "@/lib/data";
-import { getGuides } from "@/lib/content/store";
+import { P, guideSummary } from "@/lib/data";
+import { getGuides } from "@/server/content/store";
 
 export const metadata: Metadata = { title: "Things to do" };
 
@@ -20,7 +20,7 @@ export default async function ThingsToDo() {
       />
       <section className="container-vm py-12 lg:py-24">
         <Suspense fallback={<div className="h-96" />}>
-          <GuideFilter guides={guides} />
+          <GuideFilter guides={guides.map(guideSummary)} />
         </Suspense>
       </section>
     </>

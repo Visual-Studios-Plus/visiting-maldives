@@ -1,6 +1,6 @@
 import { Suspense } from "react";
-import { db } from "@/lib/db";
-import { requireUser } from "@/lib/session";
+import { db } from "@/server/db";
+import { requireUser } from "@/server/session";
 import ChangePasswordForm from "@/components/admin/ChangePasswordForm";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";

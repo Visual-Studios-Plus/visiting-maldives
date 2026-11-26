@@ -449,12 +449,15 @@ function GroupInput({
 export default function ItemEditor({
   def,
   index,
+  version,
   initial,
   justCreated,
   atolls = [],
 }: {
   def: CollectionDef;
   index: number;
+  /** the collection version this form was rendered from; the save is refused if it changed */
+  version: string | null;
   initial: Item;
   justCreated?: boolean;
   /** the atolls, for "atoll" fields; filled in from the Atolls collection */
@@ -464,7 +467,7 @@ export default function ItemEditor({
   const [dirty, setDirty] = useState(false);
   const [slugTouched, setSlugTouched] = useState(index >= 0);
   const [state, action, pending] = useActionState<SaveState, FormData>(
-    saveItem.bind(null, def.key, index),
+    saveItem.bind(null, def.key, index, version),
     {},
   );
   const formRef = useRef<HTMLFormElement>(null);

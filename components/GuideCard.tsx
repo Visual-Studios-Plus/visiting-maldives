@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { photo, type Guide } from "@/lib/data";
+import { photo, type GuideSummary } from "@/lib/data";
 
 /*
  * Guide card: the photo fills the whole card.
@@ -11,7 +11,7 @@ import { photo, type Guide } from "@/lib/data";
  * - A soft fade only along the bottom keeps white text readable; the rest of the photo stays clear.
  * Fixed aspect ratio, so every card is the same size in grids and the carousel.
  */
-export default function GuideCard({ guide, tall = false, sizes = "(min-width:1024px) 33vw, (min-width:600px) 50vw, 100vw" }: { guide: Guide; tall?: boolean; sizes?: string }) {
+export default function GuideCard({ guide, tall = false, sizes = "(min-width:1024px) 33vw, (min-width:600px) 50vw, 100vw" }: { guide: GuideSummary; tall?: boolean; sizes?: string }) {
   return (
     <Link
       href={`/guides/${guide.slug}`}

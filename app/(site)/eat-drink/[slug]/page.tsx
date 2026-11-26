@@ -6,7 +6,7 @@ import Reveal from "@/components/Reveal";
 import Stars from "@/components/Stars";
 import RestaurantCard from "@/components/RestaurantCard";
 import { eatWhere, eatSlug } from "@/lib/data";
-import { getEat, getEats, slugParams } from "@/lib/content/store";
+import { getEat, getEats, slugParams } from "@/server/content/store";
 
 // Every page is prerendered from generateStaticParams, so a blocking route is fine here
 export const instant = false;
