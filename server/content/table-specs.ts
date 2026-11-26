@@ -110,6 +110,18 @@ export const TABLE_SPECS: TableSpec[] = [
     children: [],
   },
   {
+    key: "vessels", model: "Vessel", table: "vessels", doc: "A licensed liveaboard vessel from the Ministry of Tourism register, shown on atoll pages.",
+    cols: [
+      { f: "name", t: "s" }, { f: "registration", t: "s", opt: true }, { f: "licence", t: "s", opt: true },
+      { f: "cabins", t: "i", opt: true }, { f: "beds", t: "i", opt: true },
+      { f: "phone", t: "s", opt: true }, { f: "fax", t: "s", opt: true }, { f: "email", t: "s", opt: true },
+      { f: "operator", t: "s", opt: true },
+      { f: "atoll", t: "s", opt: true }, { f: "atollSlug", t: "s", opt: true, index: true },
+      { f: "image", t: "s" }, { f: "note", t: "s" }, { f: "licensed", t: "b", opt: true },
+    ],
+    children: [],
+  },
+  {
     key: "events", model: "Event", table: "events", doc: "A date in the year (What's on).",
     cols: [{ f: "month", t: "s" }, { f: "title", t: "s" }, { f: "text", t: "s" }, { f: "where", t: "s", col: "place" }],
     children: [],

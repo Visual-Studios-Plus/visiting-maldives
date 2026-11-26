@@ -3,7 +3,7 @@ import { cache } from "react";
 import { cacheLife, cacheTag } from "next/cache";
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { eatSlug, salonSlug, type Atoll, type CustomSection, type Dish, type Eat, type Essential, type Event, type Guide, type IslandEntry, type Salon, type Stay } from "@/lib/data";
+import { eatSlug, salonSlug, type Atoll, type CustomSection, type Dish, type Eat, type Essential, type Event, type Guide, type IslandEntry, type Salon, type Stay, type Vessel } from "@/lib/data";
 import type { CollectionKey } from "@/lib/content/schema";
 import type { Prisma } from "@prisma/client";
 import { db } from "@/server/db";
@@ -33,6 +33,7 @@ export type Collections = {
   guides: Guide[];
   atolls: Atoll[];
   stays: Stay[];
+  vessels: Vessel[];
   dishes: Dish[];
   eats: Eat[];
   events: Event[];
@@ -234,7 +235,7 @@ export async function readCollectionForEdit<K extends CollectionKey>(key: K): Pr
 /** The collections stored in the database, read with one query per request (not one per collection). */
 const storedKeys = cache(async (): Promise<Set<string> | null> => {
   if (!db) return null;
-  const all = ["guides", "atolls", "stays", "dishes", "eats", "events", "essentials", "salons", "islands", "sections"] as CollectionKey[];
+  const all = ["guides", "atolls", "stays", "vessels", "dishes", "eats", "events", "essentials", "salons", "islands", "sections"] as CollectionKey[];
   const [rows, filled] = await Promise.all([
     db.siteContent.findMany({ select: { key: true } }),
     Promise.all(all.map((k) => tableStore(k)?.has(db!).catch(() => false) ?? false)),
@@ -321,6 +322,7 @@ export async function resetCollection(key: CollectionKey, updatedBy?: string): P
 export const getGuides = () => getCollection("guides");
 export const getAtolls = () => getCollection("atolls");
 export const getStays = () => getCollection("stays");
+export const getVessels = () => getCollection("vessels");
 export const getEats = () => getCollection("eats");
 export const getDishes = () => getCollection("dishes");
 export const getEat = async (slug: string) => (await getEats()).find((e) => eatSlug(e) === slug);

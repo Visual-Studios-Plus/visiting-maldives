@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import { eatInAtoll, salonInAtoll, stayInAtoll } from "@/lib/data";
+import { eatInAtoll, salonInAtoll, stayInAtoll, vesselInAtoll } from "@/lib/data";
 import { atollFactRows, inhabitedNames, islandCards, islandHref } from "@/lib/islands";
 import { islandSlug } from "@/lib/resorts";
 import IslandCarousel from "@/components/IslandCarousel";
 import PlaceCarousels from "@/components/PlaceCarousels";
+import VesselCarousel from "@/components/VesselCarousel";
 import { notFound, permanentRedirect } from "next/navigation";
 import PageHero from "@/components/PageHero";
 import Reveal from "@/components/Reveal";
@@ -29,10 +30,11 @@ export async function generateMetadata({ params }: PageProps<"/atolls/[slug]">):
 
 export default async function AtollPage({ params }: PageProps<"/atolls/[slug]">) {
   // One database round trip for everything the page reads, rather than seven.
-  const { atolls, guides, stays: allStays, eats: allEats, salons: allSalons, islands: entries } = await getCollections([
+  const { atolls, guides, stays: allStays, vessels: allVessels, eats: allEats, salons: allSalons, islands: entries } = await getCollections([
     "atolls",
     "guides",
     "stays",
+    "vessels",
     "eats",
     "salons",
     "islands",
@@ -52,6 +54,8 @@ export default async function AtollPage({ params }: PageProps<"/atolls/[slug]">)
   const stays = allStays.filter((s) => stayInAtoll(s, atoll));
   const eats = allEats.filter((e) => eatInAtoll(e, atoll));
   const salons = allSalons.filter((s) => salonInAtoll(s, atoll));
+  // licensed liveaboards: those based in this atoll, and the ones that cruise across the Maldives
+  const vessels = allVessels.filter((v) => vesselInAtoll(v, atoll));
   // "at a glance": official name, capital, population and island counts
   const resortCount = stays.filter((x) => x.type === "Resort" || x.type === "Resort island").length;
   const glance = [...atollFactRows(atoll, resortCount, entries), ...(atoll.facts ?? [])];
@@ -142,6 +146,7 @@ export default async function AtollPage({ params }: PageProps<"/atolls/[slug]">)
         </Reveal>
       ) : null}
       <PlaceCarousels place={atoll.name} stays={stays} eats={eats} salons={salons} fallbackHref={`/atolls/${atoll.slug}`} />
+      <VesselCarousel place={atoll.name} vessels={vessels} />
       {atoll.gallery?.length ? (
         <div className="container-vm -mt-4 pb-12 lg:pb-20">
           <PhotoGallery photos={atoll.gallery} title={`${atoll.name} in photos`} />

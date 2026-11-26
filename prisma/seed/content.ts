@@ -22,6 +22,7 @@ import {
 import { HA, haaAlifIslandAtolls } from "./haa-alif-islands.ts";
 import { resortStays, withAtollSlugs } from "./resort-stays.ts";
 import { registerStays } from "./register-stays.ts";
+import { vessels } from "./vessels.ts";
 import { newAtolls, sortAtolls, splitAri } from "./admin-atolls.ts";
 import { withDescriptions } from "./atoll-descriptions.ts";
 import { sampleEats, sampleSalons, sampleStays } from "./island-listings.ts";
@@ -1522,4 +1523,4 @@ const sections: CustomSection[] = [
   },
 ];
 
-export const SEED = { guides, atolls, islands: islandEntries(atolls), stays: placesToStay, dishes, eats: [...eats, ...sampleEats], salons, sections, events, essentials };
+export const SEED = { guides, atolls, islands: islandEntries(atolls), stays: placesToStay, vessels: vessels(atolls), dishes, eats: [...eats, ...sampleEats], salons, sections, events, essentials };

@@ -58,8 +58,8 @@ export default function ResortCarousel({ resorts, inColumn = false }: { resorts:
         tabIndex={0}
         className={`no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto pb-6 ${inColumn ? "mt-5" : "container-vm mt-10"}`}
       >
-        {resorts.map((r) => (
-          <div key={r.href} className="w-[260px] shrink-0 snap-start sm:w-[300px] lg:w-[330px]">
+        {resorts.map((r, i) => (
+          <div key={r.href ?? `${r.resort}-${i}`} className="w-[260px] shrink-0 snap-start sm:w-[300px] lg:w-[330px]">
             <PhotoCard card={r} />
           </div>
         ))}

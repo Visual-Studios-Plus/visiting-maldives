@@ -3,12 +3,13 @@ import Link from "next/link";
 import { isCommons } from "@/lib/data";
 import CardStats, { type CardStatsData } from "@/components/CardStats";
 
-/** The data a photo card shows (places to stay, restaurants, salons, resorts, guides, hand-picked items). */
+/** The data a photo card shows (places to stay, restaurants, salons, resorts, guides, vessels). */
 export type ResortCard = {
   island: string;
   resort: string;
   image: string;
-  href: string;
+  /** page to open; leave it out for a card that only shows information (a vessel) */
+  href?: string;
   /** false: a resort island whose resort we have not named yet */
   named?: boolean;
   /** small line above the title (defaults to the island) */
@@ -17,6 +18,8 @@ export type ResortCard = {
   cta?: string;
   /** places to stay: rooms, beds and berths, shown above the button */
   stats?: CardStatsData;
+  /** cards without a link: a small line at the bottom, e.g. the operator */
+  footnote?: string;
 };
 
 /**
@@ -24,11 +27,8 @@ export type ResortCard = {
  * the card carousels, card grids and dashboard-built sections, so they all look the same.
  */
 export default function PhotoCard({ card: r, sizes = "(min-width:1024px) 330px, (min-width:640px) 300px, 260px" }: { card: ResortCard; sizes?: string }) {
-  return (
-    <Link
-      href={r.href}
-      className="group relative block aspect-[4/5] overflow-hidden rounded-card bg-ink text-white transition-[translate] duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:-translate-y-1.5 motion-reduce:hover:translate-y-0"
-    >
+  const content = (
+    <>
       {r.image ? (
         <Image
           src={r.image}
@@ -44,13 +44,28 @@ export default function PhotoCard({ card: r, sizes = "(min-width:1024px) 330px, 
         <p className="font-mono text-[12px] tracking-wide text-white/85 uppercase">{r.label ?? (r.named === false ? "Resort island" : r.island)}</p>
         <h3 className="mt-1 line-clamp-2 text-[21px] leading-[25px] font-semibold tracking-tight">{r.resort}</h3>
         {r.stats ? <CardStats data={r.stats} dark className="mt-2.5" /> : null}
-        <span className="mt-3 inline-flex items-center gap-2 text-[14px] font-medium text-white/90">
-          {r.cta ?? (r.named === false ? "View island" : "View resort")}
-          <span aria-hidden data-arrow className="inline-block transition-transform duration-300 group-hover:translate-x-1">
-            →
+        {r.href ? (
+          <span className="mt-3 inline-flex items-center gap-2 text-[14px] font-medium text-white/90">
+            {r.cta ?? (r.named === false ? "View island" : "View resort")}
+            <span aria-hidden data-arrow className="inline-block transition-transform duration-300 group-hover:translate-x-1">
+              →
+            </span>
           </span>
-        </span>
+        ) : r.footnote ? (
+          <p className="mt-3 line-clamp-2 border-t border-white/20 pt-2.5 text-[13px] leading-5 text-white/75">{r.footnote}</p>
+        ) : null}
       </div>
+    </>
+  );
+
+  const shell = "relative block aspect-[4/5] overflow-hidden rounded-card bg-ink text-white";
+  if (!r.href) return <div className={shell}>{content}</div>;
+  return (
+    <Link
+      href={r.href}
+      className={`group ${shell} transition-[translate] duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:-translate-y-1.5 motion-reduce:hover:translate-y-0`}
+    >
+      {content}
     </Link>
   );
 }

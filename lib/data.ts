@@ -218,6 +218,32 @@ export type Stay = {
   gallery?: GalleryPhoto[];
 };
 
+/** A licensed liveaboard vessel from the Ministry of Tourism register, shown on atoll pages. */
+export type Vessel = {
+  name: string;
+  /** the register's registration or licence number, when it has one */
+  registration?: string;
+  licence?: string;
+  /** cabins and beds, from the register */
+  cabins?: number;
+  beds?: number;
+  phone?: string;
+  fax?: string;
+  email?: string;
+  /** the company (or person) licensed to operate it */
+  operator?: string;
+  /** the atoll named in its operator or owner address; empty when it cruises across the Maldives */
+  atoll?: string;
+  atollSlug?: string;
+  image: string;
+  note: string;
+  /** listed in the Ministry of Tourism register of licensed tourist vessels */
+  licensed?: boolean;
+};
+
+/** Whether a vessel shows on this atoll's page: its own atoll, or every atoll for a vessel cruising the Maldives. */
+export const vesselInAtoll = (v: Pick<Vessel, "atollSlug">, atoll: Pick<Atoll, "slug">) => !v.atollSlug || v.atollSlug === atoll.slug;
+
 export type Eat = {
   /** page address, /eat-drink/<slug> (older entries without one fall back to the name) */
   slug?: string;

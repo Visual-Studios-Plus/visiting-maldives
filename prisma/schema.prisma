@@ -483,6 +483,36 @@ model Dish {
   @@map("dishes")
 }
 
+/// A licensed liveaboard vessel from the Ministry of Tourism register, shown on atoll pages.
+model Vessel {
+  id           String   @id @default(cuid())
+  /// order on the site and in the dashboard
+  sortOrder    Int      @map("sort_order")
+  name         String
+  registration String?
+  licence      String?
+  cabins       Int?
+  beds         Int?
+  phone        String?
+  fax          String?
+  email        String?
+  operator     String?
+  atoll        String?
+  atollSlug    String?  @map("atoll_slug")
+  image        String
+  note         String
+  licensed     Boolean?
+  /// dashboard user who created it
+  author       String?
+  updatedBy    String?  @map("updated_by")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@index([sortOrder])
+  @@index([atollSlug])
+  @@map("vessels")
+}
+
 /// A date in the year (What's on).
 model Event {
   id        String   @id @default(cuid())

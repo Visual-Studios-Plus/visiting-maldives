@@ -28,7 +28,7 @@ export type GroupField = {
 
 export type Field = ScalarField | GroupField;
 
-export type CollectionKey = "guides" | "atolls" | "islands" | "stays" | "dishes" | "eats" | "salons" | "sections" | "events" | "essentials";
+export type CollectionKey = "guides" | "atolls" | "islands" | "stays" | "vessels" | "dishes" | "eats" | "salons" | "sections" | "events" | "essentials";
 
 export type CollectionDef = {
   key: CollectionKey;
@@ -275,6 +275,33 @@ export const COLLECTIONS: CollectionDef[] = [
           { name: "text", label: "Review", type: "textarea", required: true },
         ],
       },
+    ],
+  },
+  {
+    key: "vessels",
+    label: "Vessels",
+    singular: "vessel",
+    description: "Licensed liveaboard vessels from the Ministry of Tourism register, shown as cards on atoll pages.",
+    titleField: "name",
+    subtitleField: "atoll",
+    imageField: "image",
+    listPath: "/atolls",
+    fields: [
+      { name: "name", label: "Name", type: "text", required: true },
+      { name: "registration", label: "Registration number", type: "text", placeholder: "TAV 142" },
+      { name: "licence", label: "Licence number", type: "text", placeholder: "C4855A-02 10-T" },
+      { name: "cabins", label: "Cabins", type: "number", min: 0, step: 1 },
+      { name: "beds", label: "Beds", type: "number", min: 0, step: 1 },
+      { name: "atoll", label: "Atoll", type: "atoll", help: "Choose the atoll this vessel is based in. Leave empty for a vessel that cruises across the Maldives; it then shows on every atoll page." },
+      // kept in step with `atoll` by the editor, so atoll listings never depend on free text
+      { name: "atollSlug", type: "hidden" },
+      { name: "operator", label: "Operator", type: "text", help: "The company or person licensed to operate the vessel." },
+      { name: "phone", label: "Phone", type: "text", placeholder: "+960 333 4455", help: "Separate several with commas." },
+      { name: "fax", label: "Fax", type: "text" },
+      { name: "email", label: "Email", type: "text", placeholder: "info@example.com", help: "Separate several with commas." },
+      { name: "note", label: "Short note", type: "text", required: true, help: "One line about the vessel, shown on its card." },
+      { name: "image", label: "Cover photo", type: "image", required: true, help: IMAGE_HELP },
+      { name: "licensed", label: "Licensed by the Ministry of Tourism", type: "checkbox" },
     ],
   },
   {

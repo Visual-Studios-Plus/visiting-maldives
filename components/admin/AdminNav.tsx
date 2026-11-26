@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, BedDouble, Blocks, BookOpen, CalendarDays, Info, LayoutGrid, Map, Scissors, Soup, TreePalm, UserCog, Users, UtensilsCrossed, type LucideIcon } from "lucide-react";
+import { BarChart3, BedDouble, Blocks, BookOpen, CalendarDays, Info, LayoutGrid, Map, Scissors, Ship, Soup, TreePalm, UserCog, Users, UtensilsCrossed, type LucideIcon } from "lucide-react";
 import { COLLECTIONS, type CollectionKey } from "@/lib/content/schema";
 import { cn } from "@/lib/utils";
 
@@ -9,6 +9,7 @@ const ICONS: Record<CollectionKey, LucideIcon> = {
   guides: BookOpen,
   atolls: Map,
   stays: BedDouble,
+  vessels: Ship,
   dishes: Soup,
   eats: UtensilsCrossed,
   salons: Scissors,
