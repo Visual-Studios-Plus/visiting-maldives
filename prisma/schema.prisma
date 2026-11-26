@@ -72,3 +72,92 @@ model AdminLoginAttempt {
   @@index([at])
   @@map("admin_login_attempts")
 }
+
+/// A place to stay (resort, hotel, guesthouse, homestay, liveaboard, yacht marina): one row each,
+/// published at /stay/<slug> and edited in the dashboard. Its facts, photos and reviews are rows
+/// of their own below, so nothing is kept as a blob of JSON.
+model Stay {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  /// order on the site and in the dashboard
+  position  Int
+  name      String
+  /// Resort | Resort island | Hotel | Guesthouse | Homestay | Liveaboard | Marina
+  type      String
+  atoll     String   @default("")
+  atollSlug String?  @map("atoll_slug")
+  island    String?
+  lat       Float?
+  lng       Float?
+  price     String   @default("")
+  note      String   @default("")
+  about     String   @default("")
+  image     String   @default("")
+  partner   Boolean  @default(false)
+  rating    Float?
+  rooms     Int?
+  beds      Int?
+  berths    Int?
+  phone     String?
+  email     String?
+  website   String?
+  licensed  Boolean  @default(false)
+  amenities String[] @default([])
+  /// dashboard user who created it
+  author    String?
+  updatedBy String?  @map("updated_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  facts   StayFact[]
+  photos  StayPhoto[]
+  reviews StayReview[]
+
+  @@index([atollSlug])
+  @@index([type])
+  @@index([position])
+  @@map("stays")
+}
+
+/// A label and value on a stay's page, e.g. ("Transfer", "Speedboat, 45 min").
+model StayFact {
+  id       Int    @id @default(autoincrement())
+  stayId   String @map("stay_id")
+  position Int
+  label    String
+  value    String
+  stay     Stay   @relation(fields: [stayId], references: [id], onDelete: Cascade)
+
+  @@index([stayId])
+  @@map("stay_facts")
+}
+
+/// A photo in a stay's gallery.
+model StayPhoto {
+  id       Int     @id @default(autoincrement())
+  stayId   String  @map("stay_id")
+  position Int
+  src      String
+  alt      String
+  caption  String?
+  stay     Stay    @relation(fields: [stayId], references: [id], onDelete: Cascade)
+
+  @@index([stayId])
+  @@map("stay_photos")
+}
+
+/// A guest review of a stay.
+model StayReview {
+  id       Int    @id @default(autoincrement())
+  stayId   String @map("stay_id")
+  position Int
+  author   String
+  from     String @default("")
+  date     String @default("")
+  rating   Float
+  text     String
+  stay     Stay   @relation(fields: [stayId], references: [id], onDelete: Cascade)
+
+  @@index([stayId])
+  @@map("stay_reviews")
+}

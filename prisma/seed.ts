@@ -16,6 +16,7 @@ import prismaPkg from "@prisma/client";
 import { SEED } from "./seed/content.ts";
 import { mergeResortStays, withAtollSlugs } from "./seed/resort-stays.ts";
 import type { Atoll, Stay } from "../lib/data.ts";
+import { hasStays, readStays, writeStays } from "../server/content/stays-table.ts";
 
 const reset = process.argv.includes("--reset");
 const only = process.argv.find((a) => a.startsWith("--only="))?.slice(7).split(",").map((k) => k.trim()).filter(Boolean);
@@ -32,6 +33,18 @@ async function seedDatabase() {
       throw new Error("Refusing to --reset the production branch. Add --yes-production if you really mean to replace all live content.");
     }
     for (const key of keys) {
+      // places to stay have their own tables (one column per field), not a JSON row
+      if (key === "stays") {
+        const exists = await hasStays(db);
+        if (exists && !reset) {
+          console.log("  keep    stays (already in the database)");
+          continue;
+        }
+        if (exists) await db.stay.deleteMany();
+        await writeStays(db, SEED.stays, "seed");
+        console.log(`  ${exists ? "reset " : "seeded"}  stays (${SEED.stays.length} entries)`);
+        continue;
+      }
       const exists = await db.siteContent.findUnique({ where: { key }, select: { key: true } });
       if (exists && !reset) {
         console.log(`  keep    ${key} (already in the database)`);
@@ -44,20 +57,15 @@ async function seedDatabase() {
 
     // Existing databases: turn the atolls' resort islands into place-to-stay entries once, so
     // every resort is published and edited under /stay. Existing entries and edits are kept.
-    const [atollsRow, staysRow] = await Promise.all(
-      ["atolls", "stays"].map((key) => db.siteContent.findUnique({ where: { key }, select: { data: true } })),
-    );
-    if (atollsRow && staysRow) {
+    const [atollsRow, staysNow] = await Promise.all([db.siteContent.findUnique({ where: { key: "atolls" }, select: { data: true } }), readStays(db)]);
+    if (atollsRow && staysNow) {
       const atolls = atollsRow.data as unknown as Atoll[];
-      const before = staysRow.data as unknown as Stay[];
+      const before = staysNow.items;
       // run once: after this, resort entries are ordinary places to stay and are never re-derived
       const merged = before.some((s) => s.island) ? { stays: before, added: 0 } : mergeResortStays(atolls, before);
       const stays = withAtollSlugs(atolls, merged.stays);
       if (merged.added || before.some((s) => !s.atollSlug)) {
-        await db.siteContent.update({
-          where: { key: "stays" },
-          data: { data: stays as unknown as prismaPkg.Prisma.InputJsonValue, updatedBy: "seed" },
-        });
+        await writeStays(db, stays, "seed");
         if (merged.added) console.log(`  moved   ${merged.added} resort islands into stays`);
       }
     }
