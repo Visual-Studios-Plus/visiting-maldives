@@ -13,6 +13,16 @@ import { REGISTER_PLACES, type RegisterKind, type RegisterPlace } from "./regist
 
 const plain = (s: string) => s.normalize("NFKD").replace(/[^a-z0-9]/gi, "").toLowerCase();
 
+/**
+ * Island names match however they are spelled: the island register and the tourism register
+ * transliterate Dhivehi differently ("Gaakoshibi" / "Gaakoshibee", "Kandholhudoo" / "Kandholhudhoo").
+ */
+const loose = (s: string) =>
+  plain(s).replace(/ee/g, "i").replace(/oo/g, "u").replace(/h/g, "").replace(/(.)\1+/g, "$1");
+
+/** The islands a register entry names: some resorts span two ("Thilamaafushi and Bodufinolhu"). */
+const islandsOf = (island: string) => island.split(/\s+and\s+|\s*[,&/]\s*/i).filter(Boolean);
+
 /** Placeholder cover photos by kind, until real photos are uploaded in the dashboard. */
 const PHOTOS: Record<RegisterKind, string[]> = {
   Resort: [],
@@ -76,7 +86,7 @@ export function registerStays(atolls: Atoll[], existing: Stay[]): Stay[] {
   const used = new Set(existing.map((s) => s.slug));
   const merged = existing.map((s) => ({ ...s }));
   const resortByIsland = new Map(
-    merged.filter((s) => (s.type === "Resort" || s.type === "Resort island" || s.type === "Hotel") && s.island).map((s) => [`${s.atollSlug}|${plain(s.island!)}`, s]),
+    merged.filter((s) => (s.type === "Resort" || s.type === "Resort island" || s.type === "Hotel") && s.island).map((s) => [`${s.atollSlug}|${loose(s.island!)}`, s]),
   );
   const added: Stay[] = [];
   const count: Record<string, number> = {};
@@ -86,8 +96,7 @@ export function registerStays(atolls: Atoll[], existing: Stay[]): Stay[] {
 
     // a resort island we already list: name it and add the register's details
     if (r.kind === "Resort") {
-      const first = r.island.split(/ and |,/)[0];
-      const hit = resortByIsland.get(`${r.atollSlug}|${plain(first)}`) ?? resortByIsland.get(`${r.atollSlug}|${plain(r.island)}`);
+      const hit = [...islandsOf(r.island), r.island].map((i) => resortByIsland.get(`${r.atollSlug}|${loose(i)}`)).find(Boolean);
       if (hit) {
         if (hit.type === "Resort island") {
           hit.type = "Resort";
