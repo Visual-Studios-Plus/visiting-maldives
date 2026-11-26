@@ -8,13 +8,16 @@ import type { CollectionKey } from "@/lib/content/schema";
 import type { Prisma } from "@prisma/client";
 import { db } from "@/server/db";
 import { hasStays, readStays, staysTableReady, writeStays, StaysConflictError, type StayItem } from "@/server/content/stays-table";
+import { readTable, tableHasRows, tableReady, tableSpec, writeTable, TableConflictError } from "@/server/content/tables";
+import type { PrismaClient } from "@prisma/client";
 
 /*
  * Where dashboard content lives (backend only: pages and components read it through the getters
  * below, never through Prisma).
- * - With DATABASE_URL (Neon Postgres via Prisma; see prisma/schema.prisma): places to stay in
- *   their own tables, one column per field (stays-table.ts); the other collections one
- *   SiteContent row each, holding the list as JSON. Tables come from Prisma migrations.
+ * - With DATABASE_URL (Neon Postgres via Prisma; see prisma/schema.prisma): every collection in
+ *   its own tables, one column per field and child tables for lists (stays-table.ts for places to
+ *   stay, tables.ts + table-specs.ts for the rest). Until a collection's table is filled
+ *   (scripts/move-content-to-tables.ts) it is read from its old SiteContent JSON row.
  * - Without it, in local development: .data/content.json in the project (git-ignored).
  * - Content starts in the database via the seed (prisma/seed/content.ts, `npm run db:seed`); an
  *   unseeded collection is simply empty. "Restore original content" rewrites it from the seed.
@@ -92,14 +95,47 @@ const DEV_MEMO_MS = 10 * 60 * 1000;
 /** Prisma's "table does not exist": migrations not applied yet, so the collection is simply empty. */
 const isMissingTable = (err: unknown) => (err as { code?: string } | null)?.code === "P2021";
 
+/** How a collection is kept in its own tables: stays (stays-table.ts) or a described table (tables.ts). */
+type TableStore = {
+  read: (db: PrismaClient) => Promise<{ items: unknown[]; version: string } | null>;
+  ready: (db: PrismaClient) => Promise<boolean>;
+  has: (db: PrismaClient) => Promise<boolean>;
+  write: (db: PrismaClient, list: unknown[], updatedBy?: string, expected?: string | null) => Promise<unknown>;
+  isConflict: (err: unknown) => boolean;
+};
+
+function tableStore(key: CollectionKey): TableStore | null {
+  if (key === "stays")
+    return {
+      read: (d) => readStays(d),
+      ready: staysTableReady,
+      has: hasStays,
+      write: (d, list, by, expected) => writeStays(d, list as StayItem[], by, expected),
+      isConflict: (err) => err instanceof StaysConflictError,
+    };
+  const spec = tableSpec(key);
+  if (!spec) return null;
+  return {
+    read: (d) => readTable(d, spec),
+    ready: (d) => tableReady(d, spec),
+    has: (d) => tableHasRows(d, spec),
+    write: (d, list, by, expected) => writeTable(d, spec, list as Record<string, unknown>[], by, expected),
+    isConflict: (err) => err instanceof TableConflictError,
+  };
+}
+
+/** A collection's table contents, or null when it has none yet (or the table doesn't exist yet). */
+const readFromTable = (key: CollectionKey) => {
+  const t = tableStore(key);
+  return t ? t.read(db!).catch((err) => (isMissingTable(err) ? null : Promise.reject(err))) : Promise.resolve(null);
+};
+
 async function readRow<K extends CollectionKey>(key: K): Promise<{ data: Collections[K]; version: string | null } | null> {
   for (let attempt = 1; ; attempt++) {
     try {
-      // stays: from their table; until it's filled (scripts/move-stays-to-table.ts), the old JSON row
-      if (key === "stays") {
-        const stays = await readStays(db!).catch((err) => (isMissingTable(err) ? null : Promise.reject(err)));
-        if (stays) return { data: stays.items as unknown as Collections[K], version: stays.version };
-      }
+      // from the collection's table; until it's filled, the old JSON row
+      const table = await readFromTable(key);
+      if (table) return { data: table.items as unknown as Collections[K], version: table.version };
       const row = await db!.siteContent.findUnique({ where: { key } });
       return row ? { data: row.data as Collections[K], version: row.updatedAt.toISOString() } : null;
     } catch (err) {
@@ -166,16 +202,11 @@ export async function getCollections<K extends CollectionKey>(keys: readonly K[]
   let rows: { key: string; data: unknown }[] = [];
   for (let attempt = 1; ; attempt++) {
     try {
-      const [json, stays] = await Promise.all([
-        db.siteContent.findMany({ where: { key: { in: keys.filter((k) => k !== "stays") } }, select: { key: true, data: true } }),
-        keys.includes("stays" as K) ? readStays(db).catch((err) => (isMissingTable(err) ? null : Promise.reject(err))) : null,
-      ]);
-      rows = stays ? [...json, { key: "stays", data: stays.items }] : json;
-      // the stays table isn't filled yet: fall back to the old JSON row
-      if (keys.includes("stays" as K) && !stays) {
-        const old = await db.siteContent.findUnique({ where: { key: "stays" }, select: { key: true, data: true } });
-        if (old) rows.push(old);
-      }
+      const tables = await Promise.all(keys.map((k) => readFromTable(k)));
+      rows = keys.flatMap((k, i) => (tables[i] ? [{ key: k as string, data: tables[i]!.items }] : []));
+      // collections whose table isn't filled yet: from their old JSON rows
+      const rest = keys.filter((_, i) => !tables[i]);
+      if (rest.length) rows.push(...(await db.siteContent.findMany({ where: { key: { in: [...rest] } }, select: { key: true, data: true } })));
       break;
     } catch (err) {
       if (isMissingTable(err)) break;
@@ -203,9 +234,13 @@ export async function readCollectionForEdit<K extends CollectionKey>(key: K): Pr
 /** The collections stored in the database, read with one query per request (not one per collection). */
 const storedKeys = cache(async (): Promise<Set<string> | null> => {
   if (!db) return null;
-  const [rows, stays] = await Promise.all([db.siteContent.findMany({ select: { key: true } }), hasStays(db).catch(() => false)]);
+  const all = ["guides", "atolls", "stays", "dishes", "eats", "events", "essentials", "salons", "islands", "sections"] as CollectionKey[];
+  const [rows, filled] = await Promise.all([
+    db.siteContent.findMany({ select: { key: true } }),
+    Promise.all(all.map((k) => tableStore(k)?.has(db!).catch(() => false) ?? false)),
+  ]);
   const keys = new Set(rows.map((r) => r.key));
-  if (stays) keys.add("stays");
+  all.forEach((k, i) => filled[i] && keys.add(k));
   return keys;
 });
 
@@ -231,14 +266,15 @@ export async function saveCollection<K extends CollectionKey>(
   expected?: string | null,
 ): Promise<void> {
   const mode = storageMode();
-  // stays go to their table once it exists (until the migration runs, to the JSON row as before)
-  if (mode === "database" && key === "stays" && (await staysTableReady(db!))) {
+  // to the collection's table once it exists (before the migration runs, to the JSON row as before)
+  const table = mode === "database" ? tableStore(key) : null;
+  if (table && (await table.ready(db!))) {
     try {
       // the first save after the move fills the table, so the old JSON version doesn't apply to it
-      const filled = await hasStays(db!);
-      await writeStays(db!, data as unknown as StayItem[], updatedBy, filled ? expected : undefined);
+      const filled = await table.has(db!);
+      await table.write(db!, data as unknown as unknown[], updatedBy, filled ? expected : undefined);
     } catch (err) {
-      if (err instanceof StaysConflictError) throw new ContentConflictError();
+      if (table.isConflict(err)) throw new ContentConflictError();
       throw err;
     }
     devMemo?.delete(key);

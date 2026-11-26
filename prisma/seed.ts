@@ -17,6 +17,7 @@ import { SEED } from "./seed/content.ts";
 import { mergeResortStays, withAtollSlugs } from "./seed/resort-stays.ts";
 import type { Atoll, Stay } from "../lib/data.ts";
 import { hasStays, readStays, writeStays } from "../server/content/stays-table.ts";
+import { tableHasRows, tableSpec, writeTable } from "../server/content/tables.ts";
 
 const reset = process.argv.includes("--reset");
 const only = process.argv.find((a) => a.startsWith("--only="))?.slice(7).split(",").map((k) => k.trim()).filter(Boolean);
@@ -45,6 +46,19 @@ async function seedDatabase() {
         console.log(`  ${exists ? "reset " : "seeded"}  stays (${SEED.stays.length} entries)`);
         continue;
       }
+      // every other collection: its own tables too (server/content/table-specs.ts)
+      const spec = tableSpec(key);
+      if (spec) {
+        const exists = await tableHasRows(db, spec);
+        if (exists && !reset) {
+          console.log(`  keep    ${key} (already in the database)`);
+          continue;
+        }
+        if (exists) await (db as unknown as Record<string, { deleteMany: () => Promise<unknown> }>)[spec.model[0].toLowerCase() + spec.model.slice(1)].deleteMany();
+        await writeTable(db, spec, SEED[key] as unknown as Record<string, unknown>[], "seed");
+        console.log(`  ${exists ? "reset " : "seeded"}  ${key} (${SEED[key].length} entries)`);
+        continue;
+      }
       const exists = await db.siteContent.findUnique({ where: { key }, select: { key: true } });
       if (exists && !reset) {
         console.log(`  keep    ${key} (already in the database)`);
@@ -57,9 +71,10 @@ async function seedDatabase() {
 
     // Existing databases: turn the atolls' resort islands into place-to-stay entries once, so
     // every resort is published and edited under /stay. Existing entries and edits are kept.
-    const [atollsRow, staysNow] = await Promise.all([db.siteContent.findUnique({ where: { key: "atolls" }, select: { data: true } }), readStays(db)]);
-    if (atollsRow && staysNow) {
-      const atolls = atollsRow.data as unknown as Atoll[];
+    const atollSpec = tableSpec("atolls")!;
+    const [atollsNow, staysNow] = await Promise.all([(await import("../server/content/tables.ts")).readTable(db, atollSpec), readStays(db)]);
+    if (atollsNow && staysNow) {
+      const atolls = atollsNow.items as unknown as Atoll[];
       const before = staysNow.items;
       // run once: after this, resort entries are ordinary places to stay and are never re-derived
       const merged = before.some((s) => s.island) ? { stays: before, added: 0 } : mergeResortStays(atolls, before);
