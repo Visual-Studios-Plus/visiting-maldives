@@ -38,6 +38,7 @@ export default function PlaceCarousels({
         cta: "View place",
         image: photo(s.image, 900),
         href: `/stay/${s.slug}`,
+        stats: { rooms: s.rooms, beds: s.beds, berths: s.berths, cabins: s.type === "Liveaboard" },
       })),
     },
     {

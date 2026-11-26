@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { isCommons } from "@/lib/data";
+import CardStats, { type CardStatsData } from "@/components/CardStats";
 
 /** The data a photo card shows (places to stay, restaurants, salons, resorts, guides, hand-picked items). */
 export type ResortCard = {
@@ -14,6 +15,8 @@ export type ResortCard = {
   label?: string;
   /** button text (defaults to "View resort") */
   cta?: string;
+  /** places to stay: rooms, beds and berths, shown above the button */
+  stats?: CardStatsData;
 };
 
 /**
@@ -40,6 +43,7 @@ export default function PhotoCard({ card: r, sizes = "(min-width:1024px) 330px, 
       <div className="absolute inset-x-0 bottom-0 p-5">
         <p className="font-mono text-[12px] tracking-wide text-white/85 uppercase">{r.label ?? (r.named === false ? "Resort island" : r.island)}</p>
         <h3 className="mt-1 line-clamp-2 text-[21px] leading-[25px] font-semibold tracking-tight">{r.resort}</h3>
+        {r.stats ? <CardStats data={r.stats} dark className="mt-2.5" /> : null}
         <span className="mt-3 inline-flex items-center gap-2 text-[14px] font-medium text-white/90">
           {r.cta ?? (r.named === false ? "View island" : "View resort")}
           <span aria-hidden data-arrow className="inline-block transition-transform duration-300 group-hover:translate-x-1">

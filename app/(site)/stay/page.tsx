@@ -28,6 +28,7 @@ export default async function Stay() {
         atollName: atoll?.name ?? s.atoll,
         region: atoll?.region ?? "Central",
         href: `/stay/${s.slug}`,
+        stats: { rooms: s.rooms, beds: s.beds, berths: s.berths, cabins: s.type === "Liveaboard" },
         image: photo(s.image, 700),
       } satisfies ResortItem;
     })

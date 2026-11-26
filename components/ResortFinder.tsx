@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
+import CardStats, { type CardStatsData } from "@/components/CardStats";
 import { useDeferredValue, useMemo, useState } from "react";
 import { isCommons } from "@/lib/data";
 
@@ -20,6 +21,8 @@ export type ResortItem = {
   region: "North" | "Central" | "South";
   href: string;
   image: string;
+  /** rooms, beds and berths */
+  stats?: CardStatsData;
 };
 
 const REGIONS = ["All", "North", "Central", "South"] as const;
@@ -156,6 +159,7 @@ export default function ResortFinder({ resorts, atolls }: { resorts: ResortItem[
                 {r.named ? `${r.island} · ` : ""}
                 {r.atollName}
               </p>
+              {r.stats ? <CardStats data={r.stats} className="mt-2" /> : null}
             </Link>
           ))}
         </div>

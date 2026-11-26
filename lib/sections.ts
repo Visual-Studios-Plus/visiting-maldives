@@ -96,6 +96,7 @@ export function sectionContent(s: CustomSection, page: SectionPage, data: Sectio
           cta: "View place",
           image: photo(x.image, 900),
           href: `/stay/${x.slug}`,
+          stats: { rooms: x.rooms, beds: x.beds, berths: x.berths, cabins: x.type === "Liveaboard" },
         })),
       };
     }
